@@ -321,11 +321,12 @@ function Invoke-WPFUIElements {
 
                         foreach ($comboitem in $comboItems) {
                             $comboBoxItem = New-Object Windows.Controls.ComboBoxItem
-                            $comboBoxItem.Content = $comboitem
+                            $comboBoxItem.Tag = [string]$comboitem
+                            $comboBoxItem.Content = Convert-WinUtilRussianText ([string]$comboitem)
                             if ($entryInfo.ComboDescriptions) {
                                 $comboDescription = $entryInfo.ComboDescriptions.PSObject.Properties[$comboitem].Value
                                 if ($comboDescription) {
-                                    $comboBoxItem.ToolTip = $comboDescription
+                                    $comboBoxItem.ToolTip = Convert-WinUtilRussianText $comboDescription
                                 }
                             }
                             $comboBoxItem.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "ButtonFontSize")
@@ -339,10 +340,12 @@ function Invoke-WPFUIElements {
                         if ($entryInfo.Registry -and @($entryInfo.Registry)[0].Values) {
                             try {
                                 $comboBox.Tag.State = Get-WinUtilRegistryComboState -Registry $entryInfo.Registry
-                                $comboBox.SelectedIndex = @($comboBox.Items.Content).IndexOf([string]$comboBox.Tag.State)
+                                $stateItem = @($comboBox.Items) | Where-Object { $_.Tag -eq [string]$comboBox.Tag.State } | Select-Object -First 1
+                                $comboBox.SelectedItem = $stateItem
                             } catch {
                                 $unknownStateItem = New-Object Windows.Controls.ComboBoxItem
-                                $unknownStateItem.Content = "Custom / Unknown - select a state"
+                                $unknownStateItem.Tag = '__WinUtilUnknownState__'
+                                $unknownStateItem.Content = Convert-WinUtilRussianText "Custom / Unknown - select a state"
                                 $unknownStateItem.IsEnabled = $false
                                 $unknownStateItem.ToolTip = "$($_.Exception.Message) Select one of the supported states to replace these values."
                                 $comboBox.Items.Add($unknownStateItem) | Out-Null
@@ -366,22 +369,23 @@ function Invoke-WPFUIElements {
                             if ($selectedItem) {
                                 $this.Text = $selectedItem.Content
                                 $registry = $this.Tag.Registry
-                                if ($registry -and $selectedItem.IsEnabled -and $selectedItem.Content -ne $this.Tag.State) {
+                                $selectedValue = if ($selectedItem.Tag -and $selectedItem.Tag -ne '__WinUtilUnknownState__') { [string]$selectedItem.Tag } else { [string]$selectedItem.Content }
+                                if ($registry -and $selectedItem.IsEnabled -and $selectedValue -ne $this.Tag.State -and $selectedItem.Tag -ne '__WinUtilUnknownState__') {
                                     try {
-                                        Set-WinUtilRegistryComboState -Registry $registry -State $selectedItem.Content
-                                        $this.Tag.State = $selectedItem.Content
+                                        Set-WinUtilRegistryComboState -Registry $registry -State $selectedValue
+                                        $this.Tag.State = $selectedValue
                                         $this.ToolTip = $null
-                                        $unknownStateItem = @($this.Items) | Where-Object Content -EQ "Custom / Unknown - select a state" | Select-Object -First 1
+                                        $unknownStateItem = @($this.Items) | Where-Object Tag -EQ '__WinUtilUnknownState__' | Select-Object -First 1
                                         if ($unknownStateItem) {
                                             $this.Items.Remove($unknownStateItem)
                                         }
                                     } catch {
                                         $applyError = $_.Exception.Message
                                         if ([string]::IsNullOrWhiteSpace($applyError)) {
-                                            $applyError = "Unable to apply registry state '$($selectedItem.Content)'."
+                                            $applyError = "Unable to apply registry state '$selectedValue'."
                                         }
-                                        $previousState = if ($this.Tag.State) { $this.Tag.State } else { "Custom / Unknown - select a state" }
-                                        $this.SelectedItem = @($this.Items) | Where-Object Content -EQ $previousState | Select-Object -First 1
+                                        $previousState = if ($this.Tag.State) { $this.Tag.State } else { '__WinUtilUnknownState__' }
+                                        $this.SelectedItem = @($this.Items) | Where-Object Tag -EQ $previousState | Select-Object -First 1
                                         [System.Windows.MessageBox]::Show(
                                             $applyError,
                                             "WinUtil",
