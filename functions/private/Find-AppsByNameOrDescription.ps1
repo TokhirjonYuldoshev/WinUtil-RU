@@ -70,7 +70,7 @@ function Find-AppsByNameOrDescription {
                     $categoryLabel.Visibility = [Windows.Visibility]::Visible
 
                     # A category that filtering expanded goes back to how the user left it
-                    $categoryName = $categoryLabel.Content -replace '^[+-] ', ''
+                    $categoryName = if ($categoryLabel.Uid) { $categoryLabel.Uid } else { $categoryLabel.Content -replace '^[+-] ', '' }
                     if ($sync.AppCategoryAutoExpanded.ContainsKey($categoryName)) {
                         $categoryLabel.Content = $categoryLabel.Content -replace "^- ", "+ "
                         $sync.AppCategoryAutoExpanded.Remove($categoryName)
@@ -139,7 +139,8 @@ function Find-AppsByNameOrDescription {
                     # Remember that it was collapsed so clearing the filter can put it back.
                     if ($categoryLabel.Content -like "+*") {
                         $categoryLabel.Content = $categoryLabel.Content -replace "^\+ ", "- "
-                        $sync.AppCategoryAutoExpanded[($categoryLabel.Content -replace '^- ', '')] = $true
+                        $categoryName = if ($categoryLabel.Uid) { $categoryLabel.Uid } else { $categoryLabel.Content -replace '^- ', '' }
+                        $sync.AppCategoryAutoExpanded[$categoryName] = $true
                     }
                 }
                 else {
