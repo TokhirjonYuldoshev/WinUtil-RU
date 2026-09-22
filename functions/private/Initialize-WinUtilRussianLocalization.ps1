@@ -1,16 +1,14 @@
 function Initialize-WinUtilRussianLocalization {
     <#
     .SYNOPSIS
-        Applies Russian localization to user-facing WinUtil text.
+        Initializes the optional Russian display layer for WinUtil.
 
     .DESCRIPTION
-        Keeps control names, config keys, commands, registry paths and other execution data
-        unchanged. Only text presented to the user is localized so upstream behavior remains
-        intact and future upstream changes are easier to merge into the russian branch.
+        Internal control names, configuration keys, category IDs, commands, registry values,
+        package identifiers and application names stay unchanged. Only presentation text is
+        translated. The selected language is stored per user and applied at startup.
     #>
 
-    # Persisted UI language. The russian branch defaults to Russian, but users can
-    # switch to the original English UI from Settings.
     $language = 'ru-RU'
     try {
         $savedLanguage = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name 'Language' -ErrorAction Stop).Language
@@ -18,12 +16,11 @@ function Initialize-WinUtilRussianLocalization {
             $language = $savedLanguage
         }
     } catch {
-        # No saved preference yet.
+        # Russian is the default for this branch.
     }
     $sync.preferences.language = $language
 
     $sync.WinUtilRussianExactTranslations = @{
-        # Window chrome and common UI
         'Change the WinUtil UI Theme' = 'Изменить тему интерфейса WinUtil'
         'Theme' = 'Тема'
         'Auto' = 'Авто'
@@ -63,15 +60,11 @@ function Initialize-WinUtilRussianLocalization {
         'Yes' = 'Да'
         'No' = 'Нет'
         'OK' = 'ОК'
-
-        # Main navigation
         'Install' = 'Установка'
         'Tweaks' = 'Настройки системы'
         'Config' = 'Инструменты'
         'Updates' = 'Обновления'
         'Win11ISO' = 'ISO Windows 11'
-
-        # Install tab
         'Filter by category. Ctrl click to select more than one.' = 'Фильтр по категории. Ctrl+щелчок позволяет выбрать несколько категорий.'
         'All' = 'Все'
         'Browsers' = 'Браузеры'
@@ -107,8 +100,6 @@ function Initialize-WinUtilRussianLocalization {
         'Use Chocolatey for package management' = 'Использовать Chocolatey для управления пакетами'
         'Actions' = 'Действия'
         'Selection' = 'Выбор'
-
-        # Tweaks tab
         'Recommended Selections:' = 'Рекомендуемые варианты:'
         'Standard' = 'Стандартный'
         'Minimal' = 'Минимальный'
@@ -122,8 +113,6 @@ function Initialize-WinUtilRussianLocalization {
         'Essential Tweaks' = 'Основные настройки'
         'Advanced Tweaks - CAUTION' = 'Расширенные настройки — ОСТОРОЖНО'
         'z__Advanced Tweaks - CAUTION' = 'z__Расширенные настройки — ОСТОРОЖНО'
-
-        # Common tweak names
         'Activity History' = 'История активности'
         'Hibernation' = 'Гибернация'
         'Widgets' = 'Виджеты'
@@ -152,8 +141,6 @@ function Initialize-WinUtilRussianLocalization {
         'Dark Mode' = 'Тёмный режим'
         'End Task' = 'Завершение задачи'
         'Debloat' = 'Очистить от лишнего'
-
-        # Config / features tab
         'Features' = 'Компоненты'
         'Fixes' = 'Исправления'
         'Legacy Windows Panels' = 'Классические панели Windows'
@@ -187,8 +174,6 @@ function Initialize-WinUtilRussianLocalization {
         'Windows Restore' = 'Восстановление Windows'
         'CTT PowerShell Profile' = 'Профиль CTT PowerShell'
         'OpenSSH Server' = 'Сервер OpenSSH'
-
-        # Updates tab
         'Windows Update Profiles' = 'Профили обновления Windows'
         'Choose how Windows receives updates. Each profile replaces the Windows Update settings managed by WinUtil.' = 'Выберите способ получения обновлений Windows. Каждый профиль заменяет параметры Центра обновления Windows, которыми управляет WinUtil.'
         'Recommended' = 'Рекомендуемый'
@@ -213,8 +198,6 @@ function Initialize-WinUtilRussianLocalization {
         '- Clears downloaded update files' = '- Удаляет загруженные файлы обновлений'
         'Security updates will not be installed while this profile is active.' = 'Пока этот профиль активен, обновления безопасности устанавливаться не будут.'
         'Changes apply system-wide. Restart Windows after switching profiles. Use Restore Defaults to undo WinUtil update policies.' = 'Изменения применяются ко всей системе. После смены профиля перезагрузите Windows. Для отмены политик WinUtil используйте «Восстановить значения по умолчанию».'
-
-        # Windows 11 ISO tab
         'Back to the previous step' = 'Вернуться к предыдущему шагу'
         'Forward to the next step' = 'Перейти к следующему шагу'
         '1   Select ISO' = '1   Выбор ISO'
@@ -369,6 +352,11 @@ function Initialize-WinUtilRussianLocalization {
         'Enables Advanced Boot Options screen that lets you start Windows in advanced troubleshooting modes.' = 'Включает экран дополнительных вариантов загрузки Windows для расширенной диагностики и восстановления.'
         'Disables Advanced Boot Options screen that lets you start Windows in advanced troubleshooting modes.' = 'Отключает экран дополнительных вариантов загрузки Windows.'
         'Windows Sandbox is a lightweight virtual machine that provides a temporary desktop environment to safely run applications and programs in isolation.' = 'Песочница Windows — лёгкая виртуальная среда для безопасного запуска приложений в изоляции.'
+        'Disabled (Compatibility)' = 'Отключено (режим совместимости)'
+        'Fully Disabled' = 'Полностью отключено'
+        'Uses Windows'' default overlay behavior.' = 'Использует стандартное поведение наложения Windows.'
+        'Disables MPO using OverlayTestMode=5, the less aggressive compatibility method.' = 'Отключает MPO через OverlayTestMode=5 — менее агрессивный режим совместимости.'
+        'Disables MPO using OverlayTestMode=5 and DisableOverlays=1, the more aggressive method.' = 'Полностью отключает MPO через OverlayTestMode=5 и DisableOverlays=1 — более агрессивный режим.'
     }
 
     $sync.WinUtilRussianPhraseTranslations = [ordered]@{
@@ -414,240 +402,27 @@ function Initialize-WinUtilRussianLocalization {
             return (' ' * $prefixLength) + $translated + (' ' * $suffixLength)
         }
 
-        # Dynamic selected-app count.
-        if ($trimmed -match '^Selected Apps:\s*(\d+)
-    }
-
-    # Localize presentation-only XAML. Internal TabItem headers and generic ToggleButton
-    # Content stay in English because WinUtil uses some of those values as logic keys.
-    if ($sync.preferences.language -eq 'ru-RU') {
-    try {
-        [xml]$localizedXaml = $script:inputXML
-
-        foreach ($node in $localizedXaml.SelectNodes('//*')) {
-            $elementName = $node.LocalName
-
-            # Tooltips are presentation-only.
-            $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
-            if ($null -ne $toolTipAttribute) {
-                $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
-            }
-
-            # Safe static controls. Do not translate TabItem.Header here.
-            if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem')) {
-                foreach ($attributeName in @('Content', 'Text', 'Header')) {
-                    $attribute = $node.Attributes.GetNamedItem($attributeName)
-                    if ($null -ne $attribute) {
-                        $attribute.Value = Convert-WinUtilRussianText $attribute.Value
-                    }
-                }
-            }
-
-            # Install category chips carry their real category in Tag at runtime, so only
-            # their visible Content may be translated.
-            if ($elementName -eq 'ToggleButton') {
-                $nameAttribute = $node.Attributes.GetNamedItem('Name')
-                $contentAttribute = $node.Attributes.GetNamedItem('Content')
-                if ($null -ne $nameAttribute -and $nameAttribute.Value -like 'WPFSearchChip*' -and $null -ne $contentAttribute) {
-                    $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
-                }
-            }
-
-            # Text inside TextBlock/Run nodes is presentation-only. This also translates
-            # the visible top navigation while leaving hidden TabItem headers untouched.
-            if ($elementName -in @('TextBlock', 'Run')) {
-                foreach ($child in @($node.ChildNodes)) {
-                    if ($child.NodeType -eq [System.Xml.XmlNodeType]::Text -and -not [string]::IsNullOrWhiteSpace($child.Value)) {
-                        $child.Value = Convert-WinUtilRussianText $child.Value
-                    }
-                }
-            }
-        }
-
-        # Navigation captions are split into Underline + text in XAML, so translate
-        # them explicitly without touching the hidden TabItem.Header logic keys.
-        $navCaptions = @{
-            'WPFTab1BT' = 'Установка'
-            'WPFTab2BT' = 'Настройки'
-            'WPFTab3BT' = 'Инструменты'
-            'WPFTab4BT' = 'Обновления'
-            'WPFTab5BT' = 'Создание Windows 11'
-        }
-        foreach ($navName in $navCaptions.Keys) {
-            $navNode = $localizedXaml.SelectSingleNode("//*[@Name='$navName']")
-            if ($null -ne $navNode) {
-                $textBlock = $navNode.SelectSingleNode(".//*[local-name()='TextBlock']")
-                if ($null -ne $textBlock) {
-                    while ($textBlock.HasChildNodes) {
-                        $textBlock.RemoveChild($textBlock.FirstChild) | Out-Null
-                    }
-                    $textBlock.AppendChild($localizedXaml.CreateTextNode($navCaptions[$navName])) | Out-Null
-                }
-            }
-        }
-
-        $script:inputXML = $localizedXaml.OuterXml
-    } catch {
-        Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
-    }
-    }
-
-    # Do not mutate config Content/Description/Category values. Those objects are also
-    # used by WinUtil logic. Dynamic controls translate only when their text is rendered.
-
-    # Use Russian formatting for dates/numbers shown by .NET without changing command behavior.
-    try {
-        $culture = [System.Globalization.CultureInfo]::GetCultureInfo($sync.preferences.language)
-        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
-    } catch {
-        # Localization text still works even if culture setup is unavailable.
-    }
-}
-) {
+        if ($trimmed -match '^Selected Apps:\s*(\d+)$') {
             return "Выбрано приложений: $($Matches[1])"
         }
 
-        # App names are intentionally kept as product names; only the action is localized.
-        if ($trimmed -match '^Install or Upgrade\s+(.+)
-    }
-
-    # Localize presentation-only XAML. Internal TabItem headers and generic ToggleButton
-    # Content stay in English because WinUtil uses some of those values as logic keys.
-    try {
-        [xml]$localizedXaml = $script:inputXML
-
-        foreach ($node in $localizedXaml.SelectNodes('//*')) {
-            $elementName = $node.LocalName
-
-            # Tooltips are presentation-only.
-            $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
-            if ($null -ne $toolTipAttribute) {
-                $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
-            }
-
-            # Safe static controls. Do not translate TabItem.Header here.
-            if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem')) {
-                foreach ($attributeName in @('Content', 'Text', 'Header')) {
-                    $attribute = $node.Attributes.GetNamedItem($attributeName)
-                    if ($null -ne $attribute) {
-                        $attribute.Value = Convert-WinUtilRussianText $attribute.Value
-                    }
-                }
-            }
-
-            # Install category chips carry their real category in Tag at runtime, so only
-            # their visible Content may be translated.
-            if ($elementName -eq 'ToggleButton') {
-                $nameAttribute = $node.Attributes.GetNamedItem('Name')
-                $contentAttribute = $node.Attributes.GetNamedItem('Content')
-                if ($null -ne $nameAttribute -and $nameAttribute.Value -like 'WPFSearchChip*' -and $null -ne $contentAttribute) {
-                    $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
-                }
-            }
-
-            # Text inside TextBlock/Run nodes is presentation-only. This also translates
-            # the visible top navigation while leaving hidden TabItem headers untouched.
-            if ($elementName -in @('TextBlock', 'Run')) {
-                foreach ($child in @($node.ChildNodes)) {
-                    if ($child.NodeType -eq [System.Xml.XmlNodeType]::Text -and -not [string]::IsNullOrWhiteSpace($child.Value)) {
-                        $child.Value = Convert-WinUtilRussianText $child.Value
-                    }
-                }
-            }
-        }
-
-        $script:inputXML = $localizedXaml.OuterXml
-    } catch {
-        Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
-    }
-
-    # Do not mutate config Content/Description/Category values. Those objects are also
-    # used by WinUtil logic. Dynamic controls translate only when their text is rendered.
-
-    # Use Russian formatting for dates/numbers shown by .NET without changing command behavior.
-    try {
-        $culture = [System.Globalization.CultureInfo]::GetCultureInfo('ru-RU')
-        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
-    } catch {
-        # Localization text still works even if culture setup is unavailable.
-    }
-}
-) {
+        if ($trimmed -match '^Install or Upgrade\s+(.+)$') {
             return "Установить или обновить $($Matches[1])"
         }
-        if ($trimmed -match '^Uninstall\s+(.+)
-    }
 
-    # Localize presentation-only XAML. Internal TabItem headers and generic ToggleButton
-    # Content stay in English because WinUtil uses some of those values as logic keys.
-    try {
-        [xml]$localizedXaml = $script:inputXML
-
-        foreach ($node in $localizedXaml.SelectNodes('//*')) {
-            $elementName = $node.LocalName
-
-            # Tooltips are presentation-only.
-            $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
-            if ($null -ne $toolTipAttribute) {
-                $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
-            }
-
-            # Safe static controls. Do not translate TabItem.Header here.
-            if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem')) {
-                foreach ($attributeName in @('Content', 'Text', 'Header')) {
-                    $attribute = $node.Attributes.GetNamedItem($attributeName)
-                    if ($null -ne $attribute) {
-                        $attribute.Value = Convert-WinUtilRussianText $attribute.Value
-                    }
-                }
-            }
-
-            # Install category chips carry their real category in Tag at runtime, so only
-            # their visible Content may be translated.
-            if ($elementName -eq 'ToggleButton') {
-                $nameAttribute = $node.Attributes.GetNamedItem('Name')
-                $contentAttribute = $node.Attributes.GetNamedItem('Content')
-                if ($null -ne $nameAttribute -and $nameAttribute.Value -like 'WPFSearchChip*' -and $null -ne $contentAttribute) {
-                    $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
-                }
-            }
-
-            # Text inside TextBlock/Run nodes is presentation-only. This also translates
-            # the visible top navigation while leaving hidden TabItem headers untouched.
-            if ($elementName -in @('TextBlock', 'Run')) {
-                foreach ($child in @($node.ChildNodes)) {
-                    if ($child.NodeType -eq [System.Xml.XmlNodeType]::Text -and -not [string]::IsNullOrWhiteSpace($child.Value)) {
-                        $child.Value = Convert-WinUtilRussianText $child.Value
-                    }
-                }
-            }
-        }
-
-        $script:inputXML = $localizedXaml.OuterXml
-    } catch {
-        Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
-    }
-
-    # Do not mutate config Content/Description/Category values. Those objects are also
-    # used by WinUtil logic. Dynamic controls translate only when their text is rendered.
-
-    # Use Russian formatting for dates/numbers shown by .NET without changing command behavior.
-    try {
-        $culture = [System.Globalization.CultureInfo]::GetCultureInfo('ru-RU')
-        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
-    } catch {
-        # Localization text still works even if culture setup is unavailable.
-    }
-}
-) {
+        if ($trimmed -match '^Uninstall\s+(.+)$') {
             return "Удалить $($Matches[1])"
         }
-        if ($trimmed -match "^Open the application's website in your default browser(?:\\r?\\n|\r?\n)(.+)$") {
-            return "Открыть сайт приложения в браузере`n$($Matches[1])"
+
+        $websitePrefix = "Open the application's website in your default browser"
+        if ($trimmed.StartsWith($websitePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            $website = $trimmed.Substring($websitePrefix.Length).Trim()
+            if ([string]::IsNullOrWhiteSpace($website)) {
+                return 'Открыть сайт приложения в браузере'
+            }
+            return "Открыть сайт приложения в браузере$([Environment]::NewLine)$website"
         }
 
-        # Translate only a recognized trailing action. The base text is translated as a
-        # whole key when known; otherwise it stays as a product/technology name.
         foreach ($entry in $sync.WinUtilRussianPhraseTranslations.GetEnumerator()) {
             if ($trimmed.EndsWith($entry.Key, [StringComparison]::OrdinalIgnoreCase)) {
                 $base = $trimmed.Substring(0, $trimmed.Length - $entry.Key.Length)
@@ -661,64 +436,87 @@ function Initialize-WinUtilRussianLocalization {
         return $text
     }
 
-    # Localize presentation-only XAML. Internal TabItem headers and generic ToggleButton
-    # Content stay in English because WinUtil uses some of those values as logic keys.
-    try {
-        [xml]$localizedXaml = $script:inputXML
+    if ($sync.preferences.language -eq 'ru-RU') {
+        try {
+            [xml]$localizedXaml = $script:inputXML
 
-        foreach ($node in $localizedXaml.SelectNodes('//*')) {
-            $elementName = $node.LocalName
+            foreach ($node in $localizedXaml.SelectNodes('//*')) {
+                $elementName = $node.LocalName
 
-            # Tooltips are presentation-only.
-            $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
-            if ($null -ne $toolTipAttribute) {
-                $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
-            }
+                $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
+                if ($null -ne $toolTipAttribute) {
+                    $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
+                }
 
-            # Safe static controls. Do not translate TabItem.Header here.
-            if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem')) {
-                foreach ($attributeName in @('Content', 'Text', 'Header')) {
-                    $attribute = $node.Attributes.GetNamedItem($attributeName)
-                    if ($null -ne $attribute) {
-                        $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem', 'ToolTip')) {
+                    foreach ($attributeName in @('Content', 'Text', 'Header')) {
+                        $attribute = $node.Attributes.GetNamedItem($attributeName)
+                        if ($null -ne $attribute) {
+                            $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                        }
+                    }
+                }
+
+                if ($elementName -eq 'ToggleButton') {
+                    $nameAttribute = $node.Attributes.GetNamedItem('Name')
+                    $contentAttribute = $node.Attributes.GetNamedItem('Content')
+                    if (
+                        $null -ne $nameAttribute -and
+                        $nameAttribute.Value -like 'WPFSearchChip*' -and
+                        $null -ne $contentAttribute
+                    ) {
+                        $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+                    }
+                }
+
+                if ($elementName -in @('TextBlock', 'Run')) {
+                    foreach ($child in @($node.ChildNodes)) {
+                        if (
+                            $child.NodeType -eq [System.Xml.XmlNodeType]::Text -and
+                            -not [string]::IsNullOrWhiteSpace($child.Value)
+                        ) {
+                            $child.Value = Convert-WinUtilRussianText $child.Value
+                        }
                     }
                 }
             }
 
-            # Install category chips carry their real category in Tag at runtime, so only
-            # their visible Content may be translated.
-            if ($elementName -eq 'ToggleButton') {
-                $nameAttribute = $node.Attributes.GetNamedItem('Name')
-                $contentAttribute = $node.Attributes.GetNamedItem('Content')
-                if ($null -ne $nameAttribute -and $nameAttribute.Value -like 'WPFSearchChip*' -and $null -ne $contentAttribute) {
-                    $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+            # The visible navigation captions are split into Underline + trailing text in XAML.
+            # Replace only their presentation TextBlock; the hidden TabItem headers stay English.
+            $navCaptions = @{
+                'WPFTab1BT' = 'Установка'
+                'WPFTab2BT' = 'Настройки'
+                'WPFTab3BT' = 'Инструменты'
+                'WPFTab4BT' = 'Обновления'
+                'WPFTab5BT' = 'Создание Windows 11'
+            }
+            foreach ($navName in $navCaptions.Keys) {
+                $navNode = $localizedXaml.SelectSingleNode("//*[@Name='$navName']")
+                if ($null -eq $navNode) {
+                    continue
                 }
+
+                $textBlock = $navNode.SelectSingleNode(".//*[local-name()='TextBlock']")
+                if ($null -eq $textBlock) {
+                    continue
+                }
+
+                while ($textBlock.HasChildNodes) {
+                    $textBlock.RemoveChild($textBlock.FirstChild) | Out-Null
+                }
+                $textBlock.AppendChild($localizedXaml.CreateTextNode($navCaptions[$navName])) | Out-Null
             }
 
-            # Text inside TextBlock/Run nodes is presentation-only. This also translates
-            # the visible top navigation while leaving hidden TabItem headers untouched.
-            if ($elementName -in @('TextBlock', 'Run')) {
-                foreach ($child in @($node.ChildNodes)) {
-                    if ($child.NodeType -eq [System.Xml.XmlNodeType]::Text -and -not [string]::IsNullOrWhiteSpace($child.Value)) {
-                        $child.Value = Convert-WinUtilRussianText $child.Value
-                    }
-                }
-            }
+            $script:inputXML = $localizedXaml.OuterXml
+        } catch {
+            Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
         }
-
-        $script:inputXML = $localizedXaml.OuterXml
-    } catch {
-        Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
     }
 
-    # Do not mutate config Content/Description/Category values. Those objects are also
-    # used by WinUtil logic. Dynamic controls translate only when their text is rendered.
-
-    # Use Russian formatting for dates/numbers shown by .NET without changing command behavior.
     try {
-        $culture = [System.Globalization.CultureInfo]::GetCultureInfo('ru-RU')
+        $culture = [System.Globalization.CultureInfo]::GetCultureInfo($sync.preferences.language)
         [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
     } catch {
-        # Localization text still works even if culture setup is unavailable.
+        # Text localization remains available even if culture setup is unavailable.
     }
 }
