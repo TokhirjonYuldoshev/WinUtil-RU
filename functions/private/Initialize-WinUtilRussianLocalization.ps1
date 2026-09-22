@@ -240,7 +240,6 @@ function Initialize-WinUtilRussianLocalization {
         ' - Install' = ' — установить'
         ' - Run' = ' — запустить'
         'Install or Upgrade' = 'Установить или обновить'
-        'Install or upgrade' = 'Установить или обновить'
         'Uninstall' = 'Удалить'
         'Upgrade' = 'Обновить'
     }
