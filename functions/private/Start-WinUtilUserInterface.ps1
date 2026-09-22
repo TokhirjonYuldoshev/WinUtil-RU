@@ -405,6 +405,21 @@ function Start-WinUtilUserInterface {
     $sync["SettingsButton"].Add_Click({
         Invoke-WPFPopup -PopupActionTable @{ "Settings" = "Toggle"; "Theme" = "Hide"; "FontScaling" = "Hide" }
     })
+
+    # Language selector. The choice is persisted and applied on the next launch so
+    # internal WinUtil values never need to be rewritten while the UI is live.
+    $sync["RussianLanguageMenuItem"].IsChecked = $sync.preferences.language -eq 'ru-RU'
+    $sync["EnglishLanguageMenuItem"].IsChecked = $sync.preferences.language -eq 'en-US'
+
+    $sync["RussianLanguageMenuItem"].Add_Click({
+        Set-WinUtilLanguagePreference -Language 'ru-RU'
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+    })
+    $sync["EnglishLanguageMenuItem"].Add_Click({
+        Set-WinUtilLanguagePreference -Language 'en-US'
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+    })
+
     $sync["ImportMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
         Invoke-WPFImpex -type "import"
