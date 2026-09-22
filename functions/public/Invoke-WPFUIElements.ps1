@@ -157,7 +157,7 @@ function Invoke-WPFUIElements {
 
             $label = New-Object Windows.Controls.Label
             $categoryCleanName = $category -replace ".*__", ""
-            $label.Content = $categoryCleanName
+            $label.Content = Convert-WinUtilRussianText $categoryCleanName
             $label.Focusable = $true
             $label.IsTabStop = $true
             [System.Windows.Automation.AutomationProperties]::SetName($label, $categoryCleanName)
@@ -209,8 +209,8 @@ function Invoke-WPFUIElements {
                         $checkBox.Style = $ColorfulToggleSwitchStyle
 
                         $label = New-Object Windows.Controls.Label
-                        $label.Content = $entryInfo.Content
-                        $label.ToolTip = $entryInfo.Description
+                        $label.Content = Convert-WinUtilRussianText $entryInfo.Content
+                        $label.ToolTip = Convert-WinUtilRussianText $entryInfo.Description
                         $label.HorizontalAlignment = "Left"
                         $label.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "FontSize")
                         $label.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, "MainForegroundColor")
@@ -243,8 +243,8 @@ function Invoke-WPFUIElements {
                     "ToggleButton" {
                         $toggleButton = New-Object Windows.Controls.Primitives.ToggleButton
                         $toggleButton.Name = $entryInfo.Name
-                        $toggleButton.Content = $entryInfo.Content[1]
-                        $toggleButton.ToolTip = Get-WinUtilEntryToolTip -Description $entryInfo.Description -Key $entryInfo.Name
+                        $toggleButton.Content = Convert-WinUtilRussianText $entryInfo.Content[1]
+                        $toggleButton.ToolTip = Get-WinUtilEntryToolTip -Description (Convert-WinUtilRussianText $entryInfo.Description) -Key $entryInfo.Name
                         $toggleButton.HorizontalAlignment = "Left"
                         $toggleButton.Style = $ToggleButtonStyle
                         [System.Windows.Automation.AutomationProperties]::SetName($toggleButton, $entryInfo.Content[0])
@@ -259,11 +259,11 @@ function Invoke-WPFUIElements {
                         $sync[$entryInfo.Name] = $toggleButton
 
                         $sync[$entryInfo.Name].Add_Checked({
-                            $this.Content = $this.Tag.contentOn
+                            $this.Content = Convert-WinUtilRussianText $this.Tag.contentOn
                         })
 
                         $sync[$entryInfo.Name].Add_Unchecked({
-                            $this.Content = $this.Tag.contentOff
+                            $this.Content = Convert-WinUtilRussianText $this.Tag.contentOff
                         })
 
                         if ($null -eq $sync.Buttons) {
@@ -286,9 +286,9 @@ function Invoke-WPFUIElements {
                         [System.Windows.Automation.AutomationProperties]::SetName($horizontalStackPanel, $entryInfo.Content)
 
                         $label = New-Object Windows.Controls.Label
-                        $label.Content = $entryInfo.Content
+                        $label.Content = Convert-WinUtilRussianText $entryInfo.Content
                         $label.HorizontalAlignment = "Left"
-                        $label.ToolTip = $entryInfo.Description
+                        $label.ToolTip = Convert-WinUtilRussianText $entryInfo.Description
                         $label.VerticalAlignment = "Center"
                         $label.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "ButtonFontSize")
                         $label.UseLayoutRounding = $true
@@ -417,7 +417,7 @@ function Invoke-WPFUIElements {
                     "Button" {
                         $button = New-Object Windows.Controls.Button
                         $button.Name = $entryInfo.Name
-                        $button.Content = $entryInfo.Content
+                        $button.Content = Convert-WinUtilRussianText $entryInfo.Content
                         $button.HorizontalAlignment = "Left"
                         $button.SetResourceReference([Windows.Controls.Control]::MarginProperty, "ButtonMargin")
                         $button.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "ButtonFontSize")
@@ -464,11 +464,11 @@ function Invoke-WPFUIElements {
                         $radioButton = New-Object Windows.Controls.RadioButton
                         $radioButton.Name = $entryInfo.Name
                         $radioButton.GroupName = $entryInfo.GroupName
-                        $radioButton.Content = $entryInfo.Content
+                        $radioButton.Content = Convert-WinUtilRussianText $entryInfo.Content
                         $radioButton.HorizontalAlignment = "Left"
                         $radioButton.SetResourceReference([Windows.Controls.Control]::MarginProperty, "CheckBoxMargin")
                         $radioButton.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "ButtonFontSize")
-                        $radioButton.ToolTip = $entryInfo.Description
+                        $radioButton.ToolTip = Convert-WinUtilRussianText $entryInfo.Description
                         $radioButton.UseLayoutRounding = $true
                         [System.Windows.Automation.AutomationProperties]::SetName($radioButton, $entryInfo.Content)
 
@@ -491,7 +491,7 @@ function Invoke-WPFUIElements {
                         $bulletBadge.BaselineAlignment = [Windows.BaselineAlignment]::Center
 
                         $textRun = New-Object Windows.Documents.Run
-                        $textRun.Text = " $($entryInfo.Content)"
+                        $textRun.Text = " $(Convert-WinUtilRussianText $entryInfo.Content)"
                         $textRun.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "FontSize")
                         $textRun.Foreground = [Windows.Media.SolidColorBrush]::new([Windows.Media.Color]::FromRgb(19, 143, 83))
 
@@ -508,9 +508,9 @@ function Invoke-WPFUIElements {
 
                         $checkBox = New-Object Windows.Controls.CheckBox
                         $checkBox.Name = $entryInfo.Name
-                        $checkBox.Content = $entryInfo.Content
+                        $checkBox.Content = Convert-WinUtilRussianText $entryInfo.Content
                         $checkBox.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "FontSize")
-                        $checkBox.ToolTip = Get-WinUtilEntryToolTip -Description $entryInfo.Description -Key $entryInfo.Name
+                        $checkBox.ToolTip = Get-WinUtilEntryToolTip -Description (Convert-WinUtilRussianText $entryInfo.Description) -Key $entryInfo.Name
                         $checkBox.SetResourceReference([Windows.Controls.Control]::MarginProperty, "CheckBoxMargin")
                         $checkBox.UseLayoutRounding = $true
                         [System.Windows.Automation.AutomationProperties]::SetName($checkBox, $entryInfo.Content)
