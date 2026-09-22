@@ -18,7 +18,7 @@ function Set-WinUtilLanguagePreference {
         New-Item -Path $registryPath -Force | Out-Null
     }
 
-    Set-ItemProperty -Path $registryPath -Name 'Language' -Value $Language -Type String -Force
+    New-ItemProperty -Path $registryPath -Name 'Language' -Value $Language -PropertyType String -Force | Out-Null
 
     $sync.PendingLanguage = $Language
     if ($null -ne $sync.RussianLanguageMenuItem) {
