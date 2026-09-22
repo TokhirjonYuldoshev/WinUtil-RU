@@ -21,8 +21,8 @@ function Get-WinUtilEntryToolTip {
     $keyLabel = if ($sync.preferences.language -eq 'ru-RU') { 'Ключ пресета' } else { 'Preset key' }
 
     if ([string]::IsNullOrWhiteSpace($localizedDescription)) {
-        return "$keyLabel: $Key"
+        return "${keyLabel}: $Key"
     }
 
-    return "$localizedDescription`n`n$keyLabel: $Key"
+    return "$localizedDescription`n`n${keyLabel}: $Key"
 }
