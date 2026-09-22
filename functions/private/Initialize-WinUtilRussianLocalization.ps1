@@ -9,7 +9,7 @@ function Initialize-WinUtilRussianLocalization {
         intact and future upstream changes are easier to merge into the russian branch.
     #>
 
-    $script:WinUtilRussianExactTranslations = @{
+    $sync.WinUtilRussianExactTranslations = @{
         # Window chrome and common UI
         'Change the WinUtil UI Theme' = 'Изменить тему интерфейса WinUtil'
         'Theme' = 'Тема'
@@ -257,8 +257,8 @@ function Initialize-WinUtilRussianLocalization {
         }
 
         $trimmed = $text.Trim()
-        if ($script:WinUtilRussianExactTranslations.ContainsKey($trimmed)) {
-            $translated = $script:WinUtilRussianExactTranslations[$trimmed]
+        if ($sync.WinUtilRussianExactTranslations.ContainsKey($trimmed)) {
+            $translated = $sync.WinUtilRussianExactTranslations[$trimmed]
             $prefixLength = $text.Length - $text.TrimStart().Length
             $suffixLength = $text.Length - $text.TrimEnd().Length
             return (' ' * $prefixLength) + $translated + (' ' * $suffixLength)
