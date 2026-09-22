@@ -46,8 +46,9 @@ function Initialize-InstallCategoryAppList {
 
             # Add category label to container
             $toggleButton = New-Object Windows.Controls.Label
-            $toggleButton.Content = "- $Category"
+            $toggleButton.Content = "- $(Convert-WinUtilRussianText $Category)"
             $toggleButton.Tag = "CategoryToggleButton"
+            $toggleButton.Uid = $Category
             $toggleButton.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "HeaderFontSize")
             $toggleButton.SetResourceReference([Windows.Controls.Control]::FontFamilyProperty, "HeaderFontFamily")
             $toggleButton.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, "LabelboxForegroundColor")
@@ -67,7 +68,7 @@ function Initialize-InstallCategoryAppList {
 
                     # An explicit click wins over anything filtering expanded automatically
                     if ($sync.AppCategoryAutoExpanded) {
-                        $sync.AppCategoryAutoExpanded.Remove(($categoryToggle.Content -replace '^[+-] ', ''))
+                        $sync.AppCategoryAutoExpanded.Remove($categoryToggle.Uid)
                     }
 
                     # Toggle visibility
