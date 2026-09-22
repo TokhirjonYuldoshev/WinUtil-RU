@@ -435,14 +435,24 @@ function Start-WinUtilUserInterface {
     $sync["AboutMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
 
-        $authorInfo = @"
+        $authorInfo = if ($sync.preferences.language -eq 'ru-RU') {
+@"
+Автор    : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
+Интерфейс: <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
+Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
+GitHub   : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
+Версия   : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version)">$($sync.version)</a>
+"@
+        } else {
+@"
 Author   : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
 UI       : <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
 GitHub   : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
 Version  : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version)">$($sync.version)</a>
 "@
-        Show-CustomDialog -Title "About" -Message $authorInfo
+        }
+        Show-CustomDialog -Title (Convert-WinUtilRussianText "About") -Message $authorInfo
     })
     $sync["DocumentationMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
@@ -451,9 +461,15 @@ Version  : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sy
     $sync["SponsorMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
 
-        $authorInfo = @"
+        $authorInfo = if ($sync.preferences.language -eq 'ru-RU') {
+@"
+<a href="https://github.com/sponsors/ChrisTitusTech">Текущие спонсоры ChrisTitusTech:</a>
+"@
+        } else {
+@"
 <a href="https://github.com/sponsors/ChrisTitusTech">Current sponsors for ChrisTitusTech:</a>
 "@
+        }
         $authorInfo += "`n"
         try {
             $sponsors = Invoke-WinUtilSponsors
@@ -461,9 +477,9 @@ Version  : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sy
                 $authorInfo += "<a href=`"https://github.com/sponsors/ChrisTitusTech`">$sponsor</a>`n"
             }
         } catch {
-            $authorInfo += "An error occurred while fetching or processing the sponsors: $_`n"
+            $authorInfo += if ($sync.preferences.language -eq 'ru-RU') { "Ошибка при загрузке списка спонсоров: $_`n" } else { "An error occurred while fetching or processing the sponsors: $_`n" }
         }
-        Show-CustomDialog -Title "Sponsors" -Message $authorInfo -EnableScroll $true
+        Show-CustomDialog -Title (Convert-WinUtilRussianText "Sponsors") -Message $authorInfo -EnableScroll $true
     })
 
     # Font Scaling Event Handlers
