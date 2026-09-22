@@ -18,12 +18,6 @@ $script = $script -replace '#{islocalcompile}', $isLocalCompile.ToString().ToLow
 $script += Get-ChildItem -Path functions -Recurse -File | ForEach-Object {
     $content = Get-Content -Path $_.FullName -Raw -Encoding UTF8
 
-    # PowerShell hash literals are case-insensitive. Keep one of these equivalent
-    # phrase keys in the generated script so the localization function parses on PS 5.1/7.
-    if ($_.Name -eq 'Initialize-WinUtilRussianLocalization.ps1') {
-        $content = $content -replace "(?m)^\s*'Install or Upgrade'\s*=\s*'Установить или обновить'\s*\r?\n", ''
-    }
-
     $content
 }
 
