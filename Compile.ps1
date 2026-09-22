@@ -35,7 +35,7 @@ Get-ChildItem config | ForEach-Object {
 
 $xaml = Get-Content -Path xaml\inputXML.xaml -Raw
 $script += "`$inputXML = @'`r`n$xaml`r`n'@"
-$script += "`r`nInitialize-WinUtilRussianLocalization`r`n"
+$script += "`r`n`$script:inputXML = `$inputXML`r`nInitialize-WinUtilRussianLocalization`r`n`$inputXML = `$script:inputXML`r`n"
 
 $autounattendXml = Get-Content -Path tools\autounattend.xml -Raw
 $script += "`$WinUtilAutounattendXml = @'`r`n$autounattendXml`r`n'@"
