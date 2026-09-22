@@ -17,9 +17,12 @@ function Get-WinUtilEntryToolTip {
         [string]$Key
     )
 
-    if ([string]::IsNullOrWhiteSpace($Description)) {
-        return "Preset key: $Key"
+    $localizedDescription = Convert-WinUtilRussianText $Description
+    $keyLabel = if ($sync.preferences.language -eq 'ru-RU') { 'Ключ пресета' } else { 'Preset key' }
+
+    if ([string]::IsNullOrWhiteSpace($localizedDescription)) {
+        return "$keyLabel: $Key"
     }
 
-    return "$Description`n`nPreset key: $Key"
+    return "$localizedDescription`n`n$keyLabel: $Key"
 }
