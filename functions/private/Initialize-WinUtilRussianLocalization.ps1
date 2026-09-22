@@ -9,7 +9,7 @@ function Initialize-WinUtilRussianLocalization {
         intact and future upstream changes are easier to merge into the russian branch.
     #>
 
-    $exactTranslations = @{
+    $script:WinUtilRussianExactTranslations = @{
         # Window chrome and common UI
         'Change the WinUtil UI Theme' = 'Изменить тему интерфейса WinUtil'
         'Theme' = 'Тема'
@@ -244,7 +244,7 @@ function Initialize-WinUtilRussianLocalization {
         'Upgrade' = 'Обновить'
     }
 
-    function Convert-WinUtilRussianText {
+    function script:Convert-WinUtilRussianText {
         param([AllowNull()][object]$Value)
 
         if ($null -eq $Value -or $Value -isnot [string]) {
@@ -257,41 +257,59 @@ function Initialize-WinUtilRussianLocalization {
         }
 
         $trimmed = $text.Trim()
-        if ($exactTranslations.ContainsKey($trimmed)) {
-            $translated = $exactTranslations[$trimmed]
+        if ($script:WinUtilRussianExactTranslations.ContainsKey($trimmed)) {
+            $translated = $script:WinUtilRussianExactTranslations[$trimmed]
             $prefixLength = $text.Length - $text.TrimStart().Length
             $suffixLength = $text.Length - $text.TrimEnd().Length
             return (' ' * $prefixLength) + $translated + (' ' * $suffixLength)
         }
 
-        $result = $text
-        foreach ($entry in $exactTranslations.GetEnumerator()) {
-            if ($entry.Key.Length -ge 5 -and $result.Contains($entry.Key)) {
-                $result = $result.Replace($entry.Key, $entry.Value)
-            }
-        }
-        foreach ($entry in $phraseTranslations.GetEnumerator()) {
-            $result = $result.Replace($entry.Key, $entry.Value)
-        }
-        return $result
+        # Never translate substrings inside functional/display values. Partial replacement
+        # produced mixed strings and could change values that the UI logic relies on.
+        return $text
     }
 
-    # Localize static XAML presentation text while preserving names, bindings and commands.
+    # Localize presentation-only XAML. Internal TabItem headers and generic ToggleButton
+    # Content stay in English because WinUtil uses some of those values as logic keys.
     try {
         [xml]$localizedXaml = $script:inputXML
-        $attributeNames = @('Content', 'Header', 'Text', 'ToolTip', 'AutomationProperties.Name')
 
         foreach ($node in $localizedXaml.SelectNodes('//*')) {
-            foreach ($attributeName in $attributeNames) {
-                $attribute = $node.Attributes.GetNamedItem($attributeName)
-                if ($null -ne $attribute) {
-                    $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+            $elementName = $node.LocalName
+
+            # Tooltips are presentation-only.
+            $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
+            if ($null -ne $toolTipAttribute) {
+                $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
+            }
+
+            # Safe static controls. Do not translate TabItem.Header here.
+            if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem')) {
+                foreach ($attributeName in @('Content', 'Text', 'Header')) {
+                    $attribute = $node.Attributes.GetNamedItem($attributeName)
+                    if ($null -ne $attribute) {
+                        $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                    }
                 }
             }
 
-            foreach ($child in @($node.ChildNodes)) {
-                if ($child.NodeType -eq [System.Xml.XmlNodeType]::Text -and -not [string]::IsNullOrWhiteSpace($child.Value)) {
-                    $child.Value = Convert-WinUtilRussianText $child.Value
+            # Install category chips carry their real category in Tag at runtime, so only
+            # their visible Content may be translated.
+            if ($elementName -eq 'ToggleButton') {
+                $nameAttribute = $node.Attributes.GetNamedItem('Name')
+                $contentAttribute = $node.Attributes.GetNamedItem('Content')
+                if ($null -ne $nameAttribute -and $nameAttribute.Value -like 'WPFSearchChip*' -and $null -ne $contentAttribute) {
+                    $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+                }
+            }
+
+            # Text inside TextBlock/Run nodes is presentation-only. This also translates
+            # the visible top navigation while leaving hidden TabItem headers untouched.
+            if ($elementName -in @('TextBlock', 'Run')) {
+                foreach ($child in @($node.ChildNodes)) {
+                    if ($child.NodeType -eq [System.Xml.XmlNodeType]::Text -and -not [string]::IsNullOrWhiteSpace($child.Value)) {
+                        $child.Value = Convert-WinUtilRussianText $child.Value
+                    }
                 }
             }
         }
@@ -301,34 +319,8 @@ function Initialize-WinUtilRussianLocalization {
         Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
     }
 
-    # Localize display metadata only. Execution keys, function names, registry data and IDs stay intact.
-    foreach ($configName in @('appnavigation', 'tweaks', 'feature')) {
-        $config = $sync.configs.$configName
-        if ($null -eq $config) {
-            continue
-        }
-
-        foreach ($property in $config.PSObject.Properties) {
-            $entry = $property.Value
-            if ($null -eq $entry) {
-                continue
-            }
-
-            foreach ($fieldName in @('Content', 'Description', 'Category', 'category')) {
-                $field = $entry.PSObject.Properties[$fieldName]
-                if ($null -eq $field -or $null -eq $field.Value) {
-                    continue
-                }
-
-                if ($field.Value -is [string]) {
-                    $field.Value = Convert-WinUtilRussianText $field.Value
-                } elseif ($field.Value -is [System.Collections.IEnumerable]) {
-                    $localizedItems = @($field.Value | ForEach-Object { Convert-WinUtilRussianText $_ })
-                    $field.Value = $localizedItems
-                }
-            }
-        }
-    }
+    # Do not mutate config Content/Description/Category values. Those objects are also
+    # used by WinUtil logic. Dynamic controls translate only when their text is rendered.
 
     # Use Russian formatting for dates/numbers shown by .NET without changing command behavior.
     try {
