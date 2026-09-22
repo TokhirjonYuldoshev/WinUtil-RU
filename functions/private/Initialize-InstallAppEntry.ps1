@@ -50,11 +50,24 @@ function Initialize-InstallAppEntry {
         $fallback.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, "ToggleButtonOnColor")
         [void]$icon.Children.Add($fallback)
         if ($app.link) {
-            $fallback.Visibility = "Collapsed"
             $logo = New-Object Windows.Controls.Image
             $logo.Stretch = [Windows.Media.Stretch]::Uniform
-            $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
             $logo.Add_ImageFailed($handlers.ImageFailed)
+            $logo.Add_ImageOpened($handlers.ImageOpened)
+
+            $safeIconName = ($appKey -replace '[^A-Za-z0-9_.-]', '_') + '.png'
+            $iconCachePath = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\IconCache'
+            $cachedIcon = Join-Path $iconCachePath $safeIconName
+
+            if (Test-Path -LiteralPath $cachedIcon) {
+                try {
+                    $logo.Source = [Windows.Media.Imaging.BitmapImage]::new([Uri]::new($cachedIcon))
+                } catch {
+                    $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
+                }
+            } else {
+                $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
+            }
 
             [void]$icon.Children.Add($logo)
         }
