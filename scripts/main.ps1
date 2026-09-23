@@ -1,16 +1,17 @@
 Write-Host @"
-YY      YY TTTTTTTTTT YY      YY
- YY    YY      TT      YY    YY
-  YY  YY       TT       YY  YY
-   YYYY        TT        YYYY
-    YY         TT         YY
-    YY         TT         YY
-    YY         TT         YY
-    YY         TT         YY
-    YY         TT         YY
-
-====== Tokhirjon Yuldoshev =======
-=========== WinUtil RU ===========
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║                    YY   YY  TTTTTTT  YY   YY                     ║
+║                     YY YY      T      YY YY                      ║
+║                      YYY       T       YYY                       ║
+║                       Y        T        Y                        ║
+║                       Y        T        Y                        ║
+║                       Y        T        Y                        ║
+║                                                                  ║
+║                       TOKHIRJON YULDOSHEV                        ║
+║                            WINUTIL RU                            ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
 "@
 
 # Load the configuration files

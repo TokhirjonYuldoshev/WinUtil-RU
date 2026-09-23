@@ -200,6 +200,21 @@ if ($mainScriptText -like '*Chris Titus Tech*' -or $mainScriptText -like '*Windo
 }
 
 
+$mainScriptPath = Join-Path $repoRoot 'scripts\main.ps1'
+$mainScriptText = Get-Content -LiteralPath $mainScriptPath -Raw -Encoding UTF8
+foreach ($requiredBannerMarker in @(
+    'YY   YY  TTTTTTT  YY   YY',
+    'TOKHIRJON YULDOSHEV',
+    'WINUTIL RU'
+)) {
+    if ($mainScriptText -notlike "*$requiredBannerMarker*") {
+        Add-WinUtilValidationFailure "scripts/main.ps1 is missing YTY banner marker: $requiredBannerMarker"
+    }
+}
+if ($mainScriptText -like '*Chris Titus Tech*' -or $mainScriptText -like '*Windows Toolbox*') {
+    Add-WinUtilValidationFailure "scripts/main.ps1 contains legacy console banner branding."
+}
+
 $releaseBuilderPath = Join-Path $repoRoot 'tools\Build-WinUtilRussianRelease.ps1'
 if (-not (Test-Path -LiteralPath $releaseBuilderPath)) {
     Add-WinUtilValidationFailure "Missing tools/Build-WinUtilRussianRelease.ps1"
