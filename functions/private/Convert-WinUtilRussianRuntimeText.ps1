@@ -158,5 +158,19 @@ function Convert-WinUtilRussianRuntimeText {
         return "Не удалось применить состояние реестра '$($Matches[1])'."
     }
 
+    if ($trimmed -match "^WinUtil's window is closed\. (.+) is still running here, and this window will close when it finishes\.$") {
+        $jobName = Resolve-WinUtilRussianRuntimeBase $Matches[1]
+        return "Окно WinUtil закрыто. $jobName продолжает выполняться в этой консоли; после завершения окно закроется."
+    }
+    if ($trimmed -match '^Waiting for (.+) to finish\.\.\.$') {
+        return "Ожидание завершения: $(Resolve-WinUtilRussianRuntimeBase $Matches[1])..."
+    }
+    if ($trimmed -match '^(.+) is taking longer than ([\d.,]+) minutes\. Exiting\.$') {
+        return "$(Resolve-WinUtilRussianRuntimeBase $Matches[1]) выполняется дольше $($Matches[2]) мин. Завершение программы."
+    }
+    if ($trimmed -match '^(.+) finished\. Closing\.$') {
+        return "$(Resolve-WinUtilRussianRuntimeBase $Matches[1]) завершено. Закрытие."
+    }
+
     return $text
 }
