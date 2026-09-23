@@ -34,7 +34,7 @@ stopped and everything closes now. Cancel keeps WinUtil open.
             $sync.ForceClose = $true
 
             Write-Host ""
-            Write-Host "WinUtil's window is closed. $RunningJob is still running here, and this window will close when it finishes." -ForegroundColor Cyan
+            Write-Host (Convert-WinUtilRussianRuntimeText "WinUtil's window is closed. $RunningJob is still running here, and this window will close when it finishes.") -ForegroundColor Cyan
             Write-Host ""
 
             # Posted rather than closed from inside the handler that is already unwinding
@@ -95,7 +95,7 @@ function Wait-WinUtilRemainingWork {
 
     $job = $sync.ActiveJob
     Write-WinUtilLog -Component "UI" -Message "Window closed, waiting for $job to finish."
-    Write-Host "Waiting for $job to finish..." -ForegroundColor Cyan
+    Write-Host (Convert-WinUtilRussianRuntimeText "Waiting for $job to finish...") -ForegroundColor Cyan
 
     $clock = [System.Diagnostics.Stopwatch]::StartNew()
     while ($sync.ActiveJob -and $clock.Elapsed.TotalMinutes -lt $TimeoutMinutes) {
@@ -107,10 +107,10 @@ function Wait-WinUtilRemainingWork {
 
     if ($sync.ActiveJob) {
         Write-WinUtilLog -Level "WARN" -Component "UI" -Message "$job did not finish within $TimeoutMinutes minutes, exiting anyway."
-        Write-Host "$job is taking longer than $TimeoutMinutes minutes. Exiting." -ForegroundColor Yellow
+        Write-Host (Convert-WinUtilRussianRuntimeText "$job is taking longer than $TimeoutMinutes minutes. Exiting.") -ForegroundColor Yellow
         return
     }
 
     Write-WinUtilLog -Component "UI" -Message "$job finished after the window closed, in $([int]$clock.Elapsed.TotalSeconds)s."
-    Write-Host "$job finished. Closing." -ForegroundColor Green
+    Write-Host (Convert-WinUtilRussianRuntimeText "$job finished. Closing.") -ForegroundColor Green
 }
