@@ -2,7 +2,7 @@ name: Compile & Check
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "russian"]
   pull_request:
     branches: ["main"]
   workflow_dispatch: # Manual trigger added
@@ -15,8 +15,16 @@ jobs:
     - name: Checkout Sources
       uses: actions/checkout@v7
 
-    - name: Compile and Syntax check winutil.ps1
+    - name: Compile and syntax check with Windows PowerShell 5.1
+      shell: powershell
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        ./Compile.ps1
+      continue-on-error: false
+
+    - name: Compile and syntax check with PowerShell 7
       shell: pwsh
       run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force; ./Compile.ps1
-      continue-on-error: false # Directly fail the job on error, removing the need for a separate check
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        ./Compile.ps1
+      continue-on-error: false
