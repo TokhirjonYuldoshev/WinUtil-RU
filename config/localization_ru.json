@@ -2,7 +2,7 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "1.1.1",
+    "Version": "1.1.2",
     "Fallback": "en-US",
     "Note": "Presentation-only localization. Internal control names, config keys, commands and package IDs remain unchanged."
   },
@@ -127,7 +127,7 @@
     "Dark Mode": "Тёмный режим",
     "End Task": "Завершение задачи",
     "Debloat": "Очистить от лишнего",
-    "Features": "Компоненты",
+    "Features": "Компоненты Windows",
     "Fixes": "Исправления",
     "Legacy Windows Panels": "Классические панели Windows",
     "Powershell Profile Powershell 7+ Only": "Профиль PowerShell — только PowerShell 7+",
@@ -482,7 +482,25 @@
     "Save Modified Windows 11 ISO": "Сохранить изменённый ISO Windows 11",
     "ISO files (*.iso)|*.iso": "Файлы ISO (*.iso)|*.iso",
     "Import Configuration": "Импорт конфигурации",
-    "Export Configuration": "Экспорт конфигурации"
+    "Export Configuration": "Экспорт конфигурации",
+    "Previous ISO Still Mounted": "Предыдущий ISO всё ещё подключён",
+    "Existing Work Found": "Найдены существующие рабочие файлы",
+    "oscdimg Not Found": "oscdimg не найден",
+    "USB drive created successfully!\n\nYou can now boot from this drive to install Windows 11.": "USB-накопитель успешно создан!\n\nТеперь с него можно загрузиться и установить Windows 11.",
+    "Uninstall": "Удаление",
+    "EnvironmentReport": "Отчёт о системе",
+    "Detect installed": "Определение установленных приложений",
+    "ISO mount": "Подключение ISO",
+    "ISO modify": "Изменение ISO",
+    "ISO cleanup": "Очистка ISO",
+    "ISO export": "Экспорт ISO",
+    "USB write": "Запись USB",
+    "Toggles": "Переключатели",
+    "Undo tweaks": "Отмена настроек",
+    "AppX install": "Установка AppX",
+    "AppX": "AppX",
+    "OOSU": "O&O ShutUp10++",
+    "SystemRepair": "Восстановление системы"
   },
   "Phrases": [
     {
