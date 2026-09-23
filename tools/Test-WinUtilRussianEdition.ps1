@@ -167,7 +167,8 @@ $brandingFiles = @(
     'functions\private\Set-WinUtilLanguagePreference.ps1',
     'functions\private\Set-WinUtilIconPreference.ps1',
     'functions\private\Convert-WinUtilRussianRuntimeText.ps1',
-    'functions\private\Start-WinUtilUserInterface.ps1'
+    'functions\private\Start-WinUtilUserInterface.ps1',
+    'functions\private\Show-CustomDialog.ps1'
 )
 foreach ($relativeBrandingPath in $brandingFiles) {
     $brandingText = Get-Content -LiteralPath (Join-Path $repoRoot $relativeBrandingPath) -Raw -Encoding UTF8
@@ -180,6 +181,11 @@ foreach ($relativeBrandingPath in $brandingFiles) {
         Add-WinUtilValidationFailure "$relativeBrandingPath contains legacy user-facing WindowManager branding."
     }
 }
+$customDialogText = Get-Content -LiteralPath (Join-Path $repoRoot 'functions\private\Show-CustomDialog.ps1') -Raw -Encoding UTF8
+if ($customDialogText -notlike '*$winutilTextBlock.Text = "WinUtil RU"*') {
+    Add-WinUtilValidationFailure "Show-CustomDialog.ps1 must display the WinUtil RU product name."
+}
+
 
 $releaseBuilderPath = Join-Path $repoRoot 'tools\Build-WinUtilRussianRelease.ps1'
 if (-not (Test-Path -LiteralPath $releaseBuilderPath)) {
