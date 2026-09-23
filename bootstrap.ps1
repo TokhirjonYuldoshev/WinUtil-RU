@@ -17,7 +17,7 @@ else {
 }
 
 $env:WINUTIL_RU_BRANCH = $branch
-$repoBase = 'https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager'
+$repoBase = 'https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU'
 $launcherUrl = "$repoBase/$branch/run-russian.ps1"
 
 function Get-WMRemoteText {

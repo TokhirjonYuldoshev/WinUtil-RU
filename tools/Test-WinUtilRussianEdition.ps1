@@ -122,6 +122,19 @@ if ($compileSource -notmatch '\[System\.IO\.File\]::WriteAllText') {
 }
 
 $bootstrapText = Get-Content -LiteralPath $bootstrapPath -Raw -Encoding ASCII
+$expectedRepoSlug = 'TokhirjonYuldoshev/WinUtil-RU'
+$legacyRepoSlug = 'TokhirjonYuldoshev/WindowManager'
+foreach ($launcherContract in @(
+    @{ Name = 'bootstrap.ps1'; Text = $bootstrapText },
+    @{ Name = 'run-russian.ps1'; Text = $launcherText }
+)) {
+    if ($launcherContract.Text -notlike "*$expectedRepoSlug*") {
+        Add-WinUtilValidationFailure "$($launcherContract.Name) must use the current repository slug: $expectedRepoSlug"
+    }
+    if ($launcherContract.Text -like "*$legacyRepoSlug*") {
+        Add-WinUtilValidationFailure "$($launcherContract.Name) still references the legacy repository slug: $legacyRepoSlug"
+    }
+}
 foreach ($requiredBootstrapMarker in @(
     'YTY\WindowManager\Stable',
     'winutil-RU.ps1',

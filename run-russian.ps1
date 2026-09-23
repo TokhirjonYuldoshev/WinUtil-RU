@@ -5,7 +5,7 @@ $env:WINDOWMANAGER_LAUNCHER_RESTART = '1'
 
 $requestedBranch = if ($env:WINUTIL_RU_BRANCH) { $env:WINUTIL_RU_BRANCH } else { $env:WINDOWMANAGER_BRANCH }
 $branch = if ($requestedBranch -in @('russian', 'russian-dev')) { $requestedBranch } else { 'russian' }
-$repoZip = "https://github.com/TokhirjonYuldoshev/WindowManager/archive/refs/heads/$branch.zip"
+$repoZip = "https://github.com/TokhirjonYuldoshev/WinUtil-RU/archive/refs/heads/$branch.zip"
 $tempRoot = Join-Path $env:TEMP ("WindowManager-$branch-" + [guid]::NewGuid().ToString('N'))
 $zipPath = Join-Path $tempRoot "$branch.zip"
 $extractPath = Join-Path $tempRoot 'src'
