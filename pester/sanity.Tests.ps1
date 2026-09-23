@@ -199,12 +199,13 @@ Describe "Compiled WinUtil sanity" {
 
     It "replaces the generated build date placeholder" {
         $content = Get-Content -Path $script:compiledPath -Raw
-        $expectedBuildDate = Get-Date -Format "yy.MM.dd"
+        $locale = Get-Content -Path (Join-Path $script:repoRoot "config\localization_ru.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+        $expectedBuildVersion = [string]$locale.Meta.Version
         $expectedLocalCompile = (-not [string]::Equals($env:GITHUB_ACTIONS, "true", [StringComparison]::OrdinalIgnoreCase)).ToString().ToLowerInvariant()
 
         $content | Should -Not -Match ([regex]::Escape("#{replaceme}"))
         $content | Should -Not -Match ([regex]::Escape("#{islocalcompile}"))
-        $content | Should -Match ([regex]::Escape('$sync.version = "' + $expectedBuildDate + '"'))
+        $content | Should -Match ([regex]::Escape('$sync.version = "' + $expectedBuildVersion + '"'))
         $content | Should -Match ([regex]::Escape('$sync.IsLocalCompile = "' + $expectedLocalCompile + '" -eq "true"'))
     }
 }
