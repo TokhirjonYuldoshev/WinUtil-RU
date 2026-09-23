@@ -7,9 +7,11 @@ function Invoke-WPFtweaksbutton {
   #>
 
   $Tweaks = $sync.selectedTweaks
-  $dnsProvider = $sync["WPFchangedns"].text
-  if (-not ($dnsProvider)) {
-    $dnsProvider = "Default"
+  $selectedDnsItem = $sync["WPFchangedns"].SelectedItem
+  $dnsProvider = if ($selectedDnsItem -and $selectedDnsItem.Tag) {
+    [string]$selectedDnsItem.Tag
+  } else {
+    "Default"
   }
 
   if ($Tweaks.count -eq 0 -and $dnsProvider -eq "Default") {

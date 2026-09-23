@@ -1,4 +1,4 @@
-#===========================================================================
+﻿#===========================================================================
 # Tests - Tweak Orchestration
 #===========================================================================
 
@@ -186,6 +186,7 @@ Describe "Invoke-WPFtweaksbutton" {
             selectedTweaks = [System.Collections.Generic.List[string]]::new()
             WPFchangedns = [pscustomobject]@{
                 text = "Cloudflare"
+                SelectedItem = [pscustomobject]@{ Tag = "Cloudflare"; Content = "Cloudflare" }
             }
         })
         $script:capturedTweaksJob = $null
@@ -212,7 +213,8 @@ Describe "Invoke-WPFtweaksbutton" {
     }
 
     It "prompts and exits when nothing is selected and DNS is left at the default" {
-        $script:sync.WPFchangedns.text = "Default"
+        $script:sync.WPFchangedns.text = "По умолчанию"
+        $script:sync.WPFchangedns.SelectedItem = [pscustomobject]@{ Tag = "Default"; Content = "По умолчанию" }
 
         Invoke-WPFtweaksbutton
 
@@ -225,6 +227,7 @@ Describe "Invoke-WPFtweaksbutton" {
     It "queues a tweak job with the selection and DNS provider" {
         $script:sync.selectedTweaks.Add("WPFTweaksTelemetry")
         $script:sync.selectedTweaks.Add("WPFTweaksServices")
+        $script:sync.WPFchangedns.text = "Отображаемое название"
 
         Invoke-WPFtweaksbutton
 
@@ -234,6 +237,20 @@ Describe "Invoke-WPFtweaksbutton" {
         $script:capturedTweaksJob.Parameters.Tweaks | Should -HaveCount 2
         $script:capturedTweaksJob.Parameters.Tweaks[0] | Should -Be "WPFTweaksTelemetry"
         $script:capturedTweaksJob.Parameters.DnsProvider | Should -Be "Cloudflare"
+    }
+
+    It "skips DNS when the localized default is selected with tweaks" {
+        $script:sync.selectedTweaks.Add("WPFTweaksTelemetry")
+        $script:sync.WPFchangedns.text = "По умолчанию"
+        $script:sync.WPFchangedns.SelectedItem = [pscustomobject]@{ Tag = "Default"; Content = "По умолчанию" }
+
+        Invoke-WPFtweaksbutton
+        $jobParameters = $script:capturedTweaksJob.Parameters
+        & $script:capturedTweaksJob.ScriptBlock @jobParameters
+
+        $jobParameters.DnsProvider | Should -Be "Default"
+        Should -Invoke -CommandName Set-WinUtilDNS -Times 0 -Exactly
+        Should -Invoke -CommandName Invoke-WinUtilTweaks -Times 1 -Exactly
     }
 
     It "applies every selected tweak and the DNS provider inside the job body" {
