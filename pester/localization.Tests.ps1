@@ -62,7 +62,8 @@ Describe "Russian localization engine" {
 
         $locale.Meta.Language | Should -Be 'ru-RU'
         $locale.Meta.Fallback | Should -Be 'en-US'
-        $locale.Meta.Version | Should -Match '^\d+\.\d+\.\d+$'
+        $locale.Meta.Version | Should -Match '^\d{2}\.\d{2}\.\d{2}-RU$'
+        $locale.Meta.LocalizationVersion | Should -Match '^\d+\.\d+\.\d+$'
         @($locale.Exact.PSObject.Properties).Count | Should -BeGreaterThan 450
         @($locale.Phrases).Count | Should -BeGreaterThan 10
         @($locale.Navigation.PSObject.Properties).Count | Should -Be 5
