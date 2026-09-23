@@ -156,7 +156,7 @@ else {
         "Product = 'WinUtil RU'",
         "Channel = 'beta'",
         "License = 'LICENSE'",
-        'Copyright (c) 2022 CT Tech Group LLC'
+        '$licenseText'
     )) {
         if ($releaseBuilderText -notlike "*$requiredReleaseMarker*") {
             Add-WinUtilValidationFailure "Release builder is missing WinUtil RU beta marker: $requiredReleaseMarker"
