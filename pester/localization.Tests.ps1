@@ -107,7 +107,7 @@ Describe "Install localization safety" {
 
     It "uses the raw catalog key for the persistent icon cache" {
         $text = Get-Content -LiteralPath $script:appEntryPath -Raw -Encoding UTF8
-        $text | Should -Match "\$catalogKey\s*=\s*\$appKey\s*-replace\s*'\^WPFInstall'"
-        $text | Should -Match "\$safeIconName\s*=\s*\(\$catalogKey\s*-replace"
+        $text | Should -Match '\$catalogKey\s*=\s*\$appKey\s*-replace\s*''\^WPFInstall'''
+        $text | Should -Match '\$safeIconName\s*=\s*\(\$catalogKey\s*-replace'
     }
 }
