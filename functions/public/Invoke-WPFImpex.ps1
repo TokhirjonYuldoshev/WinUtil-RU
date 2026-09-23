@@ -29,11 +29,17 @@ function Invoke-WPFImpex {
     function ConfigDialog {
         if (!$Config) {
             switch ($type) {
-                "export" { $FileBrowser = New-Object System.Windows.Forms.SaveFileDialog }
-                "import" { $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog }
+                "export" {
+                    $FileBrowser = New-Object System.Windows.Forms.SaveFileDialog
+                    $FileBrowser.Title = Convert-WinUtilRussianText "Export Configuration"
+                }
+                "import" {
+                    $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog
+                    $FileBrowser.Title = Convert-WinUtilRussianText "Import Configuration"
+                }
             }
             $FileBrowser.InitialDirectory = [Environment]::GetFolderPath('Desktop')
-            $FileBrowser.Filter = "JSON Files (*.json)|*.json"
+            $FileBrowser.Filter = Convert-WinUtilRussianText "JSON Files (*.json)|*.json"
             $FileBrowser.ShowDialog() | Out-Null
 
             if ($FileBrowser.FileName -eq "") {
