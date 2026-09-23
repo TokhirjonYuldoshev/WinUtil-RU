@@ -130,9 +130,11 @@ try {
             Copy-Item -LiteralPath $runTarget -Destination $stableScript -Force
 
             $localeInfo = Get-Content -LiteralPath (Join-Path $projectRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+            $stableHash = (Get-FileHash -LiteralPath $stableScript -Algorithm SHA256).Hash.ToLowerInvariant()
             $stableManifest = [ordered]@{
                 Version = [string]$localeInfo.Meta.Version
                 SourceBranch = $branch
+                Sha256 = $stableHash
                 CachedAt = (Get-Date).ToString('o')
             }
             $stableManifest | ConvertTo-Json | Set-Content -LiteralPath $stableManifestPath -Encoding UTF8
