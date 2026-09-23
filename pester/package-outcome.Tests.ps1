@@ -74,6 +74,35 @@ Describe "Install-WinUtilProgramWinget outcomes" {
         Should -Invoke -CommandName Start-Process -Times 2 -Exactly
     }
 
+    It "refreshes sources and retries upgrade-all once after a transient source error" {
+        $script:upgradeCalls = 0
+        Mock Start-Sleep { }
+        Mock Start-Process {
+            param($FilePath, $ArgumentList)
+
+            if ($ArgumentList[0] -eq "source") {
+                return [pscustomobject]@{ ExitCode = 0 }
+            }
+
+            $script:upgradeCalls++
+            if ($script:upgradeCalls -eq 1) {
+                return [pscustomobject]@{ ExitCode = -2147012867 } # 0x80072EFD
+            }
+
+            return [pscustomobject]@{ ExitCode = 0 }
+        }
+
+        $result = Install-WinUtilProgramWinget -Action Upgrade -Programs @("all")
+
+        $result.Outcome | Should -Be "Succeeded"
+        $result.ExitCode | Should -Be 0
+        Should -Invoke -CommandName Start-Process -Times 3 -Exactly
+        Should -Invoke -CommandName Start-Process -Times 1 -Exactly -ParameterFilter {
+            $ArgumentList[0] -eq "source" -and $ArgumentList[1] -eq "update"
+        }
+        Should -Invoke -CommandName Start-Sleep -Times 1 -Exactly -ParameterFilter { $Seconds -eq 2 }
+    }
+
     It "reports any other exit code as a failure" {
         Mock Start-Process { [pscustomobject]@{ ExitCode = -1978335212 } }
 
