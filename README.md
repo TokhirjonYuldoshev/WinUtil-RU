@@ -73,13 +73,29 @@ WinUtil RU объединяет в одном интерфейсе типовы�
 
 ### Stable — WinUtil RU 26.09.23-RU
 
+Основная короткая команда:
+
 ```powershell
-$s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
+irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1 | iex
 ```
 
 Это основной пользовательский канал.
 
+Если короткая команда не сработала из-за сетевой/TLS-ошибки, используйте вариант с повторными попытками:
+
+```powershell
+$s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
+```
+
 ### Beta — WinUtil RU 26.09.23-RU-Beta
+
+Короткая команда для тестовой ветки:
+
+```powershell
+$env:WINUTIL_RU_BRANCH='russian-dev'; irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian-dev/bootstrap.ps1 | iex
+```
+
+Если `irm` не сработал:
 
 ```powershell
 $env:WINUTIL_RU_BRANCH='russian-dev'; $s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian-dev/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
