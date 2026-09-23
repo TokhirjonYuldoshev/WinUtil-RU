@@ -125,5 +125,34 @@ function Convert-WinUtilRussianRuntimeText {
         return "Поддерживаемые настройки импортированы. Следующие устаревшие настройки пропущены:$rest"
     }
 
+    if ($trimmed -match '^(.+?) is still running\. Wait for it to finish before starting another action\.$') {
+        $jobName = Resolve-WinUtilRussianRuntimeBase $Matches[1]
+        return "$jobName всё ещё выполняется. Дождитесь завершения перед запуском другого действия."
+    }
+    if ($trimmed.StartsWith('The previously verified ISO is still mounted and could not be dismounted:', [StringComparison]::OrdinalIgnoreCase)) {
+        $rest = $trimmed.Substring('The previously verified ISO is still mounted and could not be dismounted:'.Length)
+        $rest = $rest.Replace('Dismount it yourself, then select an ISO again.', 'Отключите его вручную, затем снова выберите ISO.')
+        return "Ранее проверенный ISO всё ещё подключён и не может быть отключён:$rest"
+    }
+    if ($trimmed.StartsWith('A previous WinUtil ISO working directory was found:', [StringComparison]::OrdinalIgnoreCase)) {
+        $rest = $trimmed.Substring('A previous WinUtil ISO working directory was found:'.Length)
+        $rest = $rest.Replace('(Last modified:', '(Последнее изменение:')
+        $rest = $rest.Replace('The output step has been restored so you can save the already-modified image.', 'Этап вывода восстановлен, поэтому уже изменённый образ можно сохранить.')
+        $rest = $rest.Replace("Click 'Start Over' there if you want to start over.", 'Нажмите «Начать заново», если хотите начать сначала.')
+        return "Найдена предыдущая рабочая папка ISO WinUtil:$rest"
+    }
+    if ($trimmed.StartsWith('This will delete the temporary working directory:', [StringComparison]::OrdinalIgnoreCase)) {
+        $rest = $trimmed.Substring('This will delete the temporary working directory:'.Length)
+        $rest = $rest.Replace('And reset the interface back to the start.', 'Интерфейс также будет возвращён к начальному шагу.')
+        $rest = $rest.Replace('Continue?', 'Продолжить?')
+        return "Будет удалена временная рабочая папка:$rest"
+    }
+    if ($trimmed -match "(?s)^This ISO uses an install\.esd file that is (\d+) MB\. WinUtil's FAT32 USB format cannot store files larger than 4 GB\.\s+Export an ISO instead or use media with install\.wim\.$") {
+        return "В этом ISO используется файл install.esd размером $($Matches[1]) МБ. Формат FAT32, используемый WinUtil для USB, не поддерживает файлы больше 4 ГБ.`n`nЭкспортируйте ISO или используйте носитель с install.wim."
+    }
+    if ($trimmed -match '(?s)^ALL data on Disk (\d+) \((.+?), ([\d.,]+) GB\) will be PERMANENTLY ERASED\.\s+Are you sure you want to continue\?$') {
+        return "ВСЕ данные на диске $($Matches[1]) ($($Matches[2]), $($Matches[3]) ГБ) будут БЕЗВОЗВРАТНО УДАЛЕНЫ.`n`nПродолжить?"
+    }
+
     return $text
 }
