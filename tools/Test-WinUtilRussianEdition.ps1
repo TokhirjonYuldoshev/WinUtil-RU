@@ -127,7 +127,7 @@ foreach ($requiredBootstrapMarker in @(
     'WindowManager-RU.ps1',
     'release.json',
     'local cache',
-    "if (\$branch -eq 'russian-dev')"
+    'if ($branch -eq ''russian-dev'')'
 )) {
     if ($bootstrapText -notlike "*$requiredBootstrapMarker*") {
         Add-WinUtilValidationFailure "bootstrap.ps1 is missing stable-cache marker: $requiredBootstrapMarker"
@@ -138,7 +138,7 @@ foreach ($requiredLauncherMarker in @(
     'YTY\WindowManager\Stable',
     'WindowManager-RU.ps1',
     'localization_ru.json',
-    "if (\$branch -eq 'russian')"
+    'if ($branch -eq ''russian'')'
 )) {
     if ($launcherText -notlike "*$requiredLauncherMarker*") {
         Add-WinUtilValidationFailure "run-russian.ps1 is missing stable-cache marker: $requiredLauncherMarker"
