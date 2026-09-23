@@ -103,6 +103,12 @@ if ($null -ne $xaml) {
             Add-WinUtilValidationFailure "Missing language control $languageControl"
         }
     }
+
+    foreach ($iconControl in @('AppIconsMenuItem', 'AppIconsAutoMenuItem', 'AppIconsCacheOnlyMenuItem', 'AppIconsDisabledMenuItem', 'ClearIconCacheMenuItem')) {
+        if ($null -eq $xaml.SelectSingleNode("//*[@Name='$iconControl']")) {
+            Add-WinUtilValidationFailure "Missing icon settings control $iconControl"
+        }
+    }
 }
 
 # Russian application descriptions must track the source catalog one-for-one.
@@ -166,6 +172,12 @@ if ($installEntrySource -match 'Add_ImageOpened') {
 }
 if ($installEntrySource -notmatch '\$safeIconName\s*=\s*\(\$catalogKey\s*-replace') {
     Add-WinUtilValidationFailure "Install icon cache is not keyed by the raw application catalog key."
+}
+if ($installEntrySource -notmatch "\$iconMode -ne 'Disabled'") {
+    Add-WinUtilValidationFailure "Install cards do not honor the Disabled icon mode."
+}
+if ($installEntrySource -notmatch "\$iconMode -eq 'Auto'") {
+    Add-WinUtilValidationFailure "Install cards do not honor the Auto icon mode."
 }
 
 if ($failures.Count -gt 0) {
