@@ -2,9 +2,10 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "1.1.8",
+    "Version": "26.09.23-RU",
     "Fallback": "en-US",
-    "Note": "Presentation-only localization. Internal control names, config keys, commands and package IDs remain unchanged."
+    "Note": "Presentation-only Russian localization for WinUtil RU. Internal control names, config keys, commands and package IDs remain unchanged.",
+    "LocalizationVersion": "1.1.8"
   },
   "Exact": {
     "Change the WinUtil UI Theme": "Изменить тему интерфейса WinUtil",
