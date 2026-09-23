@@ -197,6 +197,19 @@ Describe "Set-WinUtilRegistry" {
         }
     }
 
+    It "reports a registry failure without letting a missing stack trace crash the caller" {
+        $registryPath = "HKCU:\Software\WinUtilTest"
+        $script:testPathResults["HKU:\"] = $true
+        $script:testPathResults[$registryPath] = $true
+        Mock Set-ItemProperty { throw "Simulated registry failure" }
+
+        { Set-WinUtilRegistry -Path $registryPath -Name "Enabled" -Type "DWord" -Value "1" } | Should -Not -Throw
+
+        Should -Invoke -CommandName Write-WinUtilLog -Times 1 -Exactly -ParameterFilter {
+            $Level -eq "ERROR" -and $Component -eq "Registry" -and $Message -match "Simulated registry failure"
+        }
+    }
+
 }
 
 Describe "Set-WinUtilService" {
