@@ -58,31 +58,34 @@ function Initialize-InstallAppEntry {
         $fallback.SetResourceReference([Windows.Controls.TextBlock]::FontSizeProperty, "AppEntryFontSize")
         $fallback.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, "ToggleButtonOnColor")
         [void]$icon.Children.Add($fallback)
-        if ($app.link) {
-            $logo = New-Object Windows.Controls.Image
-            $logo.Stretch = [Windows.Media.Stretch]::Uniform
-            $logo.Add_ImageFailed($handlers.ImageFailed)
+        $iconMode = if ($sync.preferences.iconMode -in @('Auto', 'CacheOnly', 'Disabled')) {
+            [string]$sync.preferences.iconMode
+        } else {
+            'Auto'
+        }
 
+        if ($app.link -and $iconMode -ne 'Disabled') {
             $safeIconName = ($catalogKey -replace '[^A-Za-z0-9_.-]', '_') + '.png'
             $iconCachePath = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\IconCache'
             $cachedIcon = Join-Path $iconCachePath $safeIconName
 
             if (Test-Path -LiteralPath $cachedIcon) {
                 try {
+                    $logo = New-Object Windows.Controls.Image
+                    $logo.Stretch = [Windows.Media.Stretch]::Uniform
                     $logo.Source = [Windows.Media.Imaging.BitmapImage]::new([Uri]::new($cachedIcon))
-                    # Cached files are local and load synchronously enough for the card.
                     $fallback.Visibility = "Collapsed"
+                    [void]$icon.Children.Add($logo)
                 } catch {
-                    # Keep the letter fallback visible behind the remote image while it loads.
-                    $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
+                    # Leave the letter fallback visible if a cached icon is invalid.
                 }
-            } else {
-                # The Image is rendered above the letter fallback. If the request fails,
-                # ImageFailed hides only the broken image and the letter remains visible.
+            } elseif ($iconMode -eq 'Auto') {
+                $logo = New-Object Windows.Controls.Image
+                $logo.Stretch = [Windows.Media.Stretch]::Uniform
+                $logo.Add_ImageFailed($handlers.ImageFailed)
                 $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
+                [void]$icon.Children.Add($logo)
             }
-
-            [void]$icon.Children.Add($logo)
         }
         [void]$contentPanel.Children.Add($icon)
 
