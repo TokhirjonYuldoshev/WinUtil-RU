@@ -133,6 +133,16 @@ if (
 
 # No cache or a new stable version is available. The stable launcher downloads source,
 # validates it, compiles once, and refreshes the persistent compiled cache.
-$launcherText = Get-WMRemoteText -Uri $launcherUrl -Attempts 3 -TimeoutSec 30
-$launcherText = $launcherText.TrimStart([char]0xFEFF)
-Invoke-Expression $launcherText
+try {
+    $launcherText = Get-WMRemoteText -Uri $launcherUrl -Attempts 3 -TimeoutSec 30
+    $launcherText = $launcherText.TrimStart([char]0xFEFF)
+    Invoke-Expression $launcherText
+}
+catch {
+    if ($cacheIntegrityOk) {
+        Write-Warning "Stable update failed; starting the last verified local cache."
+        Invoke-WMStandalone -ScriptPath $cachedScript
+        return
+    }
+    throw
+}
