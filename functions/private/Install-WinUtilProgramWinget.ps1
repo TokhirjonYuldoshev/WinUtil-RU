@@ -43,6 +43,15 @@ Function Install-WinUtilProgramWinget {
         -1978334965 = "installed, the installer started a restart"
     }
 
+    # Some WinGet failures surface raw Windows networking HRESULTs instead of WinGet-specific
+    # return codes. Keep the diagnostic text in English for the log; the Russian presentation
+    # layer translates it only when it is shown to the user.
+    $knownFailureDetails = @{
+        "80072EFD" = "WinGet could not connect to a package source (0x80072EFD). Check the Internet connection, proxy, VPN, firewall, or source availability, then try again."
+        "80072EFE" = "The connection to a package source was interrupted (0x80072EFE). Check the Internet connection, proxy, VPN, firewall, or TLS/network filtering, then try again."
+        "80D02002" = "The package source request timed out (0x80D02002). Check the Internet connection, proxy, VPN, firewall, or source availability, then try again."
+    }
+
     foreach ($program in $Programs) {
         if ([string]::IsNullOrWhiteSpace($program) -or $program -eq "na") {
             continue
@@ -96,9 +105,14 @@ Function Install-WinUtilProgramWinget {
             }
         } else {
             $outcome = "Failed"
-            # The client module reports the same failure as a bare HRESULT, so the hex form and
-            # Microsoft's own list serve both paths
-            $detail = "WinGet reported 0x{0:X8}. See https://learn.microsoft.com/windows/package-manager/winget/returnCodes" -f $exitCode
+            $exitCodeHex = "{0:X8}" -f $exitCode
+            if ($knownFailureDetails.ContainsKey($exitCodeHex)) {
+                $detail = $knownFailureDetails[$exitCodeHex]
+            } else {
+                # The client module reports the same failure as a bare HRESULT, so the hex form and
+                # Microsoft's own list serve both paths
+                $detail = "WinGet reported 0x$exitCodeHex. See https://learn.microsoft.com/windows/package-manager/winget/returnCodes"
+            }
         }
 
         $level = if ($outcome -eq "Failed") { "ERROR" } else { "INFO" }
