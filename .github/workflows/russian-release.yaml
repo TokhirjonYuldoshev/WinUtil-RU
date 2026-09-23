@@ -36,6 +36,34 @@ jobs:
             dist/release.json
             dist/LICENSE
 
+      - name: Validate release manifest
+        shell: pwsh
+        env:
+          WINUTIL_RU_REF: ${{ github.ref }}
+          WINUTIL_RU_SHA: ${{ github.sha }}
+        run: |
+          $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          $expectedChannel = if ($env:WINUTIL_RU_REF -eq 'refs/heads/russian-dev') { 'beta' } else { 'stable' }
+          $expectedPrerelease = $expectedChannel -eq 'beta'
+
+          if ([string]$manifest.Channel -ne $expectedChannel) {
+              throw "release.json Channel mismatch: expected $expectedChannel, got $($manifest.Channel)"
+          }
+          if ([bool]$manifest.Prerelease -ne $expectedPrerelease) {
+              throw "release.json Prerelease mismatch for channel $expectedChannel"
+          }
+          if ([string]$manifest.SourceCommit -ne $env:WINUTIL_RU_SHA) {
+              throw "release.json SourceCommit mismatch: expected $env:WINUTIL_RU_SHA, got $($manifest.SourceCommit)"
+          }
+
+          $actualHash = (Get-FileHash .\dist\winutil-RU.ps1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ([string]$manifest.Sha256 -ne $actualHash) {
+              throw "release.json SHA256 does not match winutil-RU.ps1"
+          }
+
+          Write-Host "Release manifest verified: channel=$expectedChannel commit=$env:WINUTIL_RU_SHA sha256=$actualHash"
+
+
       - name: Publish WinUtil RU stable release
         if: github.ref == 'refs/heads/russian'
         shell: pwsh
@@ -45,13 +73,44 @@ jobs:
           $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
           $tag = [string]$manifest.Version
 
-          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          $existingReleaseJson = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$tag" 2>$null
           if ($LASTEXITCODE -eq 0) {
-              Write-Host "Stable release $tag already exists; keeping the published release unchanged."
-              exit 0
+              $existingRelease = $existingReleaseJson | ConvertFrom-Json
+              $existingTarget = [string]$existingRelease.target_commitish
+
+              if ($existingTarget -eq $env:GITHUB_SHA) {
+                  Write-Host "Stable release $tag already targets current stable commit $env:GITHUB_SHA."
+                  exit 0
+              }
+
+              Write-Host "Refreshing stable release $tag from $existingTarget to $env:GITHUB_SHA."
+              gh release delete $tag --repo $env:GITHUB_REPOSITORY --yes --cleanup-tag
+              if ($LASTEXITCODE -ne 0) {
+                  throw "Failed to remove outdated stable release/tag $tag."
+              }
           }
 
           gh release create $tag "dist/winutil-RU.ps1" "dist/release.json" "dist/LICENSE" --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "WinUtil RU $($manifest.Version)" --generate-notes --latest
+          if ($LASTEXITCODE -ne 0) {
+              throw "Failed to publish stable release $tag."
+          }
+
+          $published = (gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$tag") | ConvertFrom-Json
+          if ([string]$published.target_commitish -ne $env:GITHUB_SHA) {
+              throw "Published release target mismatch: expected $env:GITHUB_SHA, got $($published.target_commitish)"
+          }
+          if ([bool]$published.prerelease -or [bool]$published.draft) {
+              throw "Published stable release must not be draft or prerelease."
+          }
+
+          $assetNames = @($published.assets | ForEach-Object { $_.name })
+          foreach ($requiredAsset in @('winutil-RU.ps1', 'release.json', 'LICENSE')) {
+              if ($assetNames -notcontains $requiredAsset) {
+                  throw "Published stable release is missing asset: $requiredAsset"
+              }
+          }
+
+          Write-Host "Stable release verified: $tag -> $env:GITHUB_SHA; assets=$($assetNames -join ', ')"
 
       - name: Publish WinUtil RU Beta
         if: github.ref == 'refs/heads/russian-dev'
