@@ -11,6 +11,33 @@ function Add-WinUtilValidationFailure {
     $script:failures += $Message
 }
 
+# Windows PowerShell 5.1 requires a UTF-8 BOM for source files that contain
+# non-ASCII text. Without it, Russian strings are decoded as ANSI and can even
+# turn into parser errors when multibyte sequences are misread.
+$utf8BomRequired = @(
+    'run-russian.ps1'
+    'functions\private\Convert-WinUtilRussianRuntimeText.ps1'
+    'functions\private\Get-WinUtilEntryToolTip.ps1'
+    'functions\private\Initialize-WinUtilRussianLocalization.ps1'
+    'functions\private\Set-WinUtilLanguagePreference.ps1'
+    'functions\private\Start-WinUtilUserInterface.ps1'
+    'tools\Test-WinUtilRussianEdition.ps1'
+)
+
+foreach ($relativePath in $utf8BomRequired) {
+    $sourcePath = Join-Path $repoRoot $relativePath
+    $bytes = [System.IO.File]::ReadAllBytes($sourcePath)
+    $hasUtf8Bom = (
+        $bytes.Length -ge 3 -and
+        $bytes[0] -eq 0xEF -and
+        $bytes[1] -eq 0xBB -and
+        $bytes[2] -eq 0xBF
+    )
+    if (-not $hasUtf8Bom) {
+        Add-WinUtilValidationFailure "$relativePath must be UTF-8 with BOM for Windows PowerShell 5.1."
+    }
+}
+
 # Parse all executable PowerShell sources with the engine that is about to run them.
 $powerShellFiles = @(
     Get-ChildItem -Path (Join-Path $repoRoot 'functions'), (Join-Path $repoRoot 'scripts') -Filter *.ps1 -Recurse -File
