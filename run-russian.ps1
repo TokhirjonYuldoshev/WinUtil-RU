@@ -3,7 +3,8 @@ $ErrorActionPreference = 'Stop'
 $previousRestartCapability = $env:WINDOWMANAGER_LAUNCHER_RESTART
 $env:WINDOWMANAGER_LAUNCHER_RESTART = '1'
 
-$branch = if ($env:WINDOWMANAGER_BRANCH -in @('russian', 'russian-dev')) { $env:WINDOWMANAGER_BRANCH } else { 'russian' }
+$requestedBranch = if ($env:WINUTIL_RU_BRANCH) { $env:WINUTIL_RU_BRANCH } else { $env:WINDOWMANAGER_BRANCH }
+$branch = if ($requestedBranch -in @('russian', 'russian-dev')) { $requestedBranch } else { 'russian' }
 $repoZip = "https://github.com/TokhirjonYuldoshev/WindowManager/archive/refs/heads/$branch.zip"
 $tempRoot = Join-Path $env:TEMP ("WindowManager-$branch-" + [guid]::NewGuid().ToString('N'))
 $zipPath = Join-Path $tempRoot "$branch.zip"
@@ -17,7 +18,7 @@ try {
     # "The underlying connection was closed" on older Windows/.NET defaults.
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-    Write-Host 'Загрузка русской версии WindowManager...' -ForegroundColor Cyan
+    Write-Host 'Загрузка WinUtil RU...' -ForegroundColor Cyan
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
             Write-Host "Скачивание архива GitHub (попытка $attempt/3)..." -ForegroundColor DarkCyan
@@ -110,29 +111,36 @@ try {
         Write-Host "Preflight-проверка ($shell)..." -ForegroundColor Cyan
         & $shell -NoProfile -ExecutionPolicy Bypass -File '.\tools\Test-WinUtilRussianEdition.ps1' -Quiet
         if ($LASTEXITCODE -ne 0) {
-            throw "Preflight-проверка WindowManager не пройдена."
+            throw "Preflight-проверка WinUtil RU не пройдена."
         }
 
-        Write-Host 'Сборка WindowManager...' -ForegroundColor Cyan
+        Write-Host 'Сборка WinUtil RU...' -ForegroundColor Cyan
         & $shell -NoProfile -ExecutionPolicy Bypass -File '.\Compile.ps1'
         if ($LASTEXITCODE -ne 0) {
-            throw "Не удалось собрать WindowManager. Код завершения: $LASTEXITCODE."
+            throw "Не удалось собрать WinUtil RU. Код завершения: $LASTEXITCODE."
         }
 
         $runTarget = Join-Path $projectRoot 'winutil.ps1'
 
         if ($branch -eq 'russian') {
             $stableCacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
-            $stableScript = Join-Path $stableCacheRoot 'WindowManager-RU.ps1'
+            $stableScript = Join-Path $stableCacheRoot 'winutil-RU.ps1'
             $stableManifestPath = Join-Path $stableCacheRoot 'release.json'
 
             New-Item -ItemType Directory -Path $stableCacheRoot -Force | Out-Null
             Copy-Item -LiteralPath $runTarget -Destination $stableScript -Force
+            $legacyStableScript = Join-Path $stableCacheRoot 'WindowManager-RU.ps1'
+            if (Test-Path -LiteralPath $legacyStableScript) {
+                Remove-Item -LiteralPath $legacyStableScript -Force -ErrorAction SilentlyContinue
+            }
 
             $localeInfo = Get-Content -LiteralPath (Join-Path $projectRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
             $stableHash = (Get-FileHash -LiteralPath $stableScript -Algorithm SHA256).Hash.ToLowerInvariant()
             $stableManifest = [ordered]@{
+                Product = 'WinUtil RU'
+                Channel = 'beta'
                 Version = [string]$localeInfo.Meta.Version
+                LocalizationVersion = [string]$localeInfo.Meta.LocalizationVersion
                 SourceBranch = $branch
                 Sha256 = $stableHash
                 CachedAt = (Get-Date).ToString('o')
@@ -140,7 +148,7 @@ try {
             $stableManifest | ConvertTo-Json | Set-Content -LiteralPath $stableManifestPath -Encoding UTF8
 
             $runTarget = $stableScript
-            Write-Host "Локальный stable-кэш обновлён: версия $($stableManifest.Version)" -ForegroundColor DarkGreen
+            Write-Host "Локальный кэш WinUtil RU обновлён: $($stableManifest.Version) Beta" -ForegroundColor DarkGreen
         }
 
         $restartRegistryPath = 'HKCU:\Software\YTY\WindowManager'
@@ -149,10 +157,10 @@ try {
                 Remove-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction SilentlyContinue
             }
 
-            Write-Host 'Запуск интерфейса WindowManager...' -ForegroundColor Green
+            Write-Host 'Запуск интерфейса WinUtil RU...' -ForegroundColor Green
             & $shell -NoProfile -ExecutionPolicy Bypass -File $runTarget
             if ($LASTEXITCODE -ne 0) {
-                throw "WindowManager завершился с кодом $LASTEXITCODE."
+                throw "WinUtil RU завершился с кодом $LASTEXITCODE."
             }
 
             $restartRequested = $false
