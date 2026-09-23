@@ -543,12 +543,16 @@
       Set-Service -Name diagtrack -StartupType Disabled
 
       # Disable (Windows Error Reporting Manager) Service
-      Set-Service -Name wermgr -StartupType Disabled
+      if (Get-Service -Name wermgr -ErrorAction SilentlyContinue) {
+          Set-Service -Name wermgr -StartupType Disabled
+      }
 
       # Disable PowerShell 7 telemetry
       [Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '1', 'Machine')
 
-      Remove-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Siuf\\Rules\" -Name PeriodInNanoSeconds
+      if (Get-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Siuf\\Rules\" -Name PeriodInNanoSeconds -ErrorAction SilentlyContinue) {
+          Remove-ItemProperty -Path \"HKCU:\\Software\\Microsoft\\Siuf\\Rules\" -Name PeriodInNanoSeconds -ErrorAction Stop
+      }
       "
     ],
     "UndoScript": [
@@ -560,7 +564,9 @@
       Set-Service -Name diagtrack -StartupType Automatic
 
       # Enable (Windows Error Reporting Manager) Service
-      Set-Service -Name wermgr -StartupType Automatic
+      if (Get-Service -Name wermgr -ErrorAction SilentlyContinue) {
+          Set-Service -Name wermgr -StartupType Automatic
+      }
 
       # Enable PowerShell 7 telemetry
       [Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '', 'Machine')
