@@ -1,80 +1,123 @@
-# WindowManager RU
+# WinUtil RU
 
-[![Latest Release](https://img.shields.io/github/v/release/TokhirjonYuldoshev/WindowManager?display_name=tag&style=for-the-badge)](https://github.com/TokhirjonYuldoshev/WindowManager/releases/latest)
+[![Latest Release](https://img.shields.io/github/v/release/TokhirjonYuldoshev/WindowManager?display_name=tag&style=for-the-badge)](https://github.com/TokhirjonYuldoshev/WindowManager/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-**WindowManager RU** — русскоязычная версия и независимый форк проекта [Chris Titus Tech's Windows Utility (WinUtil)](https://github.com/ChrisTitusTech/winutil).
-
-Проект сохраняет функциональность оригинального WinUtil и добавляет русскую локализацию интерфейса, переключение языка, улучшенный запуск stable/dev, локальный кэш стабильной сборки и дополнительные проверки совместимости.
+**WinUtil RU** — независимая русская сборка и локализация проекта [Chris Titus Tech's Windows Utility (WinUtil)](https://github.com/ChrisTitusTech/winutil).
 
 > Оригинальный проект: **ChrisTitusTech/winutil**  
-> Авторские права на исходный WinUtil принадлежат **CT Tech Group LLC**.  
-> Этот форк развивается независимо и не является официальным русским релизом Chris Titus Tech.
+> Copyright исходного WinUtil: **CT Tech Group LLC**  
+> WinUtil RU не является официальным русским релизом Chris Titus Tech.
+
+---
+
+## Версия и название
+
+WinUtil RU использует тот же формат номера версии, что и оригинальный WinUtil:
+
+```text
+yy.MM.dd
+```
+
+Для русской сборки добавляется суффикс `RU`, а GitHub Release пока публикуется как **Beta / Pre-release**.
+
+Текущая схема:
+
+```text
+Программа: WinUtil RU
+Версия сборки: 26.09.23-RU
+Файл: winutil-RU.ps1
+Tag: 26.09.23-RU-beta
+Release: Release 26.09.23 RU Beta
+Статус: Beta / Pre-release
+```
+
+Последний официальный релиз оригинального WinUtil может иметь более ранний номер, потому что WinUtil RU также синхронизируется с более свежими изменениями из `ChrisTitusTech/winutil:main`. Поэтому русская сборка использует оригинальный **формат** версии, но не выдаёт более новый код `main` за старый официальный релиз.
 
 ---
 
 ## Быстрый запуск
 
-> WindowManager изменяет системные параметры Windows, поэтому PowerShell или Terminal нужно запускать **от имени администратора**.
+> Запускайте PowerShell или Windows Terminal **от имени администратора**.
 
-### Стабильная русская версия
-
-Открой PowerShell от имени администратора и выполни:
+### WinUtil RU Beta
 
 ```powershell
-$env:WINDOWMANAGER_BRANCH='russian'; $s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager/russian/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
+$s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager/russian/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
 ```
 
-Стабильная ветка: `russian`.
-
-При первом запуске WindowManager загружает и проверяет исходники, собирает готовый `WindowManager-RU.ps1` и сохраняет его локально.
-
-Следующие запуски используют проверенный локальный кэш, если версия на GitHub не изменилась.
-
-Локальный stable-кэш:
-
-```text
-%LOCALAPPDATA%\YTY\WindowManager\Stable\
-├─ WindowManager-RU.ps1
-└─ release.json
-```
-
-Если появилась новая стабильная версия, кэш автоматически обновляется. Если GitHub временно недоступен, последняя локальная версия может быть запущена после проверки SHA-256.
+Ветка `russian` — проверенная пользовательская ветка WinUtil RU. Пока проект находится в стадии Beta, соответствующие GitHub Releases помечаются как **Pre-release**.
 
 ### Версия для разработки
 
 ```powershell
-$env:WINDOWMANAGER_BRANCH='russian-dev'; $s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager/russian-dev/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
+$env:WINUTIL_RU_BRANCH='russian-dev'; $s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager/russian-dev/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
 ```
 
-`russian-dev` предназначена для проверки новых изменений. Она загружает свежие исходники, выполняет preflight и компиляцию перед запуском.
+Старая переменная `WINDOWMANAGER_BRANCH` пока поддерживается для обратной совместимости.
 
 ---
 
-## Что добавлено в русской версии
+## Как работает кэш
 
-- русский интерфейс с возможностью переключиться обратно на English;
-- отдельный файл локализации `config/localization_ru.json`;
-- русские описания каталога приложений;
-- сохранение внутренних ключей WinUtil на английском для совместимости с оригинальной логикой;
-- режимы иконок: **Авто**, **Только кэш**, **Отключить**;
+При первом запуске новой версии WinUtil RU:
+
+```text
+GitHub
+  ↓
+загрузка исходников
+  ↓
+preflight
+  ↓
+Compile.ps1
+  ↓
+winutil-RU.ps1
+  ↓
+SHA-256
+  ↓
+локальный кэш
+```
+
+Дальше, пока версия не изменилась, запускается проверенный локальный файл.
+
+Технический путь кэша пока сохранён прежним для совместимости с уже созданными настройками:
+
+```text
+%LOCALAPPDATA%\YTY\WindowManager\Stable\
+├─ winutil-RU.ps1
+└─ release.json
+```
+
+При успешном обновлении старый `WindowManager-RU.ps1` заменяется новым `winutil-RU.ps1`.
+
+Если GitHub временно недоступен, последняя проверенная локальная сборка может быть запущена после проверки SHA-256.
+
+---
+
+## Что добавляет WinUtil RU
+
+- русский интерфейс с переключением **Русский / English**;
+- отдельную локализацию в `config/localization_ru.json`;
+- русские описания приложений;
+- сохранение оригинальных внутренних ключей и команд WinUtil;
+- режимы иконок **Авто / Только кэш / Отключить**;
 - локальный кэш иконок;
-- стабильный локальный кэш собранного WindowManager;
-- SHA-256-проверка стабильного кэша;
-- обработка временных ошибок источников WinGet и один безопасный повтор для `Upgrade all`;
-- preflight-проверки PowerShell, JSON, XAML, локализации и кодировок;
-- CI-проверки Windows PowerShell 5.1 и PowerShell 7;
-- автоматическая сборка русских GitHub Releases.
+- проверяемый SHA-256 кэш собранного `winutil-RU.ps1`;
+- обработку временных ошибок источников WinGet;
+- безопасный однократный retry для `Upgrade all`;
+- preflight-проверки PowerShell, XAML, JSON, локализации и кодировок;
+- CI для Windows PowerShell 5.1 и PowerShell 7;
+- автоматическую сборку Beta-релизов.
 
 ---
 
-## Ветки проекта
+## Ветки
 
 | Ветка | Назначение |
 |---|---|
 | `main` | Чистая база, синхронизируемая с `ChrisTitusTech/winutil:main` |
-| `russian-dev` | Разработка и тестирование русской версии |
-| `russian` | Стабильная русская версия |
+| `russian-dev` | Новые изменения WinUtil RU и тестирование |
+| `russian` | Проверенная пользовательская ветка WinUtil RU Beta |
 
 Схема обновления:
 
@@ -85,64 +128,61 @@ ChrisTitusTech/winutil:main
           ↓
      russian-dev
           ↓
-   тестирование / CI
+      CI + тест
           ↓
        russian
           ↓
-   ru-vX.Y.Z Release
+ Release yy.MM.dd RU Beta
 ```
 
-Новые изменения оригинального WinUtil сначала попадают в `main`, затем проходят через `russian-dev`. Стабильная `russian` не обновляется автоматически без проверки.
+`russian` не обновляется автоматически без проверки.
 
 ---
 
-## Релизы
+## Beta-релизы
 
-Последняя стабильная версия публикуется в разделе [Releases](https://github.com/TokhirjonYuldoshev/WindowManager/releases/latest).
-
-Релиз содержит:
+GitHub Release публикуется как **Pre-release** и содержит:
 
 ```text
-WindowManager-RU.ps1
+winutil-RU.ps1
 release.json
+LICENSE
 ```
 
-`release.json` содержит версию, SHA-256 и данные сборки.
+Standalone `winutil-RU.ps1` также содержит исходное MIT-уведомление внутри файла, чтобы информация о лицензии сохранялась даже при отдельном скачивании PowerShell-скрипта.
 
 ---
 
-## Оригинальный проект
+## Оригинальный WinUtil
 
-WindowManager RU основан на:
+Основа проекта:
 
 **Chris Titus Tech's Windows Utility (WinUtil)**  
 https://github.com/ChrisTitusTech/winutil
 
-Официальная документация оригинального проекта:  
+Официальная документация:  
 https://winutil.christitus.com/
 
-Если вопрос относится к оригинальному WinUtil без изменений этого форка, используйте документацию и issue tracker оригинального проекта.
-
-Если проблема относится именно к русской локализации или функциям WindowManager RU, создавайте issue в этом репозитории.
+Если ошибка относится к оригинальному WinUtil без изменений этого форка, используйте issue tracker оригинального проекта. Если проблема относится к русской локализации, WinUtil RU launcher, RU cache или RU release — создавайте issue здесь.
 
 ---
 
 ## Лицензия
 
-Проект распространяется по лицензии **MIT**, как и оригинальный WinUtil.
+WinUtil RU распространяется по **MIT License**, как и оригинальный WinUtil.
 
-Исходное уведомление об авторском праве и полный текст лицензии сохранены в файле [LICENSE](LICENSE):
+Исходный copyright и полный текст лицензии сохранены:
 
 ```text
 Copyright (c) 2022 CT Tech Group LLC
 ```
 
-MIT License разрешает использование, копирование, изменение, публикацию и распространение программного обеспечения при сохранении уведомления об авторском праве и текста лицензии.
+Полный текст: [LICENSE](LICENSE).
 
-Изменения и русская локализация этого форка не означают одобрение или официальную поддержку со стороны Chris Titus Tech или CT Tech Group LLC.
+MIT разрешает использование, копирование, изменение и распространение программного обеспечения при сохранении copyright notice и текста лицензии.
 
 ---
 
 ## Благодарность
 
-Спасибо **Chris Titus Tech**, **CT Tech Group LLC** и всем участникам [оригинального WinUtil](https://github.com/ChrisTitusTech/winutil/graphs/contributors) за разработку и поддержку проекта, на котором основан WindowManager RU.
+Спасибо **Chris Titus Tech**, **CT Tech Group LLC** и всем участникам [оригинального WinUtil](https://github.com/ChrisTitusTech/winutil/graphs/contributors) за исходный проект.
