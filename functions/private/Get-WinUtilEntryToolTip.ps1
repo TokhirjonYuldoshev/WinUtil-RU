@@ -1,4 +1,4 @@
-function Get-WinUtilEntryToolTip {
+﻿function Get-WinUtilEntryToolTip {
     <#
         .SYNOPSIS
             Builds the tooltip string for an app/tweak/feature entry: its description plus its preset JSON key
