@@ -21,9 +21,9 @@ function Initialize-InstallAppEntry {
         $border.Style = $sync.Form.Resources.AppEntryBorderStyle
         $border.Tag = $appKey
 
+        $catalogKey = $appKey -replace '^WPFInstall', ''
         $appDescription = $app.description
         if ($sync.preferences.language -eq 'ru-RU' -and $null -ne $sync.configs.applications_ru) {
-            $catalogKey = $appKey -replace '^WPFInstall', ''
             $localizedDescription = $sync.configs.applications_ru.PSObject.Properties[$catalogKey]
             if ($null -ne $localizedDescription -and -not [string]::IsNullOrWhiteSpace([string]$localizedDescription.Value)) {
                 $appDescription = [string]$localizedDescription.Value
@@ -63,7 +63,7 @@ function Initialize-InstallAppEntry {
             $logo.Stretch = [Windows.Media.Stretch]::Uniform
             $logo.Add_ImageFailed($handlers.ImageFailed)
 
-            $safeIconName = ($appKey -replace '[^A-Za-z0-9_.-]', '_') + '.png'
+            $safeIconName = ($catalogKey -replace '[^A-Za-z0-9_.-]', '_') + '.png'
             $iconCachePath = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\IconCache'
             $cachedIcon = Join-Path $iconCachePath $safeIconName
 
