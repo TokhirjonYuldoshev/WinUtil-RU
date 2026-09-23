@@ -1,6 +1,6 @@
 # WinUtil RU
 
-[![Latest Release](https://img.shields.io/github/v/release/TokhirjonYuldoshev/WinUtil-RU?display_name=tag&style=for-the-badge)](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases)
+[![WinUtil RU](https://img.shields.io/badge/WinUtil%20RU-26.09.23--RU-2ea44f?style=for-the-badge)](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 **WinUtil RU** — независимая русская сборка и локализация проекта [Chris Titus Tech's Windows Utility (WinUtil)](https://github.com/ChrisTitusTech/winutil).
