@@ -59,6 +59,25 @@ foreach ($file in $powerShellFiles) {
     }
 }
 
+# The bootstrap must remain ASCII-only and BOM-less because it is the first file
+# executed through a remote pipeline on Windows PowerShell 5.1.
+$bootstrapPath = Join-Path $repoRoot 'bootstrap.ps1'
+if (Test-Path -LiteralPath $bootstrapPath) {
+    $bootstrapBytes = [System.IO.File]::ReadAllBytes($bootstrapPath)
+    $bootstrapHasBom = (
+        $bootstrapBytes.Length -ge 3 -and
+        $bootstrapBytes[0] -eq 0xEF -and
+        $bootstrapBytes[1] -eq 0xBB -and
+        $bootstrapBytes[2] -eq 0xBF
+    )
+    if ($bootstrapHasBom) {
+        Add-WinUtilValidationFailure "bootstrap.ps1 must not contain a UTF-8 BOM."
+    }
+    if (@($bootstrapBytes | Where-Object { $_ -gt 0x7F }).Count -gt 0) {
+        Add-WinUtilValidationFailure "bootstrap.ps1 must remain ASCII-only."
+    }
+}
+
 # The online launcher is intentionally UTF-8 without BOM because it is normally
 # executed from an already decoded HTTP string through irm | iex. Parse its decoded
 # text explicitly so Windows PowerShell 5.1 does not reinterpret the file as ANSI.
