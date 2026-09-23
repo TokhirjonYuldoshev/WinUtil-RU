@@ -389,7 +389,6 @@
     "Removing AppX packages": "Удаление пакетов AppX",
     "Removing provisioned AppX packages": "Удаление подготовленных пакетов AppX",
     "Environment Report": "Отчёт о системе",
-    "JSON files (*.json)|*.json": "Файлы JSON (*.json)|*.json",
     "Also include the last 7 days of WinUtil logs? The companion file contains raw logs and may include local paths, commands, and error details. Review it before sharing.": "Также включить журналы WinUtil за последние 7 дней? Дополнительный файл содержит необработанные журналы и может включать локальные пути, команды и сведения об ошибках. Проверьте его перед отправкой.",
     "Exporting environment report": "Экспорт отчёта о системе",
     "Collecting environment report": "Сбор отчёта о системе",
