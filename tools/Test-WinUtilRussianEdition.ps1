@@ -124,7 +124,7 @@ if ($compileSource -notmatch '\[System\.IO\.File\]::WriteAllText') {
 $bootstrapText = Get-Content -LiteralPath $bootstrapPath -Raw -Encoding ASCII
 foreach ($requiredBootstrapMarker in @(
     'YTY\WindowManager\Stable',
-    'WindowManager-RU.ps1',
+    'winutil-RU.ps1',
     'release.json',
     'local cache',
     'if ($branch -eq ''russian-dev'')'
@@ -136,7 +136,7 @@ foreach ($requiredBootstrapMarker in @(
 
 foreach ($requiredLauncherMarker in @(
     'YTY\WindowManager\Stable',
-    'WindowManager-RU.ps1',
+    'winutil-RU.ps1',
     'localization_ru.json',
     'if ($branch -eq ''russian'')'
 )) {
@@ -148,6 +148,24 @@ foreach ($requiredLauncherMarker in @(
 $releaseBuilderPath = Join-Path $repoRoot 'tools\Build-WinUtilRussianRelease.ps1'
 if (-not (Test-Path -LiteralPath $releaseBuilderPath)) {
     Add-WinUtilValidationFailure "Missing tools/Build-WinUtilRussianRelease.ps1"
+}
+else {
+    $releaseBuilderText = Get-Content -LiteralPath $releaseBuilderPath -Raw -Encoding UTF8
+    foreach ($requiredReleaseMarker in @(
+        'winutil-RU.ps1',
+        "Product = 'WinUtil RU'",
+        "Channel = 'beta'",
+        "License = 'LICENSE'",
+        'Copyright (c) 2022 CT Tech Group LLC'
+    )) {
+        if ($releaseBuilderText -notlike "*$requiredReleaseMarker*") {
+            Add-WinUtilValidationFailure "Release builder is missing WinUtil RU beta marker: $requiredReleaseMarker"
+        }
+    }
+}
+
+if ($compileSource -notmatch "yy\.MM\.dd.*-RU") {
+    Add-WinUtilValidationFailure "Compile.ps1 must use the upstream yy.MM.dd version format with an RU suffix."
 }
 
 # Every config must be valid JSON.
