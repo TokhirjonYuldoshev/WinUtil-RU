@@ -51,6 +51,13 @@ function Remove-WinUtilTempScript {
     }
 }
 
+function Write-WinUtilQueuedLogs {
+    $line = $null
+    while ($sync.LogQueue.TryDequeue([ref]$line)) {
+        Write-Host $line
+    }
+}
+
 #===========================================================================
 # Headless runs never build a window
 #===========================================================================
@@ -87,6 +94,7 @@ if ($Preset -or $Config) {
         $headlessCode = 1
     } finally {
         Close-WinUtilRunspacePool
+        Write-WinUtilQueuedLogs
         [System.GC]::Collect()
         Remove-WinUtilTempScript
         Stop-Transcript | Out-Null
@@ -126,7 +134,10 @@ $uiHandle = $uiShell.BeginInvoke()
 # leaving it to the thread that is building the window
 Start-WinUtilAssetRendering | Out-Null
 
-$uiHandle.AsyncWaitHandle.WaitOne() | Out-Null
+while (-not $uiHandle.AsyncWaitHandle.WaitOne(100)) {
+    Write-WinUtilQueuedLogs
+}
+Write-WinUtilQueuedLogs
 
 $uiFailed = $false
 try {
@@ -153,6 +164,7 @@ $sync.Remove("UIRunspace")
 Wait-WinUtilRemainingWork
 
 Close-WinUtilRunspacePool
+Write-WinUtilQueuedLogs
 [System.GC]::Collect()
 
 Remove-WinUtilTempScript

@@ -257,10 +257,12 @@ $logdir = "$winutildir\logs"
 if (-not (Test-Path $logdir)) {
     New-Item -ItemType Directory -Path $logdir -Force | Out-Null
 }
-# Keep console output and structured entries in the path reported to the user. Write-WinUtilLog
-# writes through the host while this transcript owns the file, avoiding competing file handles.
+# The transcript only records host output from this thread. Other runspaces queue their log
+# entries for this thread to print, so all structured entries reach the same session file.
 $sync.logPath = "$logdir\winutil_$dateTime.log"
 $sync.transcriptPath = $sync.logPath
+$sync.LogMainThreadId = [System.Threading.Thread]::CurrentThread.ManagedThreadId
+$sync.LogQueue = [System.Collections.Concurrent.ConcurrentQueue[string]]::new()
 Start-Transcript -Path $sync.transcriptPath -Append -NoClobber | Out-Null
 
 $Host.UI.RawUI.WindowTitle = "WinUtil"

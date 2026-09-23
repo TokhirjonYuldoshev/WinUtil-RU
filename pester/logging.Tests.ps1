@@ -54,6 +54,26 @@ Describe "Write-WinUtilLog" {
         Should -Invoke Add-Content -Times 0 -Exactly
     }
 
+    It "queues a worker entry for the thread that owns the transcript" {
+        $logPath = Join-Path $script:testRoot "logs\winutil_2026-07-01_12-00-00.log"
+        $script:sync = [hashtable]::Synchronized(@{
+            logPath = $logPath
+            transcriptPath = $logPath
+            LogMainThreadId = 0
+            LogQueue = [System.Collections.Concurrent.ConcurrentQueue[string]]::new()
+        })
+        Mock Write-Host { }
+        Mock Add-Content { }
+
+        Write-WinUtilLog -Level "ERROR" -Component "Tweaks" -Message "registry failed"
+
+        $line = $null
+        $script:sync.LogQueue.TryDequeue([ref]$line) | Should -BeTrue
+        $line | Should -Match "\[ERROR\] \[Tweaks\] registry failed"
+        Should -Invoke Write-Host -Times 0 -Exactly
+        Should -Invoke Add-Content -Times 0 -Exactly
+    }
+
     It "writes entries produced concurrently by several threads" {
         $logPath = Join-Path $script:testRoot "logs\winutil_2026-07-01_12-00-00.log"
         $script:sync = [hashtable]::Synchronized(@{

@@ -6,8 +6,8 @@ function Write-WinUtilLog {
 
     .DESCRIPTION
         Called from the interface thread and from every job body. When Start-Transcript owns the
-        active session log, entries go through the host so the transcript records them without a
-        competing file write. Standalone callers use a named mutex to serialize direct appends.
+        active session log, entries from other threads are queued for the transcript's thread to
+        write through the host. Standalone callers serialize direct appends with a named mutex.
 
     .PARAMETER Message
         The message to write.
@@ -88,7 +88,12 @@ function Write-WinUtilLog {
         $line = "[$timestamp] [$Level] [$Component] $Message"
 
         if (-not [string]::IsNullOrWhiteSpace($transcriptPath) -and $logPath -eq $transcriptPath) {
-            Write-Host $line
+            if ($null -ne $sync.LogQueue -and
+                $sync.LogMainThreadId -ne [System.Threading.Thread]::CurrentThread.ManagedThreadId) {
+                $sync.LogQueue.Enqueue($line)
+            } else {
+                Write-Host $line
+            }
             return
         }
 
