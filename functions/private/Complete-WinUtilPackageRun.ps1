@@ -26,13 +26,34 @@ function Complete-WinUtilPackageRun {
 
     $summary = "$($succeeded.Count) succeeded, $($skipped.Count) skipped, $($failed.Count) failed"
     Write-WinUtilLog -Component "Package" -Message "$Action summary: $summary"
-    Write-Host "$Action summary: $summary"
+
+    if ($sync.preferences.language -eq 'ru-RU') {
+        $actionLabel = switch ($Action) {
+            'Install' { 'Установка' }
+            'Uninstall' { 'Удаление' }
+            'Upgrade' { 'Обновление' }
+            default { $Action }
+        }
+        Write-Host "$actionLabel: успешно — $($succeeded.Count), пропущено — $($skipped.Count), ошибок — $($failed.Count)"
+    } else {
+        Write-Host "$Action summary: $summary"
+    }
 
     foreach ($result in $skipped) {
-        Write-Host "  skipped  $($result.Package) - $($result.Detail)"
+        $detail = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $result.Detail)
+        if ($sync.preferences.language -eq 'ru-RU') {
+            Write-Host "  пропущено  $($result.Package) - $detail"
+        } else {
+            Write-Host "  skipped  $($result.Package) - $detail"
+        }
     }
     foreach ($result in $failed) {
-        Write-Host "  failed   $($result.Package) - $($result.Detail)" -ForegroundColor Red
+        $detail = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $result.Detail)
+        if ($sync.preferences.language -eq 'ru-RU') {
+            Write-Host "  ошибка  $($result.Package) - $detail" -ForegroundColor Red
+        } else {
+            Write-Host "  failed   $($result.Package) - $detail" -ForegroundColor Red
+        }
     }
 
     $adminContextSkipped = @($skipped | Where-Object { $_.ExitCode -eq -1978335107 })
