@@ -5,8 +5,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $distRoot = Join-Path $repoRoot 'dist'
-$artifactPath = Join-Path $distRoot 'WindowManager-RU.ps1'
+$artifactPath = Join-Path $distRoot 'winutil-RU.ps1'
 $manifestPath = Join-Path $distRoot 'release.json'
+$licenseAssetPath = Join-Path $distRoot 'LICENSE'
 
 Push-Location $repoRoot
 try {
@@ -23,7 +24,26 @@ try {
     }
 
     New-Item -ItemType Directory -Path $distRoot -Force | Out-Null
-    Copy-Item -LiteralPath (Join-Path $repoRoot 'winutil.ps1') -Destination $artifactPath -Force
+
+    # The standalone release must carry the original MIT notice even when the user
+    # downloads only the PowerShell artifact rather than the whole repository.
+    $compiledPath = Join-Path $repoRoot 'winutil.ps1'
+    $compiledText = Get-Content -LiteralPath $compiledPath -Raw -Encoding UTF8
+    $licenseSourcePath = Join-Path $repoRoot 'LICENSE'
+    $licenseText = Get-Content -LiteralPath $licenseSourcePath -Raw -Encoding UTF8
+    $licenseHeader = @"
+<#
+WinUtil RU
+Independent Russian localization/fork of Chris Titus Tech's WinUtil.
+Original project: https://github.com/ChrisTitusTech/winutil
+
+$licenseText
+#>
+
+"@
+    $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+    [System.IO.File]::WriteAllText($artifactPath, $licenseHeader + $compiledText, $utf8Bom)
+    Copy-Item -LiteralPath $licenseSourcePath -Destination $licenseAssetPath -Force
 
     $locale = Get-Content -LiteralPath (Join-Path $repoRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $applications = Get-Content -LiteralPath (Join-Path $repoRoot 'config\applications.json') -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -51,13 +71,20 @@ try {
     $artifactHash = (Get-FileHash -LiteralPath $artifactPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $artifactSize = (Get-Item -LiteralPath $artifactPath).Length
 
+    $publicVersion = [string]$locale.Meta.Version
+    $baseVersion = $publicVersion -replace '-RU$', ''
+
     $manifest = [ordered]@{
-        SchemaVersion = 1
-        Product = 'WindowManager Russian Edition'
-        Channel = 'stable'
-        Version = [string]$locale.Meta.Version
+        SchemaVersion = 2
+        Product = 'WinUtil RU'
+        Channel = 'beta'
+        Prerelease = $true
+        Version = $publicVersion
+        BaseVersion = $baseVersion
+        LocalizationVersion = [string]$locale.Meta.LocalizationVersion
         SourceCommit = $sourceCommit
-        Artifact = 'WindowManager-RU.ps1'
+        Artifact = 'winutil-RU.ps1'
+        License = 'LICENSE'
         Sha256 = $artifactHash
         SizeBytes = $artifactSize
         BuiltAtUtc = (Get-Date).ToUniversalTime().ToString('o')
@@ -69,7 +96,7 @@ try {
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($manifestPath, $json + [Environment]::NewLine, $utf8NoBom)
 
-    Write-Host "Built WindowManager RU $($manifest.Version)" -ForegroundColor Green
+    Write-Host "Built WinUtil RU $($manifest.Version) Beta" -ForegroundColor Green
     Write-Host "Artifact: $artifactPath"
     Write-Host "SHA256:   $artifactHash"
     Write-Host "Manifest: $manifestPath"
