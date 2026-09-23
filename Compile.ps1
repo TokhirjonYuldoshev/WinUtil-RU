@@ -11,7 +11,8 @@ $sync.configs = @{}
 # Windows PowerShell 5.1 defaults to the system ANSI code page for BOM-less files.
 # The russian branch contains UTF-8 Cyrillic strings, so every source read/write must
 # explicitly use UTF-8 or the generated winutil.ps1 becomes mojibake and will not parse.
-$script = (Get-Content -Path scripts\start.ps1 -Encoding UTF8) -replace '#{replaceme}', (Get-Date -Format 'yy.MM.dd')
+$buildVersion = (Get-Date -Format 'yy.MM.dd') + '-RU'
+$script = (Get-Content -Path scripts\start.ps1 -Encoding UTF8) -replace '#{replaceme}', $buildVersion
 $isLocalCompile = -not [string]::Equals($env:GITHUB_ACTIONS, "true", [StringComparison]::OrdinalIgnoreCase)
 $script = $script -replace '#{islocalcompile}', $isLocalCompile.ToString().ToLowerInvariant()
 
