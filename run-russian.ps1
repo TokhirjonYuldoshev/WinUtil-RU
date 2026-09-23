@@ -1,8 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
-$repoZip = 'https://github.com/TokhirjonYuldoshev/WindowManager/archive/refs/heads/russian.zip'
-$tempRoot = Join-Path $env:TEMP ('WindowManager-russian-' + [guid]::NewGuid().ToString('N'))
-$zipPath = Join-Path $tempRoot 'russian.zip'
+$branch = if ($env:WINDOWMANAGER_BRANCH -in @('russian', 'russian-dev')) { $env:WINDOWMANAGER_BRANCH } else { 'russian' }
+$repoZip = "https://github.com/TokhirjonYuldoshev/WindowManager/archive/refs/heads/$branch.zip"
+$tempRoot = Join-Path $env:TEMP ("WindowManager-$branch-" + [guid]::NewGuid().ToString('N'))
+$zipPath = Join-Path $tempRoot "$branch.zip"
 $extractPath = Join-Path $tempRoot 'src'
 
 try {
@@ -62,7 +63,10 @@ try {
                 $safeName = ($item.Key -replace '[^A-Za-z0-9_.-]', '_') + '.png'
                 $target = Join-Path $CachePath $safeName
                 if (Test-Path -LiteralPath $target) {
-                    continue
+                    $age = (Get-Date) - (Get-Item -LiteralPath $target).LastWriteTime
+                    if ($age.TotalDays -lt 30) {
+                        continue
+                    }
                 }
 
                 $temporary = $target + '.tmp'
@@ -85,10 +89,31 @@ try {
 
     Push-Location $projectRoot
     try {
-        & $shell -NoProfile -ExecutionPolicy Bypass -File '.\Compile.ps1' -Run
+        & $shell -NoProfile -ExecutionPolicy Bypass -File '.\Compile.ps1'
         if ($LASTEXITCODE -ne 0) {
-            throw "WindowManager завершился с кодом $LASTEXITCODE."
+            throw "Не удалось собрать WindowManager. Код завершения: $LASTEXITCODE."
         }
+
+        $restartRegistryPath = 'HKCU:\Software\YTY\WindowManager'
+        do {
+            if (Test-Path $restartRegistryPath) {
+                Remove-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction SilentlyContinue
+            }
+
+            & $shell -NoProfile -ExecutionPolicy Bypass -File '.\winutil.ps1'
+            if ($LASTEXITCODE -ne 0) {
+                throw "WindowManager завершился с кодом $LASTEXITCODE."
+            }
+
+            $restartRequested = $false
+            try {
+                $restartRequested = [bool]((Get-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction Stop).RestartRequested)
+            } catch {
+                $restartRequested = $false
+            }
+        } while ($restartRequested)
+
+        Remove-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction SilentlyContinue
     }
     finally {
         Pop-Location
