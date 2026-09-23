@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 
 $previousRestartCapability = $env:WINDOWMANAGER_LAUNCHER_RESTART
 $env:WINDOWMANAGER_LAUNCHER_RESTART = '1'
