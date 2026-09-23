@@ -347,7 +347,7 @@ function Invoke-WPFUIElements {
                                 $unknownStateItem.Tag = '__WinUtilUnknownState__'
                                 $unknownStateItem.Content = Convert-WinUtilRussianText "Custom / Unknown - select a state"
                                 $unknownStateItem.IsEnabled = $false
-                                $unknownStateItem.ToolTip = "$($_.Exception.Message) Select one of the supported states to replace these values."
+                                $unknownStateItem.ToolTip = "$($_.Exception.Message) $(Convert-WinUtilRussianText 'Select one of the supported states to replace these values.')"
                                 $comboBox.Items.Add($unknownStateItem) | Out-Null
                                 $comboBox.SelectedItem = $unknownStateItem
                                 $comboBox.ToolTip = $unknownStateItem.ToolTip
@@ -386,12 +386,7 @@ function Invoke-WPFUIElements {
                                         }
                                         $previousState = if ($this.Tag.State) { $this.Tag.State } else { '__WinUtilUnknownState__' }
                                         $this.SelectedItem = @($this.Items) | Where-Object Tag -EQ $previousState | Select-Object -First 1
-                                        [System.Windows.MessageBox]::Show(
-                                            $applyError,
-                                            "WinUtil",
-                                            [System.Windows.MessageBoxButton]::OK,
-                                            [System.Windows.MessageBoxImage]::Warning
-                                        ) | Out-Null
+                                        Show-WinUtilMessage -Message $applyError -Title "WinUtil" -Button "OK" -Icon "Warning" | Out-Null
                                     }
                                 }
                             }
