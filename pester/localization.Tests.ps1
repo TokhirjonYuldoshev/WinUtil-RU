@@ -126,6 +126,14 @@ Describe "Russian UI safety" {
         $xaml.SelectSingleNode("//*[@Name='LanguageMenuItem']") | Should -BeNullOrEmpty
     }
 
+    It "exposes all application icon modes in Settings" {
+        [xml]$xaml = Get-Content -LiteralPath $script:xamlPath -Raw -Encoding UTF8
+
+        foreach ($name in @('AppIconsMenuItem', 'AppIconsAutoMenuItem', 'AppIconsCacheOnlyMenuItem', 'AppIconsDisabledMenuItem', 'ClearIconCacheMenuItem')) {
+            $xaml.SelectSingleNode("//*[local-name()='MenuItem'][@Name='$name']") | Should -Not -BeNullOrEmpty
+        }
+    }
+
     It "keeps Win11 Creator sentinel values in English for internal state checks" {
         $isoSource = Get-Content -LiteralPath $script:isoPath -Raw -Encoding UTF8
 
@@ -169,6 +177,16 @@ Describe "Install tab regression guards" {
         $text | Should -Match '\$catalogKey\s*=\s*\$appKey\s*-replace\s*''\^WPFInstall'''
         $text | Should -Match '\$safeIconName\s*=\s*\(\$catalogKey\s*-replace'
     }
+
+    It "honors Auto CacheOnly and Disabled icon modes" {
+        $text = Get-Content -LiteralPath $script:appEntryPath -Raw -Encoding UTF8
+
+        $text | Should -Match "'Auto'"
+        $text | Should -Match "'CacheOnly'"
+        $text | Should -Match "'Disabled'"
+        $text | Should -Match "\$iconMode\s+-ne\s+'Disabled'"
+        $text | Should -Match "\$iconMode\s+-eq\s+'Auto'"
+    }
 }
 
 Describe "Online Russian launcher" {
@@ -187,5 +205,13 @@ Describe "Online Russian launcher" {
         $launcher | Should -Match 'WINDOWMANAGER_LAUNCHER_RESTART'
         $launcher | Should -Match 'RestartRequested'
         $launcher | Should -Match 'do\s*\{'
+    }
+
+    It "warms remote icon cache only in Auto mode" {
+        $launcher = Get-Content -LiteralPath $script:launcherPath -Raw -Encoding UTF8
+
+        $launcher | Should -Match "\$iconMode\s+-eq\s+'Auto'"
+        $launcher | Should -Match 'AppIconMode'
+        $launcher | Should -Match 'TotalDays\s+-lt\s+30'
     }
 }
