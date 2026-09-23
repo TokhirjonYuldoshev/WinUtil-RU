@@ -2,7 +2,7 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "1.1.0",
+    "Version": "1.1.1",
     "Fallback": "en-US",
     "Note": "Presentation-only localization. Internal control names, config keys, commands and package IDs remain unchanged."
   },
@@ -475,7 +475,14 @@
     "Checking the disk for errors": "Проверка диска на ошибки",
     "Scanning protected system files": "Проверка защищённых системных файлов",
     "Repairing the Windows image": "Восстановление образа Windows",
-    "Unable to apply registry state": "Не удалось применить состояние реестра"
+    "Unable to apply registry state": "Не удалось применить состояние реестра",
+    "JSON Files (*.json)|*.json": "Файлы JSON (*.json)|*.json",
+    "Select Windows 11 ISO": "Выберите ISO Windows 11",
+    "ISO files (*.iso)|*.iso|All files (*.*)|*.*": "Файлы ISO (*.iso)|*.iso|Все файлы (*.*)|*.*",
+    "Save Modified Windows 11 ISO": "Сохранить изменённый ISO Windows 11",
+    "ISO files (*.iso)|*.iso": "Файлы ISO (*.iso)|*.iso",
+    "Import Configuration": "Импорт конфигурации",
+    "Export Configuration": "Экспорт конфигурации"
   },
   "Phrases": [
     {
