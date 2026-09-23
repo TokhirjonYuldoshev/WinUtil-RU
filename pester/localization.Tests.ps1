@@ -85,6 +85,17 @@ Describe "Russian localization engine" {
 
         $blankExact | Should -BeNullOrEmpty
         $blankPhrases | Should -BeNullOrEmpty
+
+        $duplicateExactKeys = @(
+            $locale.Exact.PSObject.Properties.Name |
+                Group-Object { $_.ToLowerInvariant() } |
+                Where-Object Count -gt 1 |
+                ForEach-Object Name
+        )
+        $duplicateExactKeys | Should -BeNullOrEmpty
+
+        $locale.Navigation.WPFTab5BT | Should -Be 'Windows 11'
+        ([string]$locale.Navigation.WPFTab5BT).Length | Should -BeLessOrEqual 12
     }
 }
 
