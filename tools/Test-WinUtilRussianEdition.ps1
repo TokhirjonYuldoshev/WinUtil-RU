@@ -113,6 +113,20 @@ try {
     if (@($locale.Phrases).Count -lt 10) {
         Add-WinUtilValidationFailure "Russian phrase translation coverage unexpectedly dropped below 10 entries."
     }
+
+    $duplicateExactKeys = @(
+        $locale.Exact.PSObject.Properties.Name |
+            Group-Object { $_.ToLowerInvariant() } |
+            Where-Object Count -gt 1 |
+            ForEach-Object Name
+    )
+    if ($duplicateExactKeys.Count -gt 0) {
+        Add-WinUtilValidationFailure "Case-insensitive duplicate Russian locale keys: $($duplicateExactKeys -join ', ')"
+    }
+
+    if ([string]$locale.Navigation.WPFTab5BT -ne 'Windows 11') {
+        Add-WinUtilValidationFailure "Russian Windows 11 navigation caption must stay compact."
+    }
 } catch {
     Add-WinUtilValidationFailure "Russian locale validation failed: $($_.Exception.Message)"
 }
