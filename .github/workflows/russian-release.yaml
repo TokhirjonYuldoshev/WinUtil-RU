@@ -27,22 +27,31 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WindowManager-RU
+          name: WinUtil-RU-Beta
           path: |
-            dist/WindowManager-RU.ps1
+            dist/winutil-RU.ps1
             dist/release.json
+            dist/LICENSE
 
-      - name: Publish stable GitHub Release
+      - name: Publish WinUtil RU Beta
         if: github.ref == 'refs/heads/russian'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
-          $tag = "ru-v$($manifest.Version)"
+          $tag = "$($manifest.Version)-beta"
+
+          # The old 1.1.8 release predates the upstream-style RU beta naming scheme.
+          gh release view "ru-v1.1.8" --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+              gh release edit "ru-v1.1.8" --repo $env:GITHUB_REPOSITORY --prerelease
+          }
+
           gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -eq 0) {
-              Write-Host "Release $tag already exists; keeping the published release unchanged."
+              Write-Host "Beta release $tag already exists; keeping the published beta unchanged."
               exit 0
           }
-          gh release create $tag "dist/WindowManager-RU.ps1" "dist/release.json" --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "WindowManager RU $($manifest.Version)" --generate-notes
+
+          gh release create $tag "dist/winutil-RU.ps1" "dist/release.json" "dist/LICENSE" --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Release $($manifest.BaseVersion) RU Beta" --generate-notes --prerelease
