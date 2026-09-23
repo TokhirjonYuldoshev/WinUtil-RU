@@ -1,4 +1,4 @@
-function Convert-WinUtilRussianRuntimeText {
+﻿function Convert-WinUtilRussianRuntimeText {
     <#
         .SYNOPSIS
             Translates dynamic presentation text whose variable parts cannot live in the locale JSON.
