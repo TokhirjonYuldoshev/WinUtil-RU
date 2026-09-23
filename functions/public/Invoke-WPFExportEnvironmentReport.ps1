@@ -12,8 +12,8 @@ function Invoke-WPFExportEnvironmentReport {
 
         Add-Type -AssemblyName System.Windows.Forms
         $dialog = [System.Windows.Forms.SaveFileDialog]::new()
-        $dialog.Title = "Export Environment Report"
-        $dialog.Filter = "JSON files (*.json)|*.json"
+        $dialog.Title = Convert-WinUtilRussianText "Export Environment Report"
+        $dialog.Filter = Convert-WinUtilRussianText "JSON files (*.json)|*.json"
         $dialog.FileName = "WinUtilEnvironmentReport_$(Get-Date -Format 'yyyyMMdd').json"
         $dialog.InitialDirectory = [Environment]::GetFolderPath("Desktop")
 
