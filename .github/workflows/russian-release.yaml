@@ -1,10 +1,9 @@
 name: Russian Release
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - 'ru-v*'
+    branches: ["russian"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,16 +24,6 @@ jobs:
           Set-ExecutionPolicy Bypass -Scope Process -Force
           .\tools\Build-WinUtilRussianRelease.ps1
 
-      - name: Verify release version
-        if: startsWith(github.ref, 'refs/tags/ru-v')
-        shell: powershell
-        run: |
-          $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
-          $expectedTag = "ru-v$($manifest.Version)"
-          if ($env:GITHUB_REF_NAME -ne $expectedTag) {
-              throw "Tag $env:GITHUB_REF_NAME does not match manifest version $expectedTag."
-          }
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -43,10 +32,16 @@ jobs:
             dist/WindowManager-RU.ps1
             dist/release.json
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/ru-v')
+      - name: Publish stable GitHub Release
+        if: github.ref == 'refs/heads/russian'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$env:GITHUB_REF_NAME" "dist/WindowManager-RU.ps1" "dist/release.json" --title "WindowManager RU $env:GITHUB_REF_NAME" --generate-notes
+          $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          $tag = "ru-v$($manifest.Version)"
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+              throw "Release $tag already exists. Bump localization_ru.json Meta.Version before the next stable promotion."
+          }
+          gh release create $tag "dist/WindowManager-RU.ps1" "dist/release.json" --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "WindowManager RU $($manifest.Version)" --generate-notes
