@@ -119,6 +119,28 @@ try {
             throw "Не удалось собрать WindowManager. Код завершения: $LASTEXITCODE."
         }
 
+        $runTarget = Join-Path $projectRoot 'winutil.ps1'
+
+        if ($branch -eq 'russian') {
+            $stableCacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
+            $stableScript = Join-Path $stableCacheRoot 'WindowManager-RU.ps1'
+            $stableManifestPath = Join-Path $stableCacheRoot 'release.json'
+
+            New-Item -ItemType Directory -Path $stableCacheRoot -Force | Out-Null
+            Copy-Item -LiteralPath $runTarget -Destination $stableScript -Force
+
+            $localeInfo = Get-Content -LiteralPath (Join-Path $projectRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+            $stableManifest = [ordered]@{
+                Version = [string]$localeInfo.Meta.Version
+                SourceBranch = $branch
+                CachedAt = (Get-Date).ToString('o')
+            }
+            $stableManifest | ConvertTo-Json | Set-Content -LiteralPath $stableManifestPath -Encoding UTF8
+
+            $runTarget = $stableScript
+            Write-Host "Локальный stable-кэш обновлён: версия $($stableManifest.Version)" -ForegroundColor DarkGreen
+        }
+
         $restartRegistryPath = 'HKCU:\Software\YTY\WindowManager'
         do {
             if (Test-Path $restartRegistryPath) {
@@ -126,7 +148,7 @@ try {
             }
 
             Write-Host 'Запуск интерфейса WindowManager...' -ForegroundColor Green
-            & $shell -NoProfile -ExecutionPolicy Bypass -File '.\winutil.ps1'
+            & $shell -NoProfile -ExecutionPolicy Bypass -File $runTarget
             if ($LASTEXITCODE -ne 0) {
                 throw "WindowManager завершился с кодом $LASTEXITCODE."
             }
