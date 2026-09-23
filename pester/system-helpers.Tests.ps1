@@ -20,7 +20,7 @@ BeforeAll {
     }
     # The CLI path is what these tests cover; the module path is verified against real winget
     function Step-WinUtilJob { param([string]$Status, [int]$Percent, [string]$State, [string]$Overlay, [switch]$Hide) }
-    function Write-WinUtilLog { }
+    function Write-WinUtilLog { param([string]$Message, [string]$Level, [string]$Component) }
 }
 
 Describe "Invoke-WPFPanelAutologin" {
