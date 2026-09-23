@@ -184,8 +184,8 @@ Describe "Install tab regression guards" {
         $text | Should -Match "'Auto'"
         $text | Should -Match "'CacheOnly'"
         $text | Should -Match "'Disabled'"
-        $text | Should -Match "\$iconMode\s+-ne\s+'Disabled'"
-        $text | Should -Match "\$iconMode\s+-eq\s+'Auto'"
+        $text | Should -Match '\$iconMode\s+-ne\s+''Disabled'''
+        $text | Should -Match '\$iconMode\s+-eq\s+''Auto'''
     }
 }
 
@@ -210,7 +210,7 @@ Describe "Online Russian launcher" {
     It "warms remote icon cache only in Auto mode" {
         $launcher = Get-Content -LiteralPath $script:launcherPath -Raw -Encoding UTF8
 
-        $launcher | Should -Match "\$iconMode\s+-eq\s+'Auto'"
+        $launcher | Should -Match '\$iconMode\s+-eq\s+''Auto'''
         $launcher | Should -Match 'AppIconMode'
         $launcher | Should -Match 'TotalDays\s+-lt\s+30'
     }
