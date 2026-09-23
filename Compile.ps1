@@ -47,7 +47,8 @@ $script += "`$WinUtilAutounattendXml = @'`r`n$autounattendXml`r`n'@"
 
 $script += Get-Content -Path scripts\main.ps1 -Raw -Encoding UTF8
 
-Set-Content -Path winutil.ps1 -Value $script -Encoding UTF8
+$utf8Bom = New-Object System.Text.UTF8Encoding($true)
+[System.IO.File]::WriteAllText((Join-Path $PWD 'winutil.ps1'), [string]$script, $utf8Bom)
 
 if ($Run) {
     .\Winutil.ps1
