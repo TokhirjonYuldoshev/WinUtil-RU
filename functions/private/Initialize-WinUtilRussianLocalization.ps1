@@ -1,4 +1,4 @@
-function Initialize-WinUtilRussianLocalization {
+﻿function Initialize-WinUtilRussianLocalization {
     <#
     .SYNOPSIS
         Initializes the optional Russian display layer for WinUtil.
