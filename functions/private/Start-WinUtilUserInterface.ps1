@@ -285,7 +285,7 @@ function Start-WinUtilUserInterface {
             # Disable the install tab
             $sync.WPFTab1BT.IsEnabled = $false
             $sync.WPFTab1BT.Opacity = 0.5
-            $sync.WPFTab1BT.ToolTip = "Internet connection required for installing applications."
+            $sync.WPFTab1BT.ToolTip = Convert-WinUtilRussianText "Internet connection required for installing applications."
 
             # The install action buttons are generated with the Install tab, so
             # Initialize-WinUtilInstallTabControls disables them when that tab is built
