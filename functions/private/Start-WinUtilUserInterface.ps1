@@ -435,21 +435,26 @@ function Start-WinUtilUserInterface {
     $sync["AboutMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
 
+        $localeVersion = if ($sync.configs.localization_ru.Meta.Version) { [string]$sync.configs.localization_ru.Meta.Version } else { 'unknown' }
         $authorInfo = if ($sync.preferences.language -eq 'ru-RU') {
 @"
 Автор    : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
 Интерфейс: <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
-GitHub   : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
-Версия   : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version)">$($sync.version)</a>
+Оригинал : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
+Fork     : <a href="https://github.com/TokhirjonYuldoshev/WindowManager">TokhirjonYuldoshev/WindowManager</a>
+WinUtil  : $($sync.version)
+Русский  : $localeVersion
 "@
         } else {
 @"
 Author   : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
 UI       : <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
-GitHub   : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
-Version  : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version)">$($sync.version)</a>
+Upstream : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
+Fork     : <a href="https://github.com/TokhirjonYuldoshev/WindowManager">TokhirjonYuldoshev/WindowManager</a>
+WinUtil  : $($sync.version)
+Russian  : $localeVersion
 "@
         }
         Show-CustomDialog -Title (Convert-WinUtilRussianText "About") -Message $authorInfo
