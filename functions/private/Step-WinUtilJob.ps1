@@ -40,17 +40,22 @@ function Step-WinUtilJob {
         [switch]$Hide
     )
 
+    $displayStatus = $Status
+    if ($PSBoundParameters.ContainsKey('Status') -and (Get-Command Convert-WinUtilRussianText -ErrorAction SilentlyContinue)) {
+        $displayStatus = Convert-WinUtilRussianText $Status
+    }
+
     # With no window every update is thrown away, and a window closed over running work counts
     # as none: its dispatcher accepts posts and discards them. The console is what is left.
     if (-not (Test-WinUtilUIAlive)) {
         if (-not $Hide) {
-            Write-WinUtilConsoleProgress -Status $Status -Percent $Percent
+            Write-WinUtilConsoleProgress -Status $displayStatus -Percent $Percent
         }
         return
     }
 
     Invoke-WPFUIThread -Async -Parameters @{
-        Status = $Status
+        Status = $displayStatus
         Percent = [Math]::Min([Math]::Max($Percent, -1), 100)
         State = $State
         Overlay = $Overlay
