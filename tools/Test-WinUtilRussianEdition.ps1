@@ -15,6 +15,7 @@ function Add-WinUtilValidationFailure {
 # non-ASCII text. Without it, Russian strings are decoded as ANSI and can even
 # turn into parser errors when multibyte sequences are misread.
 $utf8BomRequired = @(
+    'functions\private\Complete-WinUtilPackageRun.ps1'
     'functions\private\Convert-WinUtilRussianRuntimeText.ps1'
     'functions\private\Get-WinUtilEntryToolTip.ps1'
     'functions\private\Initialize-WinUtilRussianLocalization.ps1'
