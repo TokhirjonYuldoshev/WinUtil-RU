@@ -1,6 +1,6 @@
 # WinUtil RU
 
-[![Latest Release](https://img.shields.io/github/v/release/TokhirjonYuldoshev/WindowManager?display_name=tag&style=for-the-badge)](https://github.com/TokhirjonYuldoshev/WindowManager/releases)
+[![Latest Release](https://img.shields.io/github/v/release/TokhirjonYuldoshev/WinUtil-RU?display_name=tag&style=for-the-badge)](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 **WinUtil RU** — независимая русская сборка и локализация проекта [Chris Titus Tech's Windows Utility (WinUtil)](https://github.com/ChrisTitusTech/winutil).
@@ -11,28 +11,12 @@
 
 ---
 
-## Версия и название
+## Версии
 
-WinUtil RU использует тот же формат номера версии, что и оригинальный WinUtil:
+- **`russian` — WinUtil RU 26.09.23-RU** — проверенная пользовательская сборка.
+- **`russian-dev` — WinUtil RU 26.09.23-RU-Beta** — сборка для разработки и тестирования.
 
-```text
-yy.MM.dd
-```
-
-Для русской сборки добавляется суффикс `RU`, а GitHub Release пока публикуется как **Beta / Pre-release**.
-
-Текущая схема:
-
-```text
-Программа: WinUtil RU
-Версия сборки: 26.09.23-RU
-Файл: winutil-RU.ps1
-Tag: 26.09.23-RU-beta
-Release: Release 26.09.23 RU Beta
-Статус: Beta / Pre-release
-```
-
-Последний официальный релиз оригинального WinUtil может иметь более ранний номер, потому что WinUtil RU также синхронизируется с более свежими изменениями из `ChrisTitusTech/winutil:main`. Поэтому русская сборка использует оригинальный **формат** версии, но не выдаёт более новый код `main` за старый официальный релиз.
+Файл сборки в обоих каналах: `winutil-RU.ps1`.
 
 ---
 
@@ -40,18 +24,18 @@ Release: Release 26.09.23 RU Beta
 
 > Запускайте PowerShell или Windows Terminal **от имени администратора**.
 
-### WinUtil RU Beta
+### WinUtil RU 26.09.23-RU (`russian`)
 
 ```powershell
-$s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager/russian/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
+$s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
 ```
 
-Ветка `russian` — проверенная пользовательская ветка WinUtil RU. Пока проект находится в стадии Beta, соответствующие GitHub Releases помечаются как **Pre-release**.
+Ветка `russian` — проверенная пользовательская версия **WinUtil RU 26.09.23-RU**.
 
-### Версия для разработки
+### WinUtil RU 26.09.23-RU-Beta (`russian-dev`)
 
 ```powershell
-$env:WINUTIL_RU_BRANCH='russian-dev'; $s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager/russian-dev/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
+$env:WINUTIL_RU_BRANCH='russian-dev'; $s = & curl.exe -fsSL --retry 3 --retry-delay 2 "https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian-dev/bootstrap.ps1"; if ($LASTEXITCODE -ne 0 -or -not $s) { throw "Не удалось скачать bootstrap.ps1" }; ($s -join "`n") | iex
 ```
 
 Старая переменная `WINDOWMANAGER_BRANCH` пока поддерживается для обратной совместимости.
@@ -107,7 +91,7 @@ SHA-256
 - безопасный однократный retry для `Upgrade all`;
 - preflight-проверки PowerShell, XAML, JSON, локализации и кодировок;
 - CI для Windows PowerShell 5.1 и PowerShell 7;
-- автоматическую сборку Beta-релизов.
+- автоматическую сборку GitHub Releases.
 
 ---
 
@@ -116,8 +100,8 @@ SHA-256
 | Ветка | Назначение |
 |---|---|
 | `main` | Чистая база, синхронизируемая с `ChrisTitusTech/winutil:main` |
-| `russian-dev` | Новые изменения WinUtil RU и тестирование |
-| `russian` | Проверенная пользовательская ветка WinUtil RU Beta |
+| `russian-dev` | WinUtil RU 26.09.23-RU-Beta — разработка и тестирование |
+| `russian` | WinUtil RU 26.09.23-RU — проверенная пользовательская версия |
 
 Схема обновления:
 
@@ -132,16 +116,16 @@ ChrisTitusTech/winutil:main
           ↓
        russian
           ↓
- Release yy.MM.dd RU Beta
+      GitHub Release
 ```
 
 `russian` не обновляется автоматически без проверки.
 
 ---
 
-## Beta-релизы
+## GitHub Release
 
-GitHub Release публикуется как **Pre-release** и содержит:
+Текущий опубликованный релиз пока имеет статус **Pre-release** и содержит:
 
 ```text
 winutil-RU.ps1
