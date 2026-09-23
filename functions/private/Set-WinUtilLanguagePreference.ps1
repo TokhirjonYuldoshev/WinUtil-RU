@@ -1,4 +1,4 @@
-function Set-WinUtilLanguagePreference {
+﻿function Set-WinUtilLanguagePreference {
     <#
         .SYNOPSIS
             Saves the preferred UI language for the Russian edition.
