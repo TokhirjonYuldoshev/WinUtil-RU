@@ -54,10 +54,6 @@ function Get-WinUtilAppEntryHandlers {
             $this.Visibility = "Collapsed"
             $this.Parent.Children[0].Visibility = "Visible"
         }
-        ImageOpened = {
-            # Keep the instant text fallback visible until the real icon has finished loading.
-            $this.Parent.Children[0].Visibility = "Collapsed"
-        }
     }
 
     return $script:WinUtilAppEntryHandlers
