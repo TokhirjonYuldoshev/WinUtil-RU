@@ -2,7 +2,7 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "1.1.2",
+    "Version": "1.1.3",
     "Fallback": "en-US",
     "Note": "Presentation-only localization. Internal control names, config keys, commands and package IDs remain unchanged."
   },
@@ -500,7 +500,8 @@
     "AppX install": "Установка AppX",
     "AppX": "AppX",
     "OOSU": "O&O ShutUp10++",
-    "SystemRepair": "Восстановление системы"
+    "SystemRepair": "Восстановление системы",
+    "oscdimg.exe could not be found or installed automatically.\n\nPlease install it manually:\n  winget install -e --id Microsoft.OSCDIMG\n\nOr install the Windows ADK from:\nhttps://learn.microsoft.com/windows-hardware/get-started/adk-install": "Не удалось найти или автоматически установить oscdimg.exe.\n\nУстановите его вручную:\n  winget install -e --id Microsoft.OSCDIMG\n\nЛибо установите Windows ADK:\nhttps://learn.microsoft.com/windows-hardware/get-started/adk-install"
   },
   "Phrases": [
     {
