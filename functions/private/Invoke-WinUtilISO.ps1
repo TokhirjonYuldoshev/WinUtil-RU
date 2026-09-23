@@ -135,8 +135,8 @@ function Invoke-WinUtilISOBrowse {
     Add-Type -AssemblyName System.Windows.Forms
 
     $dlg = [System.Windows.Forms.OpenFileDialog]::new()
-    $dlg.Title            = "Select Windows 11 ISO"
-    $dlg.Filter           = "ISO files (*.iso)|*.iso|All files (*.*)|*.*"
+    $dlg.Title            = Convert-WinUtilRussianText "Select Windows 11 ISO"
+    $dlg.Filter           = Convert-WinUtilRussianText "ISO files (*.iso)|*.iso|All files (*.*)|*.*"
     $dlg.InitialDirectory = [System.Environment]::GetFolderPath("Desktop")
 
     if ($dlg.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { return }
@@ -627,8 +627,8 @@ function Invoke-WinUtilISOExport {
     Add-Type -AssemblyName System.Windows.Forms
 
     $dlg = [System.Windows.Forms.SaveFileDialog]::new()
-    $dlg.Title            = "Save Modified Windows 11 ISO"
-    $dlg.Filter           = "ISO files (*.iso)|*.iso"
+    $dlg.Title            = Convert-WinUtilRussianText "Save Modified Windows 11 ISO"
+    $dlg.Filter           = Convert-WinUtilRussianText "ISO files (*.iso)|*.iso"
     $dlg.FileName         = "Win11_Modified_$(Get-Date -Format 'yyyyMMdd').iso"
     $dlg.InitialDirectory = [System.Environment]::GetFolderPath("Desktop")
 
