@@ -358,6 +358,44 @@ function Initialize-WinUtilRussianLocalization {
         'Uses Windows'' default overlay behavior.' = 'Использует стандартное поведение наложения Windows.'
         'Disables MPO using OverlayTestMode=5, the less aggressive compatibility method.' = 'Отключает MPO через OverlayTestMode=5 — менее агрессивный режим совместимости.'
         'Disables MPO using OverlayTestMode=5 and DisableOverlays=1, the more aggressive method.' = 'Полностью отключает MPO через OverlayTestMode=5 и DisableOverlays=1 — более агрессивный режим.'
+        '⚠ Offline Mode - No Internet Connection' = '⚠ Автономный режим — нет подключения к интернету'
+        'Press Ctrl-F and type app name to filter application list below. Press Esc to reset the filter' = 'Нажмите Ctrl+F и введите название приложения для фильтрации списка. Нажмите Esc, чтобы сбросить фильтр.'
+        'N/A' = 'Н/Д'
+        'Stages boot-storage drivers for Setup and adds all exported drivers to the selected install.wim edition in one DISM pass.' = 'Подготавливает драйверы загрузочного накопителя для установщика и добавляет все экспортированные драйверы в выбранную редакцию install.wim за один проход DISM.'
+        'Pins the edition you picked above so Setup does not choose another one' = 'Фиксирует выбранную выше редакцию, чтобы установщик не выбрал другую.'
+        '3   Output' = '3   Результат'
+        'Your image is ready' = 'Ваш образ готов'
+        'Save as an ISO File' = 'Сохранить как ISO-файл'
+        'Write Directly to a USB Drive (ERASES DRIVE)' = 'Записать напрямую на USB-накопитель (ДАННЫЕ БУДУТ УДАЛЕНЫ)'
+        'USB drive' = 'USB-накопитель'
+        'Refresh' = 'Обновить'
+        'Erase & Write to USB' = 'Очистить и записать на USB'
+        'Done with this image? Clear the temporary files and start again from step 1.' = 'Закончили работу с образом? Удалите временные файлы и начните снова с шага 1.'
+        'Start Over' = 'Начать заново'
+        'Delete the temporary working directory and go back to the first step' = 'Удалить временную рабочую папку и вернуться к первому шагу'
+        'Working...' = 'Выполняется...'
+        'This can take several minutes. Progress is written to the status log.' = 'Это может занять несколько минут. Ход выполнения отображается в журнале состояния.'
+        'Status Log' = 'Журнал состояния'
+        'Ready. Please select a Windows 11 ISO to begin.' = 'Готово. Выберите ISO-образ Windows 11, чтобы начать.'
+        'Selections:' = 'Выбрано:'
+        'Get Installed' = 'Определить установленные'
+        'Select All' = 'Выбрать всё'
+        'Back to Tweaks' = 'Назад к настройкам'
+        'Install Selected' = 'Установить выбранное'
+        'Remove Selected' = 'Удалить выбранное'
+        'Third-party, pre-modified, or unofficial images are not supported and may produce broken results. This is only meant for fresh and new Windows installs.' = 'Сторонние, заранее модифицированные и неофициальные образы не поддерживаются и могут привести к ошибкам. Этот инструмент предназначен только для чистой новой установки Windows.'
+        'Pick what goes into the image, then start. This takes several minutes depending on your hardware.' = 'Выберите, что добавить в образ, затем запустите обработку. В зависимости от компьютера это займёт несколько минут.'
+        'Save the modified image as an ISO file, or write it straight to a USB drive you can boot from.' = 'Сохраните изменённый образ как ISO-файл или сразу запишите его на загрузочный USB-накопитель.'
+        '!! All data on the selected USB drive will be permanently erased !!' = '!! Все данные на выбранном USB-накопителе будут безвозвратно удалены !!'
+        'Note: Select the Windows AppX packages you wish to install or remove.' = 'Примечание: выберите пакеты Windows AppX, которые нужно установить или удалить.'
+        'Install Selected registers a local manifest when available, then falls back to the Microsoft Store.' = '«Установить выбранное» использует локальный манифест, если он доступен, иначе обращается к Microsoft Store.'
+        'Remove Selected removes packages for the current user and all new user profiles.' = '«Удалить выбранное» удаляет пакеты для текущего пользователя и всех новых профилей пользователей.'
+        'Installing apps' = 'Установка приложений'
+        'Uninstalling apps' = 'Удаление приложений'
+        'Preparing WinGet' = 'Подготовка WinGet'
+        'Preparing Chocolatey' = 'Подготовка Chocolatey'
+        'Upgrading all WinGet packages' = 'Обновление всех пакетов WinGet'
+        'Upgrading all Chocolatey packages' = 'Обновление всех пакетов Chocolatey'
     }
 
     $sync.WinUtilRussianPhraseTranslations = [ordered]@{
@@ -422,6 +460,528 @@ function Initialize-WinUtilRussianLocalization {
                 return 'Открыть сайт приложения в браузере'
             }
             return "Открыть сайт приложения в браузере$([Environment]::NewLine)$website"
+        }
+
+        if ($trimmed -match '^Installing\s+(.+)\s+\((\d+)/(\d+)\)
+            if ($trimmed.EndsWith($entry.Key, [StringComparison]::OrdinalIgnoreCase)) {
+                $base = $trimmed.Substring(0, $trimmed.Length - $entry.Key.Length)
+                if ($sync.WinUtilRussianExactTranslations.ContainsKey($base)) {
+                    $base = $sync.WinUtilRussianExactTranslations[$base]
+                }
+                return $base + $entry.Value
+            }
+        }
+
+        return $text
+    }
+
+    if ($sync.preferences.language -eq 'ru-RU') {
+        try {
+            [xml]$localizedXaml = $script:inputXML
+
+            foreach ($node in $localizedXaml.SelectNodes('//*')) {
+                $elementName = $node.LocalName
+
+                $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
+                if ($null -ne $toolTipAttribute) {
+                    $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
+                }
+
+                if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem', 'ToolTip')) {
+                    foreach ($attributeName in @('Content', 'Text', 'Header')) {
+                        $attribute = $node.Attributes.GetNamedItem($attributeName)
+                        if ($null -ne $attribute) {
+                            $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                        }
+                    }
+                }
+
+                if ($elementName -eq 'ToggleButton') {
+                    $nameAttribute = $node.Attributes.GetNamedItem('Name')
+                    $contentAttribute = $node.Attributes.GetNamedItem('Content')
+                    if (
+                        $null -ne $nameAttribute -and
+                        $nameAttribute.Value -like 'WPFSearchChip*' -and
+                        $null -ne $contentAttribute
+                    ) {
+                        $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+                    }
+                }
+
+                if ($elementName -in @('TextBlock', 'Run')) {
+                    foreach ($child in @($node.ChildNodes)) {
+                        if (
+                            $child.NodeType -eq [System.Xml.XmlNodeType]::Text -and
+                            -not [string]::IsNullOrWhiteSpace($child.Value)
+                        ) {
+                            $child.Value = Convert-WinUtilRussianText $child.Value
+                        }
+                    }
+                }
+            }
+
+            # The visible navigation captions are split into Underline + trailing text in XAML.
+            # Replace only their presentation TextBlock; the hidden TabItem headers stay English.
+            $navCaptions = @{
+                'WPFTab1BT' = 'Установка'
+                'WPFTab2BT' = 'Настройки'
+                'WPFTab3BT' = 'Инструменты'
+                'WPFTab4BT' = 'Обновления'
+                'WPFTab5BT' = 'Создание Windows 11'
+            }
+            foreach ($navName in $navCaptions.Keys) {
+                $navNode = $localizedXaml.SelectSingleNode("//*[@Name='$navName']")
+                if ($null -eq $navNode) {
+                    continue
+                }
+
+                $textBlock = $navNode.SelectSingleNode(".//*[local-name()='TextBlock']")
+                if ($null -eq $textBlock) {
+                    continue
+                }
+
+                while ($textBlock.HasChildNodes) {
+                    $textBlock.RemoveChild($textBlock.FirstChild) | Out-Null
+                }
+                $textBlock.AppendChild($localizedXaml.CreateTextNode($navCaptions[$navName])) | Out-Null
+            }
+
+            $win11StepHeaders = @{
+                'WPFWin11ISOSelectSection' = '1   Выбор ISO'
+                'WPFWin11ISOModifySection' = '2   Изменение образа'
+                'WPFWin11ISOOutputSection' = '3   Результат'
+            }
+            foreach ($stepName in $win11StepHeaders.Keys) {
+                $stepNode = $localizedXaml.SelectSingleNode("//*[@Name='$stepName']")
+                if ($null -ne $stepNode) {
+                    $headerAttribute = $stepNode.Attributes.GetNamedItem('Header')
+                    if ($null -ne $headerAttribute) {
+                        $headerAttribute.Value = $win11StepHeaders[$stepName]
+                    }
+                }
+            }
+
+            $script:inputXML = $localizedXaml.OuterXml
+        } catch {
+            Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
+        }
+    }
+
+    try {
+        $culture = [System.Globalization.CultureInfo]::GetCultureInfo($sync.preferences.language)
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
+    } catch {
+        # Text localization remains available even if culture setup is unavailable.
+    }
+}
+) {
+            return "Установка $($Matches[1]) ($($Matches[2])/$($Matches[3]))"
+        }
+        if ($trimmed -match '^Installed\s+(.+)\s+\((\d+)/(\d+)\)
+            if ($trimmed.EndsWith($entry.Key, [StringComparison]::OrdinalIgnoreCase)) {
+                $base = $trimmed.Substring(0, $trimmed.Length - $entry.Key.Length)
+                if ($sync.WinUtilRussianExactTranslations.ContainsKey($base)) {
+                    $base = $sync.WinUtilRussianExactTranslations[$base]
+                }
+                return $base + $entry.Value
+            }
+        }
+
+        return $text
+    }
+
+    if ($sync.preferences.language -eq 'ru-RU') {
+        try {
+            [xml]$localizedXaml = $script:inputXML
+
+            foreach ($node in $localizedXaml.SelectNodes('//*')) {
+                $elementName = $node.LocalName
+
+                $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
+                if ($null -ne $toolTipAttribute) {
+                    $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
+                }
+
+                if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem', 'ToolTip')) {
+                    foreach ($attributeName in @('Content', 'Text', 'Header')) {
+                        $attribute = $node.Attributes.GetNamedItem($attributeName)
+                        if ($null -ne $attribute) {
+                            $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                        }
+                    }
+                }
+
+                if ($elementName -eq 'ToggleButton') {
+                    $nameAttribute = $node.Attributes.GetNamedItem('Name')
+                    $contentAttribute = $node.Attributes.GetNamedItem('Content')
+                    if (
+                        $null -ne $nameAttribute -and
+                        $nameAttribute.Value -like 'WPFSearchChip*' -and
+                        $null -ne $contentAttribute
+                    ) {
+                        $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+                    }
+                }
+
+                if ($elementName -in @('TextBlock', 'Run')) {
+                    foreach ($child in @($node.ChildNodes)) {
+                        if (
+                            $child.NodeType -eq [System.Xml.XmlNodeType]::Text -and
+                            -not [string]::IsNullOrWhiteSpace($child.Value)
+                        ) {
+                            $child.Value = Convert-WinUtilRussianText $child.Value
+                        }
+                    }
+                }
+            }
+
+            # The visible navigation captions are split into Underline + trailing text in XAML.
+            # Replace only their presentation TextBlock; the hidden TabItem headers stay English.
+            $navCaptions = @{
+                'WPFTab1BT' = 'Установка'
+                'WPFTab2BT' = 'Настройки'
+                'WPFTab3BT' = 'Инструменты'
+                'WPFTab4BT' = 'Обновления'
+                'WPFTab5BT' = 'Создание Windows 11'
+            }
+            foreach ($navName in $navCaptions.Keys) {
+                $navNode = $localizedXaml.SelectSingleNode("//*[@Name='$navName']")
+                if ($null -eq $navNode) {
+                    continue
+                }
+
+                $textBlock = $navNode.SelectSingleNode(".//*[local-name()='TextBlock']")
+                if ($null -eq $textBlock) {
+                    continue
+                }
+
+                while ($textBlock.HasChildNodes) {
+                    $textBlock.RemoveChild($textBlock.FirstChild) | Out-Null
+                }
+                $textBlock.AppendChild($localizedXaml.CreateTextNode($navCaptions[$navName])) | Out-Null
+            }
+
+            $script:inputXML = $localizedXaml.OuterXml
+        } catch {
+            Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
+        }
+    }
+
+    try {
+        $culture = [System.Globalization.CultureInfo]::GetCultureInfo($sync.preferences.language)
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
+    } catch {
+        # Text localization remains available even if culture setup is unavailable.
+    }
+}
+) {
+            return "Установлено: $($Matches[1]) ($($Matches[2])/$($Matches[3]))"
+        }
+        if ($trimmed -match '^Uninstalling\s+(.+)\s+\((\d+)/(\d+)\)
+            if ($trimmed.EndsWith($entry.Key, [StringComparison]::OrdinalIgnoreCase)) {
+                $base = $trimmed.Substring(0, $trimmed.Length - $entry.Key.Length)
+                if ($sync.WinUtilRussianExactTranslations.ContainsKey($base)) {
+                    $base = $sync.WinUtilRussianExactTranslations[$base]
+                }
+                return $base + $entry.Value
+            }
+        }
+
+        return $text
+    }
+
+    if ($sync.preferences.language -eq 'ru-RU') {
+        try {
+            [xml]$localizedXaml = $script:inputXML
+
+            foreach ($node in $localizedXaml.SelectNodes('//*')) {
+                $elementName = $node.LocalName
+
+                $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
+                if ($null -ne $toolTipAttribute) {
+                    $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
+                }
+
+                if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem', 'ToolTip')) {
+                    foreach ($attributeName in @('Content', 'Text', 'Header')) {
+                        $attribute = $node.Attributes.GetNamedItem($attributeName)
+                        if ($null -ne $attribute) {
+                            $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                        }
+                    }
+                }
+
+                if ($elementName -eq 'ToggleButton') {
+                    $nameAttribute = $node.Attributes.GetNamedItem('Name')
+                    $contentAttribute = $node.Attributes.GetNamedItem('Content')
+                    if (
+                        $null -ne $nameAttribute -and
+                        $nameAttribute.Value -like 'WPFSearchChip*' -and
+                        $null -ne $contentAttribute
+                    ) {
+                        $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+                    }
+                }
+
+                if ($elementName -in @('TextBlock', 'Run')) {
+                    foreach ($child in @($node.ChildNodes)) {
+                        if (
+                            $child.NodeType -eq [System.Xml.XmlNodeType]::Text -and
+                            -not [string]::IsNullOrWhiteSpace($child.Value)
+                        ) {
+                            $child.Value = Convert-WinUtilRussianText $child.Value
+                        }
+                    }
+                }
+            }
+
+            # The visible navigation captions are split into Underline + trailing text in XAML.
+            # Replace only their presentation TextBlock; the hidden TabItem headers stay English.
+            $navCaptions = @{
+                'WPFTab1BT' = 'Установка'
+                'WPFTab2BT' = 'Настройки'
+                'WPFTab3BT' = 'Инструменты'
+                'WPFTab4BT' = 'Обновления'
+                'WPFTab5BT' = 'Создание Windows 11'
+            }
+            foreach ($navName in $navCaptions.Keys) {
+                $navNode = $localizedXaml.SelectSingleNode("//*[@Name='$navName']")
+                if ($null -eq $navNode) {
+                    continue
+                }
+
+                $textBlock = $navNode.SelectSingleNode(".//*[local-name()='TextBlock']")
+                if ($null -eq $textBlock) {
+                    continue
+                }
+
+                while ($textBlock.HasChildNodes) {
+                    $textBlock.RemoveChild($textBlock.FirstChild) | Out-Null
+                }
+                $textBlock.AppendChild($localizedXaml.CreateTextNode($navCaptions[$navName])) | Out-Null
+            }
+
+            $script:inputXML = $localizedXaml.OuterXml
+        } catch {
+            Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
+        }
+    }
+
+    try {
+        $culture = [System.Globalization.CultureInfo]::GetCultureInfo($sync.preferences.language)
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
+    } catch {
+        # Text localization remains available even if culture setup is unavailable.
+    }
+}
+) {
+            return "Удаление $($Matches[1]) ($($Matches[2])/$($Matches[3]))"
+        }
+        if ($trimmed -match '^Uninstalled\s+(.+)\s+\((\d+)/(\d+)\)
+            if ($trimmed.EndsWith($entry.Key, [StringComparison]::OrdinalIgnoreCase)) {
+                $base = $trimmed.Substring(0, $trimmed.Length - $entry.Key.Length)
+                if ($sync.WinUtilRussianExactTranslations.ContainsKey($base)) {
+                    $base = $sync.WinUtilRussianExactTranslations[$base]
+                }
+                return $base + $entry.Value
+            }
+        }
+
+        return $text
+    }
+
+    if ($sync.preferences.language -eq 'ru-RU') {
+        try {
+            [xml]$localizedXaml = $script:inputXML
+
+            foreach ($node in $localizedXaml.SelectNodes('//*')) {
+                $elementName = $node.LocalName
+
+                $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
+                if ($null -ne $toolTipAttribute) {
+                    $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
+                }
+
+                if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem', 'ToolTip')) {
+                    foreach ($attributeName in @('Content', 'Text', 'Header')) {
+                        $attribute = $node.Attributes.GetNamedItem($attributeName)
+                        if ($null -ne $attribute) {
+                            $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                        }
+                    }
+                }
+
+                if ($elementName -eq 'ToggleButton') {
+                    $nameAttribute = $node.Attributes.GetNamedItem('Name')
+                    $contentAttribute = $node.Attributes.GetNamedItem('Content')
+                    if (
+                        $null -ne $nameAttribute -and
+                        $nameAttribute.Value -like 'WPFSearchChip*' -and
+                        $null -ne $contentAttribute
+                    ) {
+                        $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+                    }
+                }
+
+                if ($elementName -in @('TextBlock', 'Run')) {
+                    foreach ($child in @($node.ChildNodes)) {
+                        if (
+                            $child.NodeType -eq [System.Xml.XmlNodeType]::Text -and
+                            -not [string]::IsNullOrWhiteSpace($child.Value)
+                        ) {
+                            $child.Value = Convert-WinUtilRussianText $child.Value
+                        }
+                    }
+                }
+            }
+
+            # The visible navigation captions are split into Underline + trailing text in XAML.
+            # Replace only their presentation TextBlock; the hidden TabItem headers stay English.
+            $navCaptions = @{
+                'WPFTab1BT' = 'Установка'
+                'WPFTab2BT' = 'Настройки'
+                'WPFTab3BT' = 'Инструменты'
+                'WPFTab4BT' = 'Обновления'
+                'WPFTab5BT' = 'Создание Windows 11'
+            }
+            foreach ($navName in $navCaptions.Keys) {
+                $navNode = $localizedXaml.SelectSingleNode("//*[@Name='$navName']")
+                if ($null -eq $navNode) {
+                    continue
+                }
+
+                $textBlock = $navNode.SelectSingleNode(".//*[local-name()='TextBlock']")
+                if ($null -eq $textBlock) {
+                    continue
+                }
+
+                while ($textBlock.HasChildNodes) {
+                    $textBlock.RemoveChild($textBlock.FirstChild) | Out-Null
+                }
+                $textBlock.AppendChild($localizedXaml.CreateTextNode($navCaptions[$navName])) | Out-Null
+            }
+
+            $script:inputXML = $localizedXaml.OuterXml
+        } catch {
+            Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
+        }
+    }
+
+    try {
+        $culture = [System.Globalization.CultureInfo]::GetCultureInfo($sync.preferences.language)
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
+    } catch {
+        # Text localization remains available even if culture setup is unavailable.
+    }
+}
+) {
+            return "Удалено: $($Matches[1]) ($($Matches[2])/$($Matches[3]))"
+        }
+        if ($trimmed -match '^(Installing|Installed|Uninstalling|Uninstalled) Chocolatey packages\s+\((\d+)/(\d+)\)
+            if ($trimmed.EndsWith($entry.Key, [StringComparison]::OrdinalIgnoreCase)) {
+                $base = $trimmed.Substring(0, $trimmed.Length - $entry.Key.Length)
+                if ($sync.WinUtilRussianExactTranslations.ContainsKey($base)) {
+                    $base = $sync.WinUtilRussianExactTranslations[$base]
+                }
+                return $base + $entry.Value
+            }
+        }
+
+        return $text
+    }
+
+    if ($sync.preferences.language -eq 'ru-RU') {
+        try {
+            [xml]$localizedXaml = $script:inputXML
+
+            foreach ($node in $localizedXaml.SelectNodes('//*')) {
+                $elementName = $node.LocalName
+
+                $toolTipAttribute = $node.Attributes.GetNamedItem('ToolTip')
+                if ($null -ne $toolTipAttribute) {
+                    $toolTipAttribute.Value = Convert-WinUtilRussianText $toolTipAttribute.Value
+                }
+
+                if ($elementName -in @('Label', 'Button', 'TextBlock', 'Run', 'MenuItem', 'ToolTip')) {
+                    foreach ($attributeName in @('Content', 'Text', 'Header')) {
+                        $attribute = $node.Attributes.GetNamedItem($attributeName)
+                        if ($null -ne $attribute) {
+                            $attribute.Value = Convert-WinUtilRussianText $attribute.Value
+                        }
+                    }
+                }
+
+                if ($elementName -eq 'ToggleButton') {
+                    $nameAttribute = $node.Attributes.GetNamedItem('Name')
+                    $contentAttribute = $node.Attributes.GetNamedItem('Content')
+                    if (
+                        $null -ne $nameAttribute -and
+                        $nameAttribute.Value -like 'WPFSearchChip*' -and
+                        $null -ne $contentAttribute
+                    ) {
+                        $contentAttribute.Value = Convert-WinUtilRussianText $contentAttribute.Value
+                    }
+                }
+
+                if ($elementName -in @('TextBlock', 'Run')) {
+                    foreach ($child in @($node.ChildNodes)) {
+                        if (
+                            $child.NodeType -eq [System.Xml.XmlNodeType]::Text -and
+                            -not [string]::IsNullOrWhiteSpace($child.Value)
+                        ) {
+                            $child.Value = Convert-WinUtilRussianText $child.Value
+                        }
+                    }
+                }
+            }
+
+            # The visible navigation captions are split into Underline + trailing text in XAML.
+            # Replace only their presentation TextBlock; the hidden TabItem headers stay English.
+            $navCaptions = @{
+                'WPFTab1BT' = 'Установка'
+                'WPFTab2BT' = 'Настройки'
+                'WPFTab3BT' = 'Инструменты'
+                'WPFTab4BT' = 'Обновления'
+                'WPFTab5BT' = 'Создание Windows 11'
+            }
+            foreach ($navName in $navCaptions.Keys) {
+                $navNode = $localizedXaml.SelectSingleNode("//*[@Name='$navName']")
+                if ($null -eq $navNode) {
+                    continue
+                }
+
+                $textBlock = $navNode.SelectSingleNode(".//*[local-name()='TextBlock']")
+                if ($null -eq $textBlock) {
+                    continue
+                }
+
+                while ($textBlock.HasChildNodes) {
+                    $textBlock.RemoveChild($textBlock.FirstChild) | Out-Null
+                }
+                $textBlock.AppendChild($localizedXaml.CreateTextNode($navCaptions[$navName])) | Out-Null
+            }
+
+            $script:inputXML = $localizedXaml.OuterXml
+        } catch {
+            Write-Warning "Russian localization could not process the XAML: $($_.Exception.Message)"
+        }
+    }
+
+    try {
+        $culture = [System.Globalization.CultureInfo]::GetCultureInfo($sync.preferences.language)
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = $culture
+    } catch {
+        # Text localization remains available even if culture setup is unavailable.
+    }
+}
+) {
+            $verb = switch ($Matches[1]) {
+                'Installing'   { 'Установка пакетов Chocolatey' }
+                'Installed'    { 'Пакеты Chocolatey установлены' }
+                'Uninstalling' { 'Удаление пакетов Chocolatey' }
+                'Uninstalled'  { 'Пакеты Chocolatey удалены' }
+            }
+            return "$verb ($($Matches[2])/$($Matches[3]))"
         }
 
         foreach ($entry in $sync.WinUtilRussianPhraseTranslations.GetEnumerator()) {
