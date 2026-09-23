@@ -1287,10 +1287,8 @@
                                 </MenuItem.ToolTip>
                             </MenuItem>
                             <Separator/>
-                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Language / Язык" Name="LanguageMenuItem" Foreground="{DynamicResource MainForegroundColor}">
-                                <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Русский" Name="RussianLanguageMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
-                                <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="English" Name="EnglishLanguageMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
-                            </MenuItem>
+                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Русский" Name="RussianLanguageMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
+                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="English" Name="EnglishLanguageMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
                             <Separator/>
                             <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="About" Name="AboutMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
                             <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Documentation" Name="DocumentationMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
