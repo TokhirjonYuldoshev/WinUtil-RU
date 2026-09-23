@@ -164,8 +164,8 @@ else {
     }
 }
 
-if ($compileSource -notmatch "yy\.MM\.dd.*-RU") {
-    Add-WinUtilValidationFailure "Compile.ps1 must use the upstream yy.MM.dd version format with an RU suffix."
+if ($compileSource -notmatch 'localization_ru\.json' -or $compileSource -notmatch 'Meta\.Version') {
+    Add-WinUtilValidationFailure "Compile.ps1 must source the WinUtil RU build version from localization metadata."
 }
 
 # Every config must be valid JSON.
@@ -247,6 +247,12 @@ try {
     $locale = Get-Content -LiteralPath (Join-Path $repoRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($locale.Meta.Language -ne 'ru-RU') {
         Add-WinUtilValidationFailure "localization_ru.json Meta.Language must be ru-RU"
+    }
+    if ([string]$locale.Meta.Version -notmatch '^\d{2}\.\d{2}\.\d{2}-RU$') {
+        Add-WinUtilValidationFailure "WinUtil RU Meta.Version must use yy.MM.dd-RU format."
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$locale.Meta.LocalizationVersion)) {
+        Add-WinUtilValidationFailure "WinUtil RU must preserve a separate LocalizationVersion."
     }
     if (@($locale.Exact.PSObject.Properties).Count -lt 400) {
         Add-WinUtilValidationFailure "Russian exact translation coverage unexpectedly dropped below 400 entries."
