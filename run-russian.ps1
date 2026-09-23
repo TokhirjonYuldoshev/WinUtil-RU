@@ -1,5 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
+$previousRestartCapability = $env:WINDOWMANAGER_LAUNCHER_RESTART
+$env:WINDOWMANAGER_LAUNCHER_RESTART = '1'
+
 $branch = if ($env:WINDOWMANAGER_BRANCH -in @('russian', 'russian-dev')) { $env:WINDOWMANAGER_BRANCH } else { 'russian' }
 $repoZip = "https://github.com/TokhirjonYuldoshev/WindowManager/archive/refs/heads/$branch.zip"
 $tempRoot = Join-Path $env:TEMP ("WindowManager-$branch-" + [guid]::NewGuid().ToString('N'))
@@ -125,4 +128,10 @@ finally {
         Remove-Job -Job $iconCacheJob -Force -ErrorAction SilentlyContinue
     }
     Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+
+    if ($null -eq $previousRestartCapability) {
+        Remove-Item Env:\WINDOWMANAGER_LAUNCHER_RESTART -ErrorAction SilentlyContinue
+    } else {
+        $env:WINDOWMANAGER_LAUNCHER_RESTART = $previousRestartCapability
+    }
 }
