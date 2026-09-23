@@ -133,7 +133,7 @@ if (
     $cacheIntegrityOk -and
     ([string]::IsNullOrWhiteSpace($remoteVersion) -or $remoteVersion -eq $localVersion)
 ) {
-    Write-Host "WinUtil RU $localVersion Beta - local cache" -ForegroundColor Green
+    Write-Host "WinUtil RU $localVersion - local cache" -ForegroundColor Green
     Invoke-WMStandalone -ScriptPath $cachedScript
     return
 }
