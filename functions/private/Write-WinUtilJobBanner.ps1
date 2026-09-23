@@ -22,13 +22,15 @@ function Write-WinUtilJobBanner {
         [string]$Level = "INFO"
     )
 
+    $displayMessage = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $Message)
+
     # A progress line is rewritten in place and left open, so the box would be drawn on top of it
     Complete-WinUtilConsoleProgress
 
     # Wrapped, because a failure listing several packages would otherwise draw a box wider
     # than the console
     $width = 76
-    $words = $Message -split '\s+'
+    $words = $displayMessage -split '\s+'
     $lines = [System.Collections.Generic.List[string]]::new()
     $current = ""
     foreach ($word in $words) {
