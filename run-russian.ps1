@@ -20,7 +20,8 @@ try {
     Write-Host 'Загрузка русской версии WindowManager...' -ForegroundColor Cyan
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
-            Invoke-WebRequest -Uri $repoZip -OutFile $zipPath -UseBasicParsing
+            Write-Host "Скачивание архива GitHub (попытка $attempt/3)..." -ForegroundColor DarkCyan
+            Invoke-WebRequest -Uri $repoZip -OutFile $zipPath -UseBasicParsing -TimeoutSec 45
             break
         }
         catch {
@@ -32,6 +33,7 @@ try {
         }
     }
 
+    Write-Host 'Распаковка архива...' -ForegroundColor Cyan
     Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
     $projectRoot = Get-ChildItem -Path $extractPath -Directory | Select-Object -First 1 -ExpandProperty FullName
     if (-not $projectRoot -or -not (Test-Path (Join-Path $projectRoot 'Compile.ps1'))) {
@@ -52,6 +54,7 @@ try {
     }
 
     if ($iconMode -eq 'Auto') {
+        Write-Host 'Кэш иконок будет обновляться в фоне.' -ForegroundColor DarkGray
         try {
             $applicationsPath = Join-Path $projectRoot 'config\applications.json'
             $applications = Get-Content -LiteralPath $applicationsPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -104,11 +107,13 @@ try {
 
     Push-Location $projectRoot
     try {
+        Write-Host "Preflight-проверка ($shell)..." -ForegroundColor Cyan
         & $shell -NoProfile -ExecutionPolicy Bypass -File '.\tools\Test-WinUtilRussianEdition.ps1' -Quiet
         if ($LASTEXITCODE -ne 0) {
             throw "Preflight-проверка WindowManager не пройдена."
         }
 
+        Write-Host 'Сборка WindowManager...' -ForegroundColor Cyan
         & $shell -NoProfile -ExecutionPolicy Bypass -File '.\Compile.ps1'
         if ($LASTEXITCODE -ne 0) {
             throw "Не удалось собрать WindowManager. Код завершения: $LASTEXITCODE."
@@ -120,6 +125,7 @@ try {
                 Remove-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction SilentlyContinue
             }
 
+            Write-Host 'Запуск интерфейса WindowManager...' -ForegroundColor Green
             & $shell -NoProfile -ExecutionPolicy Bypass -File '.\winutil.ps1'
             if ($LASTEXITCODE -ne 0) {
                 throw "WindowManager завершился с кодом $LASTEXITCODE."
