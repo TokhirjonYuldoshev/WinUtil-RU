@@ -477,6 +477,8 @@ Describe "XAML and sync wiring" {
             "SelectedAppCategories",
             "AppCategoryAutoExpanded",
             "RenderedAssetCache",
+            "LogMainThreadId",
+            "LogQueue",
             "ToggleStatusCache",
             "InstallAppRenderQueue",
             "InstallAppEntriesRendered",
