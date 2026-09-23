@@ -42,7 +42,7 @@ function Step-WinUtilJob {
 
     $displayStatus = $Status
     if ($PSBoundParameters.ContainsKey('Status') -and (Get-Command Convert-WinUtilRussianText -ErrorAction SilentlyContinue)) {
-        $displayStatus = Convert-WinUtilRussianText $Status
+        $displayStatus = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $Status)
     }
 
     # With no window every update is thrown away, and a window closed over running work counts
