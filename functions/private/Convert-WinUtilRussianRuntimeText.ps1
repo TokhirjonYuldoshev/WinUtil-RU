@@ -97,7 +97,7 @@
     # Dialog bodies with paths, names or raw exception details.
     if ($trimmed -match '(?s)^(.+?) has not finished yet\.\s+Close the window and let it finish in the console\?') {
         $jobName = Resolve-WinUtilRussianRuntimeBase $Matches[1]
-        return "$jobName ещё не завершено.`n`nЗакрыть окно и продолжить выполнение в консоли?`n`nWindowManager завершится автоматически после окончания операции. Если выбрать «Нет», операция будет остановлена и программа закроется. «Отмена» оставит WindowManager открытым."
+        return "$jobName ещё не завершено.`n`nЗакрыть окно и продолжить выполнение в консоли?`n`nWinUtil RU завершится автоматически после окончания операции. Если выбрать «Нет», операция будет остановлена и программа закроется. «Отмена» оставит WinUtil RU открытым."
     }
     if ($trimmed.StartsWith('This will uninstall the following applications:', [StringComparison]::OrdinalIgnoreCase)) {
         $details = $trimmed.Substring('This will uninstall the following applications:'.Length)

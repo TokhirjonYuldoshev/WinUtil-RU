@@ -138,7 +138,7 @@ try {
             $stableHash = (Get-FileHash -LiteralPath $stableScript -Algorithm SHA256).Hash.ToLowerInvariant()
             $stableManifest = [ordered]@{
                 Product = 'WinUtil RU'
-                Channel = 'beta'
+                Channel = 'stable'
                 Version = [string]$localeInfo.Meta.Version
                 LocalizationVersion = [string]$localeInfo.Meta.LocalizationVersion
                 SourceBranch = $branch

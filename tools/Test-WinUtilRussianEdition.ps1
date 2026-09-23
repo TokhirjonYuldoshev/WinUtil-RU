@@ -151,10 +151,30 @@ foreach ($requiredLauncherMarker in @(
     'YTY\WindowManager\Stable',
     'winutil-RU.ps1',
     'localization_ru.json',
+    "Channel = 'stable'",
     'if ($branch -eq ''russian'')'
 )) {
     if ($launcherText -notlike "*$requiredLauncherMarker*") {
         Add-WinUtilValidationFailure "run-russian.ps1 is missing stable-cache marker: $requiredLauncherMarker"
+    }
+}
+
+# Public branding must not regress to the legacy WindowManager name.
+$brandingFiles = @(
+    'functions\private\Set-WinUtilLanguagePreference.ps1',
+    'functions\private\Set-WinUtilIconPreference.ps1',
+    'functions\private\Convert-WinUtilRussianRuntimeText.ps1',
+    'functions\private\Start-WinUtilUserInterface.ps1'
+)
+foreach ($relativeBrandingPath in $brandingFiles) {
+    $brandingText = Get-Content -LiteralPath (Join-Path $repoRoot $relativeBrandingPath) -Raw -Encoding UTF8
+    if ($brandingText -match "Title 'WindowManager'" -or
+        $brandingText -match 'TokhirjonYuldoshev/WindowManager' -or
+        $brandingText -match 'Restart WindowManager' -or
+        $brandingText -match 'запуске WindowManager' -or
+        $brandingText -match 'WindowManager завершится' -or
+        $brandingText -match 'WindowManager открытым') {
+        Add-WinUtilValidationFailure "$relativeBrandingPath contains legacy user-facing WindowManager branding."
     }
 }
 

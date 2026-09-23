@@ -463,7 +463,7 @@
 Интерфейс: <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Оригинал : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
-Fork     : <a href="https://github.com/TokhirjonYuldoshev/WindowManager">TokhirjonYuldoshev/WindowManager</a>
+Fork     : <a href="https://github.com/TokhirjonYuldoshev/WinUtil-RU">TokhirjonYuldoshev/WinUtil-RU</a>
 WinUtil  : $($sync.version)
 Русский  : $localeVersion
 "@
@@ -473,7 +473,7 @@ Author   : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
 UI       : <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Upstream : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
-Fork     : <a href="https://github.com/TokhirjonYuldoshev/WindowManager">TokhirjonYuldoshev/WindowManager</a>
+Fork     : <a href="https://github.com/TokhirjonYuldoshev/WinUtil-RU">TokhirjonYuldoshev/WinUtil-RU</a>
 WinUtil  : $($sync.version)
 Russian  : $localeVersion
 "@

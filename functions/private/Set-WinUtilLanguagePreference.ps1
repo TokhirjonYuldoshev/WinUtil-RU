@@ -37,7 +37,7 @@
         } else {
             'Wait for the current operation to finish before changing the language.'
         }
-        Show-WinUtilMessage -Message $busyMessage -Title 'WindowManager' -Button 'OK' -Icon 'Warning' | Out-Null
+        Show-WinUtilMessage -Message $busyMessage -Title 'WinUtil RU' -Button 'OK' -Icon 'Warning' | Out-Null
         return
     }
 
@@ -59,22 +59,22 @@
     $canRestart = $env:WINDOWMANAGER_LAUNCHER_RESTART -eq '1'
     if (-not $canRestart) {
         $message = if ($currentLanguage -eq 'ru-RU') {
-            'Язык сохранён. Изменение применится при следующем запуске WindowManager.'
+            'Язык сохранён. Изменение применится при следующем запуске WinUtil RU.'
         } else {
-            'The language has been saved. The change will apply the next time WindowManager starts.'
+            'The language has been saved. The change will apply the next time WinUtil RU starts.'
         }
 
-        Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'OK' -Icon 'Information' | Out-Null
+        Show-WinUtilMessage -Message $message -Title 'WinUtil RU' -Button 'OK' -Icon 'Information' | Out-Null
         return
     }
 
     $message = if ($currentLanguage -eq 'ru-RU') {
-        'Язык сохранён. Перезапустить WindowManager сейчас, чтобы применить изменение?'
+        'Язык сохранён. Перезапустить WinUtil RU сейчас, чтобы применить изменение?'
     } else {
-        'The language has been saved. Restart WindowManager now to apply the change?'
+        'The language has been saved. Restart WinUtil RU now to apply the change?'
     }
 
-    $answer = Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'YesNo' -Icon 'Question'
+    $answer = Show-WinUtilMessage -Message $message -Title 'WinUtil RU' -Button 'YesNo' -Icon 'Question'
     if ("$answer" -ne 'Yes') {
         return
     }

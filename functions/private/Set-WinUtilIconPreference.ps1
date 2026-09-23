@@ -19,10 +19,10 @@ function Set-WinUtilIconPreference {
                     Remove-Item -Force -ErrorAction Stop
             }
             $message = Convert-WinUtilRussianText 'Icon cache cleared.'
-            Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'OK' -Icon 'Information' | Out-Null
+            Show-WinUtilMessage -Message $message -Title 'WinUtil RU' -Button 'OK' -Icon 'Information' | Out-Null
         } catch {
             $message = Convert-WinUtilRussianText 'Unable to clear the icon cache.'
-            Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'OK' -Icon 'Warning' | Out-Null
+            Show-WinUtilMessage -Message $message -Title 'WinUtil RU' -Button 'OK' -Icon 'Warning' | Out-Null
         }
         return
     }
@@ -38,7 +38,7 @@ function Set-WinUtilIconPreference {
             'Wait for the current operation to finish before changing this setting.'
         }
         $message = Convert-WinUtilRussianText $message
-        Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'OK' -Icon 'Warning' | Out-Null
+        Show-WinUtilMessage -Message $message -Title 'WinUtil RU' -Button 'OK' -Icon 'Warning' | Out-Null
         return
     }
 
@@ -61,13 +61,13 @@ function Set-WinUtilIconPreference {
 
     $canRestart = $env:WINDOWMANAGER_LAUNCHER_RESTART -eq '1'
     if (-not $canRestart) {
-        $message = Convert-WinUtilRussianText 'App icon mode saved. The change will apply the next time WindowManager starts.'
-        Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'OK' -Icon 'Information' | Out-Null
+        $message = Convert-WinUtilRussianText 'App icon mode saved. The change will apply the next time WinUtil RU starts.'
+        Show-WinUtilMessage -Message $message -Title 'WinUtil RU' -Button 'OK' -Icon 'Information' | Out-Null
         return
     }
 
-    $message = Convert-WinUtilRussianText 'App icon mode saved. Restart WindowManager now to apply the change?'
-    $answer = Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'YesNo' -Icon 'Question'
+    $message = Convert-WinUtilRussianText 'App icon mode saved. Restart WinUtil RU now to apply the change?'
+    $answer = Show-WinUtilMessage -Message $message -Title 'WinUtil RU' -Button 'YesNo' -Icon 'Question'
     if ("$answer" -ne 'Yes') {
         return
     }
