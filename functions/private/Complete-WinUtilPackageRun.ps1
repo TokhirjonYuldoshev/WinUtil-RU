@@ -1,4 +1,4 @@
-function Complete-WinUtilPackageRun {
+﻿function Complete-WinUtilPackageRun {
     <#
         .SYNOPSIS
             Reports what a package run actually did and fails the job on unexpected errors
@@ -34,7 +34,7 @@ function Complete-WinUtilPackageRun {
             'Upgrade' { 'Обновление' }
             default { $Action }
         }
-        Write-Host "$actionLabel: успешно — $($succeeded.Count), пропущено — $($skipped.Count), ошибок — $($failed.Count)"
+        Write-Host "${actionLabel}: успешно — $($succeeded.Count), пропущено — $($skipped.Count), ошибок — $($failed.Count)"
     } else {
         Write-Host "$Action summary: $summary"
     }
