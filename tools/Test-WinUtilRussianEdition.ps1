@@ -43,7 +43,6 @@ $powerShellFiles = @(
 )
 $powerShellFiles += @(
     Get-Item -LiteralPath (Join-Path $repoRoot 'Compile.ps1')
-    Get-Item -LiteralPath (Join-Path $repoRoot 'run-russian.ps1')
 )
 
 foreach ($file in $powerShellFiles) {
@@ -57,6 +56,23 @@ foreach ($file in $powerShellFiles) {
     foreach ($parseError in @($parseErrors)) {
         Add-WinUtilValidationFailure "$($file.FullName):$($parseError.Extent.StartLineNumber) $($parseError.Message)"
     }
+}
+
+# The online launcher is intentionally UTF-8 without BOM because it is normally
+# executed from an already decoded HTTP string through irm | iex. Parse its decoded
+# text explicitly so Windows PowerShell 5.1 does not reinterpret the file as ANSI.
+$launcherPath = Join-Path $repoRoot 'run-russian.ps1'
+$launcherText = Get-Content -LiteralPath $launcherPath -Raw -Encoding UTF8
+$launcherTokens = $null
+$launcherParseErrors = $null
+[void][System.Management.Automation.Language.Parser]::ParseInput(
+    $launcherText,
+    $launcherPath,
+    [ref]$launcherTokens,
+    [ref]$launcherParseErrors
+)
+foreach ($parseError in @($launcherParseErrors)) {
+    Add-WinUtilValidationFailure "$launcherPath:$($parseError.Extent.StartLineNumber) $($parseError.Message)"
 }
 
 # Every config must be valid JSON.
