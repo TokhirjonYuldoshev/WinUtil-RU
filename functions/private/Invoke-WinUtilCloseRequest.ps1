@@ -1,7 +1,7 @@
 function Convert-WinUtilOptionalRuntimeText {
     param([AllowNull()][object]$Text)
 
-    if (Get-Command Convert-WinUtilOptionalRuntimeText -ErrorAction SilentlyContinue) {
+    if (Get-Command Convert-WinUtilRussianRuntimeText -ErrorAction SilentlyContinue) {
         return Convert-WinUtilRussianRuntimeText $Text
     }
     return $Text
