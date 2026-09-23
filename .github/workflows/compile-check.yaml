@@ -2,7 +2,7 @@ name: Compile & Check
 
 on:
   push:
-    branches: ["main", "russian"]
+    branches: ["main", "russian", "russian-dev"]
   pull_request:
     branches: ["main"]
   workflow_dispatch: # Manual trigger added
