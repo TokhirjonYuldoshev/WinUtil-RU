@@ -501,7 +501,14 @@
     "OOSU": "O&O ShutUp10++",
     "SystemRepair": "Восстановление системы",
     "oscdimg.exe could not be found or installed automatically.\n\nPlease install it manually:\n  winget install -e --id Microsoft.OSCDIMG\n\nOr install the Windows ADK from:\nhttps://learn.microsoft.com/windows-hardware/get-started/adk-install": "Не удалось найти или автоматически установить oscdimg.exe.\n\nУстановите его вручную:\n  winget install -e --id Microsoft.OSCDIMG\n\nЛибо установите Windows ADK:\nhttps://learn.microsoft.com/windows-hardware/get-started/adk-install",
-    "Select one of the supported states to replace these values.": "Выберите одно из поддерживаемых состояний, чтобы заменить текущие значения."
+    "Select one of the supported states to replace these values.": "Выберите одно из поддерживаемых состояний, чтобы заменить текущие значения.",
+    "App icons": "Иконки приложений",
+    "Cache only": "Только кэш",
+    "Clear icon cache": "Очистить кэш иконок",
+    "App icon mode saved. Restart WindowManager now to apply the change?": "Режим иконок сохранён. Перезапустить WindowManager сейчас, чтобы применить изменение?",
+    "App icon mode saved. The change will apply the next time WindowManager starts.": "Режим иконок сохранён. Изменение применится при следующем запуске WindowManager.",
+    "Icon cache cleared.": "Кэш иконок очищен.",
+    "Unable to clear the icon cache.": "Не удалось очистить кэш иконок."
   },
   "Phrases": [
     {
