@@ -708,7 +708,7 @@ function Invoke-WinUtilISOExport {
             Invoke-WPFUIThread -Parameters @{ OutputISO = $outputISO } -ScriptBlock {
                 param($OutputISO)
 
-                $sync["WPFWin11ISODoneLabel"].Text        = "ISO saved to $OutputISO"
+                $sync["WPFWin11ISODoneLabel"].Text        = Convert-WinUtilRussianRuntimeText "ISO saved to $OutputISO"
                 $sync["WPFWin11ISODonePanel"].Visibility  = "Visible"
             }
             Set-WinUtilISOStep -Step "Output"
