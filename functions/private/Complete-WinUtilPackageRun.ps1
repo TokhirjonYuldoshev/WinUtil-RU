@@ -24,10 +24,29 @@
     $skipped = @($Results | Where-Object { $_.Outcome -eq "Skipped" })
     $failed = @($Results | Where-Object { $_.Outcome -eq "Failed" })
 
+    $isRussian = $false
+    $syncVariable = Get-Variable -Name sync -ErrorAction SilentlyContinue
+    if ($null -ne $syncVariable -and $null -ne $syncVariable.Value.preferences) {
+        $isRussian = $syncVariable.Value.preferences.language -eq 'ru-RU'
+    }
+
+    $convertDisplayText = {
+        param([AllowNull()][object]$Text)
+
+        $value = $Text
+        if (Get-Command Convert-WinUtilRussianText -ErrorAction SilentlyContinue) {
+            $value = Convert-WinUtilRussianText $value
+        }
+        if (Get-Command Convert-WinUtilRussianRuntimeText -ErrorAction SilentlyContinue) {
+            $value = Convert-WinUtilRussianRuntimeText $value
+        }
+        return $value
+    }
+
     $summary = "$($succeeded.Count) succeeded, $($skipped.Count) skipped, $($failed.Count) failed"
     Write-WinUtilLog -Component "Package" -Message "$Action summary: $summary"
 
-    if ($sync.preferences.language -eq 'ru-RU') {
+    if ($isRussian) {
         $actionLabel = switch ($Action) {
             'Install' { 'Установка' }
             'Uninstall' { 'Удаление' }
@@ -40,16 +59,16 @@
     }
 
     foreach ($result in $skipped) {
-        $detail = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $result.Detail)
-        if ($sync.preferences.language -eq 'ru-RU') {
+        $detail = & $convertDisplayText $result.Detail
+        if ($isRussian) {
             Write-Host "  пропущено  $($result.Package) - $detail"
         } else {
             Write-Host "  skipped  $($result.Package) - $detail"
         }
     }
     foreach ($result in $failed) {
-        $detail = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $result.Detail)
-        if ($sync.preferences.language -eq 'ru-RU') {
+        $detail = & $convertDisplayText $result.Detail
+        if ($isRussian) {
             Write-Host "  ошибка  $($result.Package) - $detail" -ForegroundColor Red
         } else {
             Write-Host "  failed   $($result.Package) - $detail" -ForegroundColor Red
