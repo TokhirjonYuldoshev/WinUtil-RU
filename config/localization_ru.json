@@ -2,7 +2,7 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "1.1.7",
+    "Version": "1.1.8",
     "Fallback": "en-US",
     "Note": "Presentation-only localization. Internal control names, config keys, commands and package IDs remain unchanged."
   },
