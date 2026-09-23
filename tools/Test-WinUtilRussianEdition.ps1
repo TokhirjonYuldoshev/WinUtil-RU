@@ -76,6 +76,22 @@ foreach ($parseError in @($launcherParseErrors)) {
     Add-WinUtilValidationFailure "${launcherPath}:$($parseError.Extent.StartLineNumber) $($parseError.Message)"
 }
 
+# Guard the runtime translator against accidental text-duplication regressions.
+$runtimeTranslatorPath = Join-Path $repoRoot 'functions\private\Convert-WinUtilRussianRuntimeText.ps1'
+$runtimeTranslatorText = Get-Content -LiteralPath $runtimeTranslatorPath -Raw -Encoding UTF8
+if (([regex]::Matches($runtimeTranslatorText, 'function\s+Convert-WinUtilRussianRuntimeText')).Count -ne 1) {
+    Add-WinUtilValidationFailure "Runtime translator must contain exactly one Convert-WinUtilRussianRuntimeText function."
+}
+if (([regex]::Matches($runtimeTranslatorText, 'function\s+Resolve-WinUtilRussianRuntimeBase')).Count -ne 1) {
+    Add-WinUtilValidationFailure "Runtime translator must contain exactly one Resolve-WinUtilRussianRuntimeBase helper."
+}
+if (([regex]::Matches($runtimeTranslatorText, 'Generic "label \(current/total\)"')).Count -ne 1) {
+    Add-WinUtilValidationFailure "Runtime translator contains duplicated generic-progress blocks."
+}
+if (($runtimeTranslatorText -split "\r?\n").Count -gt 220) {
+    Add-WinUtilValidationFailure "Runtime translator unexpectedly exceeds 220 lines; possible duplicated block insertion."
+}
+
 # Every config must be valid JSON.
 foreach ($file in (Get-ChildItem -LiteralPath (Join-Path $repoRoot 'config') -Filter *.json -File)) {
     try {
