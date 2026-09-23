@@ -123,9 +123,14 @@ ChrisTitusTech/winutil:main
 
 ---
 
-## GitHub Release
+## Releases
 
-Текущий опубликованный релиз пока имеет статус **Pre-release** и содержит:
+Для двух веток используются разные каналы публикации:
+
+- `russian` → обычный стабильный GitHub Release: **WinUtil RU 26.09.23-RU**, tag `26.09.23-RU`;
+- `russian-dev` → **Beta / Pre-release**: **WinUtil RU 26.09.23-RU-Beta**, tag `26.09.23-RU-beta`.
+
+Каждый релиз содержит:
 
 ```text
 winutil-RU.ps1

@@ -167,12 +167,14 @@ else {
     foreach ($requiredReleaseMarker in @(
         'winutil-RU.ps1',
         "Product = 'WinUtil RU'",
-        "Channel = 'beta'",
+        "ValidateSet('stable', 'beta')",
+        'Channel = $Channel',
+        'Prerelease = $isPrerelease',
         "License = 'LICENSE'",
         '$licenseText'
     )) {
         if ($releaseBuilderText -notlike "*$requiredReleaseMarker*") {
-            Add-WinUtilValidationFailure "Release builder is missing WinUtil RU beta marker: $requiredReleaseMarker"
+            Add-WinUtilValidationFailure "Release builder is missing WinUtil RU release marker: $requiredReleaseMarker"
         }
     }
 }

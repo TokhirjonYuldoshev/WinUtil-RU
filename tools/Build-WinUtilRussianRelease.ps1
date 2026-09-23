@@ -1,5 +1,7 @@
 param(
-    [switch]$SkipPreflight
+    [switch]$SkipPreflight,
+    [ValidateSet('stable', 'beta')]
+    [string]$Channel = 'stable'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -74,11 +76,13 @@ $licenseText
     $publicVersion = [string]$locale.Meta.Version
     $baseVersion = $publicVersion -replace '-RU$', ''
 
+    $isPrerelease = $Channel -eq 'beta'
+
     $manifest = [ordered]@{
         SchemaVersion = 2
         Product = 'WinUtil RU'
-        Channel = 'beta'
-        Prerelease = $true
+        Channel = $Channel
+        Prerelease = $isPrerelease
         Version = $publicVersion
         BaseVersion = $baseVersion
         LocalizationVersion = [string]$locale.Meta.LocalizationVersion
@@ -96,7 +100,8 @@ $licenseText
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($manifestPath, $json + [Environment]::NewLine, $utf8NoBom)
 
-    Write-Host "Built WinUtil RU $($manifest.Version) Beta" -ForegroundColor Green
+    $displaySuffix = if ($isPrerelease) { '-Beta' } else { '' }
+    Write-Host "Built WinUtil RU $($manifest.Version)$displaySuffix" -ForegroundColor Green
     Write-Host "Artifact: $artifactPath"
     Write-Host "SHA256:   $artifactHash"
     Write-Host "Manifest: $manifestPath"
