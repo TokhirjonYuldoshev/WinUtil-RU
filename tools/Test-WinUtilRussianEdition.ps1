@@ -186,6 +186,19 @@ if ($customDialogText -notlike '*$winutilTextBlock.Text = "WinUtil RU"*') {
     Add-WinUtilValidationFailure "Show-CustomDialog.ps1 must display the WinUtil RU product name."
 }
 
+$mainScriptText = Get-Content -LiteralPath (Join-Path $repoRoot 'scripts\main.ps1') -Raw -Encoding UTF8
+foreach ($requiredConsoleBranding in @(
+    'Tokhirjon Yuldoshev',
+    'WinUtil RU'
+)) {
+    if ($mainScriptText -notlike "*$requiredConsoleBranding*") {
+        Add-WinUtilValidationFailure "scripts/main.ps1 is missing console branding marker: $requiredConsoleBranding"
+    }
+}
+if ($mainScriptText -like '*Chris Titus Tech*' -or $mainScriptText -like '*Windows Toolbox*') {
+    Add-WinUtilValidationFailure "scripts/main.ps1 still contains the legacy console banner."
+}
+
 
 $releaseBuilderPath = Join-Path $repoRoot 'tools\Build-WinUtilRussianRelease.ps1'
 if (-not (Test-Path -LiteralPath $releaseBuilderPath)) {
