@@ -21,8 +21,8 @@ function Show-WinUtilMessage {
     $displayMessage = $Message
     $displayTitle = $Title
     if (Get-Command Convert-WinUtilRussianText -ErrorAction SilentlyContinue) {
-        $displayMessage = Convert-WinUtilRussianText $Message
-        $displayTitle = Convert-WinUtilRussianText $Title
+        $displayMessage = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $Message)
+        $displayTitle = Convert-WinUtilRussianRuntimeText (Convert-WinUtilRussianText $Title)
     }
 
     # Keep diagnostics in their original upstream wording while localizing presentation only.
