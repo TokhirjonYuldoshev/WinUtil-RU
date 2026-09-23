@@ -44,6 +44,7 @@ $powerShellFiles = @(
 )
 $powerShellFiles += @(
     Get-Item -LiteralPath (Join-Path $repoRoot 'Compile.ps1')
+    Get-Item -LiteralPath (Join-Path $repoRoot 'tools\Build-WinUtilRussianRelease.ps1')
 )
 
 foreach ($file in $powerShellFiles) {
@@ -109,6 +110,44 @@ if (([regex]::Matches($runtimeTranslatorText, 'Generic "label \(current/total\)"
 }
 if (($runtimeTranslatorText -split "\r?\n").Count -gt 220) {
     Add-WinUtilValidationFailure "Runtime translator unexpectedly exceeds 220 lines; possible duplicated block insertion."
+}
+
+# Stable launcher/build contracts.
+$compileSource = Get-Content -LiteralPath (Join-Path $repoRoot 'Compile.ps1') -Raw -Encoding UTF8
+if ($compileSource -notmatch 'UTF8Encoding\(\$true\)') {
+    Add-WinUtilValidationFailure "Compile.ps1 must emit UTF-8 with BOM for a PS5-safe cached artifact."
+}
+if ($compileSource -notmatch '\[System\.IO\.File\]::WriteAllText') {
+    Add-WinUtilValidationFailure "Compile.ps1 must use an explicit encoding-safe WriteAllText output path."
+}
+
+$bootstrapText = Get-Content -LiteralPath $bootstrapPath -Raw -Encoding ASCII
+foreach ($requiredBootstrapMarker in @(
+    'YTY\WindowManager\Stable',
+    'WindowManager-RU.ps1',
+    'release.json',
+    'local cache',
+    "if (\$branch -eq 'russian-dev')"
+)) {
+    if ($bootstrapText -notlike "*$requiredBootstrapMarker*") {
+        Add-WinUtilValidationFailure "bootstrap.ps1 is missing stable-cache marker: $requiredBootstrapMarker"
+    }
+}
+
+foreach ($requiredLauncherMarker in @(
+    'YTY\WindowManager\Stable',
+    'WindowManager-RU.ps1',
+    'localization_ru.json',
+    "if (\$branch -eq 'russian')"
+)) {
+    if ($launcherText -notlike "*$requiredLauncherMarker*") {
+        Add-WinUtilValidationFailure "run-russian.ps1 is missing stable-cache marker: $requiredLauncherMarker"
+    }
+}
+
+$releaseBuilderPath = Join-Path $repoRoot 'tools\Build-WinUtilRussianRelease.ps1'
+if (-not (Test-Path -LiteralPath $releaseBuilderPath)) {
+    Add-WinUtilValidationFailure "Missing tools/Build-WinUtilRussianRelease.ps1"
 }
 
 # Every config must be valid JSON.
