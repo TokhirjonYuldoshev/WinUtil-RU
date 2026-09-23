@@ -243,6 +243,7 @@ function Initialize-WinUtilRussianLocalization {
         'Disk Cleanup' = 'Очистка диска'
         'Temporary Files' = 'Временные файлы'
         'IPv6' = 'IPv6'
+        'IPv6 - Set IPv4 as Preferred' = 'IPv6 — предпочитать IPv4'
         'File Explorer Automatic Folder Discovery' = 'Автоопределение типа папок Проводником'
         'BSoD Verbose Mode' = 'Подробный режим BSoD'
         'System Tray Battery Percentage' = 'Процент заряда в системном трее'
