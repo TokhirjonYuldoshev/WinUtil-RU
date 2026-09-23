@@ -20,6 +20,17 @@
     }
     $sync.preferences.language = $language
 
+    $iconMode = 'Auto'
+    try {
+        $savedIconMode = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name 'AppIconMode' -ErrorAction Stop).AppIconMode
+        if ($savedIconMode -in @('Auto', 'CacheOnly', 'Disabled')) {
+            $iconMode = [string]$savedIconMode
+        }
+    } catch {
+        # Auto is the default icon mode.
+    }
+    $sync.preferences.iconMode = $iconMode
+
     $sync.WinUtilRussianExactTranslations = @{}
     $sync.WinUtilRussianPhraseTranslations = [ordered]@{}
 
