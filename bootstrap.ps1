@@ -30,7 +30,7 @@ function Get-WMRemoteText {
     $lastError = $null
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         try {
-            $response = Invoke-WebRequest -Uri $Uri -UseBasicParsing -TimeoutSec $TimeoutSec
+            $response = Invoke-WebRequest -Uri $Uri -UseBasicParsing -TimeoutSec $TimeoutSec -Headers @{ 'User-Agent' = 'WinUtil-RU' }
             return [string]$response.Content
         }
         catch {
@@ -100,6 +100,7 @@ $cacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
 $cachedScript = Join-Path $cacheRoot 'winutil-RU.ps1'
 $cachedManifest = Join-Path $cacheRoot 'release.json'
 $remoteLocaleUrl = "$repoBase/$branch/config/localization_ru.json"
+$remoteBranchApiUrl = "https://api.github.com/repos/TokhirjonYuldoshev/WinUtil-RU/branches/$branch"
 
 $remoteVersion = $null
 try {
@@ -111,12 +112,24 @@ catch {
     # A cached stable build must remain usable when GitHub is temporarily unavailable.
 }
 
+$remoteCommit = $null
+try {
+    $branchText = Get-WMRemoteText -Uri $remoteBranchApiUrl -Attempts 2 -TimeoutSec 10
+    $branchInfo = $branchText | ConvertFrom-Json
+    $remoteCommit = [string]$branchInfo.commit.sha
+}
+catch {
+    # Version-only cache validation remains available if the GitHub API is temporarily unavailable.
+}
+
 $localVersion = $null
+$localCommit = $null
 $cacheIntegrityOk = $false
 if ((Test-Path -LiteralPath $cachedManifest) -and (Test-Path -LiteralPath $cachedScript)) {
     try {
         $localManifest = Get-Content -LiteralPath $cachedManifest -Raw -Encoding UTF8 | ConvertFrom-Json
         $localVersion = [string]$localManifest.Version
+        $localCommit = [string]$localManifest.SourceCommit
         $expectedHash = [string]$localManifest.Sha256
         if (-not [string]::IsNullOrWhiteSpace($expectedHash)) {
             $actualHash = (Get-FileHash -LiteralPath $cachedScript -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -125,20 +138,25 @@ if ((Test-Path -LiteralPath $cachedManifest) -and (Test-Path -LiteralPath $cache
     }
     catch {
         $localVersion = $null
+        $localCommit = $null
         $cacheIntegrityOk = $false
     }
 }
 
+$versionMatches = [string]::IsNullOrWhiteSpace($remoteVersion) -or $remoteVersion -eq $localVersion
+$commitMatches = [string]::IsNullOrWhiteSpace($remoteCommit) -or $remoteCommit -eq $localCommit
+
 if (
     $cacheIntegrityOk -and
-    ([string]::IsNullOrWhiteSpace($remoteVersion) -or $remoteVersion -eq $localVersion)
+    $versionMatches -and
+    $commitMatches
 ) {
     Write-Host "WinUtil RU $localVersion - local cache" -ForegroundColor Green
     Invoke-WMStandalone -ScriptPath $cachedScript
     return
 }
 
-# No cache or a new stable version is available. The stable launcher downloads source,
+# No cache or a new stable version/commit is available. The stable launcher downloads source,
 # validates it, compiles once, and refreshes the persistent compiled cache.
 try {
     $launcherText = Get-WMRemoteText -Uri $launcherUrl -Attempts 3 -TimeoutSec 30

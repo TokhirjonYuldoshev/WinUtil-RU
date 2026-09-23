@@ -18,6 +18,14 @@ try {
     # "The underlying connection was closed" on older Windows/.NET defaults.
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
+    $sourceCommit = $null
+    try {
+        $branchInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/TokhirjonYuldoshev/WinUtil-RU/branches/$branch" -Headers @{ 'User-Agent' = 'WinUtil-RU' } -TimeoutSec 15
+        $sourceCommit = [string]$branchInfo.commit.sha
+    } catch {
+        # SourceCommit is advisory for cache freshness. Build/run may continue if the API is temporarily unavailable.
+    }
+
     Write-Host 'Загрузка WinUtil RU...' -ForegroundColor Cyan
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
@@ -142,6 +150,7 @@ try {
                 Version = [string]$localeInfo.Meta.Version
                 LocalizationVersion = [string]$localeInfo.Meta.LocalizationVersion
                 SourceBranch = $branch
+                SourceCommit = $sourceCommit
                 Sha256 = $stableHash
                 CachedAt = (Get-Date).ToString('o')
             }

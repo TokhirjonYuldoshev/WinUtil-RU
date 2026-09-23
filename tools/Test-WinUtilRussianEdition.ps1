@@ -139,6 +139,8 @@ foreach ($requiredBootstrapMarker in @(
     'YTY\WindowManager\Stable',
     'winutil-RU.ps1',
     'release.json',
+    'remoteCommit',
+    'SourceCommit',
     'local cache',
     'if ($branch -eq ''russian-dev'')'
 )) {
@@ -152,6 +154,7 @@ foreach ($requiredLauncherMarker in @(
     'winutil-RU.ps1',
     'localization_ru.json',
     "Channel = 'stable'",
+    'SourceCommit = $sourceCommit',
     'if ($branch -eq ''russian'')'
 )) {
     if ($launcherText -notlike "*$requiredLauncherMarker*") {
