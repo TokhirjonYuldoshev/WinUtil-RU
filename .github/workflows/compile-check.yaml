@@ -15,11 +15,25 @@ jobs:
     - name: Checkout Sources
       uses: actions/checkout@v7
 
+    - name: Preflight Russian edition with Windows PowerShell 5.1
+      shell: powershell
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        ./tools/Test-WinUtilRussianEdition.ps1 -Quiet
+      continue-on-error: false
+
     - name: Compile and syntax check with Windows PowerShell 5.1
       shell: powershell
       run: |
         Set-ExecutionPolicy Bypass -Scope Process -Force
         ./Compile.ps1
+      continue-on-error: false
+
+    - name: Preflight Russian edition with PowerShell 7
+      shell: pwsh
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        ./tools/Test-WinUtilRussianEdition.ps1 -Quiet
       continue-on-error: false
 
     - name: Compile and syntax check with PowerShell 7
