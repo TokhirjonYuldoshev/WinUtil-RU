@@ -464,8 +464,7 @@
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Оригинал : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
 Fork     : <a href="https://github.com/TokhirjonYuldoshev/WinUtil-RU">TokhirjonYuldoshev/WinUtil-RU</a>
-WinUtil  : $($sync.version)
-Русский  : $localeVersion
+WinUtil RU: $localeVersion
 "@
         } else {
 @"
@@ -474,8 +473,7 @@ UI       : <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href=
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Upstream : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
 Fork     : <a href="https://github.com/TokhirjonYuldoshev/WinUtil-RU">TokhirjonYuldoshev/WinUtil-RU</a>
-WinUtil  : $($sync.version)
-Russian  : $localeVersion
+WinUtil RU: $localeVersion
 "@
         }
         Show-CustomDialog -Title (Convert-WinUtilRussianText "About") -Message $authorInfo

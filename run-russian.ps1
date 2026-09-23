@@ -148,7 +148,7 @@ try {
             $stableManifest | ConvertTo-Json | Set-Content -LiteralPath $stableManifestPath -Encoding UTF8
 
             $runTarget = $stableScript
-            Write-Host "Локальный кэш WinUtil RU обновлён: $($stableManifest.Version) Beta" -ForegroundColor DarkGreen
+            Write-Host "Локальный кэш WinUtil RU обновлён: $($stableManifest.Version)" -ForegroundColor DarkGreen
         }
 
         $restartRegistryPath = 'HKCU:\Software\YTY\WindowManager'
