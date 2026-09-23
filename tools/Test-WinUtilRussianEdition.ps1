@@ -173,10 +173,10 @@ if ($installEntrySource -match 'Add_ImageOpened') {
 if ($installEntrySource -notmatch '\$safeIconName\s*=\s*\(\$catalogKey\s*-replace') {
     Add-WinUtilValidationFailure "Install icon cache is not keyed by the raw application catalog key."
 }
-if ($installEntrySource -notmatch "\$iconMode -ne 'Disabled'") {
+if ($installEntrySource -notmatch '\$iconMode\s+-ne\s+''Disabled''') {
     Add-WinUtilValidationFailure "Install cards do not honor the Disabled icon mode."
 }
-if ($installEntrySource -notmatch "\$iconMode -eq 'Auto'") {
+if ($installEntrySource -notmatch '\$iconMode\s+-eq\s+''Auto''') {
     Add-WinUtilValidationFailure "Install cards do not honor the Auto icon mode."
 }
 
