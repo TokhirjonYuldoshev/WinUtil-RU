@@ -66,3 +66,18 @@ public static class WinUtilRunspaceCleanup
         $runspace.RunspaceStateInfo.State | Should -Not -Be 'Opened'
     }
 }
+
+Describe "Navigation logo geometry" {
+    It "keeps the visible logo at 25px while giving the vector enough drawing space" {
+        Add-Type -AssemblyName PresentationFramework
+        . (Join-Path $script:repoRoot "functions\private\Invoke-WinUtilAssets.ps1")
+
+        $logo = Invoke-WinUtilAssets -Type "logo" -Size 25
+
+        $logo.Width | Should -Be 25
+        $logo.Height | Should -Be 25
+        $logo.Child.Width | Should -Be 125
+        $logo.Child.Height | Should -Be 125
+    }
+}
+
