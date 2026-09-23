@@ -105,18 +105,25 @@ catch {
 }
 
 $localVersion = $null
-if (Test-Path -LiteralPath $cachedManifest) {
+$cacheIntegrityOk = $false
+if ((Test-Path -LiteralPath $cachedManifest) -and (Test-Path -LiteralPath $cachedScript)) {
     try {
         $localManifest = Get-Content -LiteralPath $cachedManifest -Raw -Encoding UTF8 | ConvertFrom-Json
         $localVersion = [string]$localManifest.Version
+        $expectedHash = [string]$localManifest.Sha256
+        if (-not [string]::IsNullOrWhiteSpace($expectedHash)) {
+            $actualHash = (Get-FileHash -LiteralPath $cachedScript -Algorithm SHA256).Hash.ToLowerInvariant()
+            $cacheIntegrityOk = $actualHash -eq $expectedHash.ToLowerInvariant()
+        }
     }
     catch {
         $localVersion = $null
+        $cacheIntegrityOk = $false
     }
 }
 
 if (
-    (Test-Path -LiteralPath $cachedScript) -and
+    $cacheIntegrityOk -and
     ([string]::IsNullOrWhiteSpace($remoteVersion) -or $remoteVersion -eq $localVersion)
 ) {
     Write-Host "WindowManager RU $localVersion - local cache" -ForegroundColor Green
