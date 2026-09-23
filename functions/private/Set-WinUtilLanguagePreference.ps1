@@ -1,17 +1,45 @@
 function Set-WinUtilLanguagePreference {
     <#
         .SYNOPSIS
-            Saves the preferred UI language for the russian branch.
+            Saves the preferred UI language for the Russian edition.
 
         .DESCRIPTION
-            The language is applied the next time WinUtil starts. Keeping the switch at
-            startup avoids mutating internal WPF values that WinUtil also uses as logic keys.
+            Internal WinUtil logic keeps its stable English keys. The selected presentation
+            language is persisted per user and applied on the next process start. When the
+            online launcher is in use, the user can restart immediately without re-downloading
+            or recompiling the project.
     #>
     param(
         [Parameter(Mandatory)]
         [ValidateSet('ru-RU', 'en-US')]
         [string]$Language
     )
+
+    $currentLanguage = if ($sync.preferences.language -in @('ru-RU', 'en-US')) {
+        [string]$sync.preferences.language
+    } else {
+        'ru-RU'
+    }
+
+    if ($Language -eq $currentLanguage) {
+        if ($null -ne $sync.RussianLanguageMenuItem) {
+            $sync.RussianLanguageMenuItem.IsChecked = $Language -eq 'ru-RU'
+        }
+        if ($null -ne $sync.EnglishLanguageMenuItem) {
+            $sync.EnglishLanguageMenuItem.IsChecked = $Language -eq 'en-US'
+        }
+        return
+    }
+
+    if ($sync.ActiveJob) {
+        $busyMessage = if ($currentLanguage -eq 'ru-RU') {
+            'Дождитесь завершения текущей операции перед сменой языка.'
+        } else {
+            'Wait for the current operation to finish before changing the language.'
+        }
+        Show-WinUtilMessage -Message $busyMessage -Title 'WindowManager' -Button 'OK' -Icon 'Warning' | Out-Null
+        return
+    }
 
     $registryPath = 'HKCU:\Software\YTY\WindowManager'
     if (-not (Test-Path $registryPath)) {
@@ -28,16 +56,30 @@ function Set-WinUtilLanguagePreference {
         $sync.EnglishLanguageMenuItem.IsChecked = $Language -eq 'en-US'
     }
 
-    $message = if ($Language -eq 'ru-RU') {
-        'Русский язык сохранён. Изменение применится при следующем запуске WindowManager.'
-    } else {
-        'English has been saved. The change will apply the next time WindowManager starts.'
+    $canRestart = $env:WINDOWMANAGER_LAUNCHER_RESTART -eq '1'
+    if (-not $canRestart) {
+        $message = if ($currentLanguage -eq 'ru-RU') {
+            'Язык сохранён. Изменение применится при следующем запуске WindowManager.'
+        } else {
+            'The language has been saved. The change will apply the next time WindowManager starts.'
+        }
+
+        Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'OK' -Icon 'Information' | Out-Null
+        return
     }
 
-    [System.Windows.MessageBox]::Show(
-        $message,
-        'WindowManager',
-        [System.Windows.MessageBoxButton]::OK,
-        [System.Windows.MessageBoxImage]::Information
-    ) | Out-Null
+    $message = if ($currentLanguage -eq 'ru-RU') {
+        'Язык сохранён. Перезапустить WindowManager сейчас, чтобы применить изменение?'
+    } else {
+        'The language has been saved. Restart WindowManager now to apply the change?'
+    }
+
+    $answer = Show-WinUtilMessage -Message $message -Title 'WindowManager' -Button 'YesNo' -Icon 'Question'
+    if ("$answer" -ne 'Yes') {
+        return
+    }
+
+    New-ItemProperty -Path $registryPath -Name 'RestartRequested' -Value 1 -PropertyType DWord -Force | Out-Null
+    $sync.ForceClose = $true
+    $sync.Form.Close()
 }
