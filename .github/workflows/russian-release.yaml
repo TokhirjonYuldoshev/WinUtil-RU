@@ -1,0 +1,52 @@
+name: Russian Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'ru-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Russian standalone artifact
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          .\tools\Build-WinUtilRussianRelease.ps1
+
+      - name: Verify release version
+        if: startsWith(github.ref, 'refs/tags/ru-v')
+        shell: powershell
+        run: |
+          $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          $expectedTag = "ru-v$($manifest.Version)"
+          if ($env:GITHUB_REF_NAME -ne $expectedTag) {
+              throw "Tag $env:GITHUB_REF_NAME does not match manifest version $expectedTag."
+          }
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WindowManager-RU
+          path: |
+            dist/WindowManager-RU.ps1
+            dist/release.json
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/ru-v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" "dist/WindowManager-RU.ps1" "dist/release.json" --title "WindowManager RU $env:GITHUB_REF_NAME" --generate-notes
