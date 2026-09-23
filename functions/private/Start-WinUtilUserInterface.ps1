@@ -420,6 +420,27 @@
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
     })
 
+    $sync["AppIconsAutoMenuItem"].IsChecked = $sync.preferences.iconMode -eq 'Auto'
+    $sync["AppIconsCacheOnlyMenuItem"].IsChecked = $sync.preferences.iconMode -eq 'CacheOnly'
+    $sync["AppIconsDisabledMenuItem"].IsChecked = $sync.preferences.iconMode -eq 'Disabled'
+
+    $sync["AppIconsAutoMenuItem"].Add_Click({
+        Set-WinUtilIconPreference -Mode 'Auto'
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+    })
+    $sync["AppIconsCacheOnlyMenuItem"].Add_Click({
+        Set-WinUtilIconPreference -Mode 'CacheOnly'
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+    })
+    $sync["AppIconsDisabledMenuItem"].Add_Click({
+        Set-WinUtilIconPreference -Mode 'Disabled'
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+    })
+    $sync["ClearIconCacheMenuItem"].Add_Click({
+        Set-WinUtilIconPreference -ClearCache
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+    })
+
     $sync["ImportMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
         Invoke-WPFImpex -type "import"
