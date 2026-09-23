@@ -62,7 +62,6 @@ function Initialize-InstallAppEntry {
             $logo = New-Object Windows.Controls.Image
             $logo.Stretch = [Windows.Media.Stretch]::Uniform
             $logo.Add_ImageFailed($handlers.ImageFailed)
-            $logo.Add_ImageOpened($handlers.ImageOpened)
 
             $safeIconName = ($appKey -replace '[^A-Za-z0-9_.-]', '_') + '.png'
             $iconCachePath = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\IconCache'
@@ -71,10 +70,15 @@ function Initialize-InstallAppEntry {
             if (Test-Path -LiteralPath $cachedIcon) {
                 try {
                     $logo.Source = [Windows.Media.Imaging.BitmapImage]::new([Uri]::new($cachedIcon))
+                    # Cached files are local and load synchronously enough for the card.
+                    $fallback.Visibility = "Collapsed"
                 } catch {
+                    # Keep the letter fallback visible behind the remote image while it loads.
                     $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
                 }
             } else {
+                # The Image is rendered above the letter fallback. If the request fails,
+                # ImageFailed hides only the broken image and the letter remains visible.
                 $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
             }
 
