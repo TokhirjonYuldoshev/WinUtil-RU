@@ -51,6 +51,7 @@ Function Install-WinUtilProgramWinget {
         "80072EFE" = "The connection to a package source was interrupted (0x80072EFE). Check the Internet connection, proxy, VPN, firewall, or TLS/network filtering, then try again."
         "80D02002" = "The package source request timed out (0x80D02002). Check the Internet connection, proxy, VPN, firewall, or source availability, then try again."
     }
+    $transientNetworkExitCodes = @("80072EFD", "80072EFE", "80D02002")
 
     foreach ($program in $Programs) {
         if ([string]::IsNullOrWhiteSpace($program) -or $program -eq "na") {
@@ -86,6 +87,24 @@ Function Install-WinUtilProgramWinget {
 
         $process = Start-Process -FilePath winget -ArgumentList $arguments -NoNewWindow -Wait -PassThru
         $exitCode = $process.ExitCode
+
+        # "Upgrade all" can fail because one configured source (commonly msstore) has a
+        # temporary network error. Refresh source metadata once and retry the exact same
+        # upgrade command. Never reset/remove sources and never loop indefinitely.
+        $firstExitCodeHex = "{0:X8}" -f $exitCode
+        if ($upgradeAll -and $transientNetworkExitCodes -contains $firstExitCodeHex) {
+            Write-WinUtilLog -Level "WARN" -Component "Package" -Message "WinGet upgrade --all hit transient source error 0x$firstExitCodeHex. Updating sources and retrying once."
+
+            $sourceUpdate = Start-Process -FilePath winget -ArgumentList @("source", "update") -NoNewWindow -Wait -PassThru
+            Write-WinUtilLog -Component "Package" -Message "winget source update exited with code $($sourceUpdate.ExitCode)."
+
+            if ($sourceUpdate.ExitCode -eq 0) {
+                Start-Sleep -Seconds 2
+            }
+
+            $process = Start-Process -FilePath winget -ArgumentList $arguments -NoNewWindow -Wait -PassThru
+            $exitCode = $process.ExitCode
+        }
 
         if ($exitCode -eq 0) {
             $outcome = "Succeeded"
