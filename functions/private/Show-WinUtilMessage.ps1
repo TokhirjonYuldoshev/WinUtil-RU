@@ -18,6 +18,14 @@ function Show-WinUtilMessage {
         $Icon = "Information"
     )
 
+    $displayMessage = $Message
+    $displayTitle = $Title
+    if (Get-Command Convert-WinUtilRussianText -ErrorAction SilentlyContinue) {
+        $displayMessage = Convert-WinUtilRussianText $Message
+        $displayTitle = Convert-WinUtilRussianText $Title
+    }
+
+    # Keep diagnostics in their original upstream wording while localizing presentation only.
     Write-WinUtilLog -Component "Dialog" -Message "$Title : $($Message -replace '\r?\n', ' ')"
 
     if (-not (Test-WinUtilUIAlive)) {
@@ -29,8 +37,8 @@ function Show-WinUtilMessage {
     }
 
     return Invoke-WPFUIThread -PassThru -Parameters @{
-        Message = $Message
-        Title = $Title
+        Message = $displayMessage
+        Title = $displayTitle
         Button = $Button
         Icon = $Icon
     } -ScriptBlock {
