@@ -1,15 +1,22 @@
-# WindowManager Russian edition bootstrap.
+# WinUtil RU bootstrap.
 # Keep this file ASCII-only and without a UTF-8 BOM so Windows PowerShell 5.1
 # can execute it safely through: irm <raw-url> | iex
 
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-if ([string]::IsNullOrWhiteSpace($env:WINDOWMANAGER_BRANCH)) {
-    $env:WINDOWMANAGER_BRANCH = 'russian'
+if (-not [string]::IsNullOrWhiteSpace($env:WINUTIL_RU_BRANCH)) {
+    $branch = $env:WINUTIL_RU_BRANCH
+}
+elseif (-not [string]::IsNullOrWhiteSpace($env:WINDOWMANAGER_BRANCH)) {
+    # Backward compatibility with the previous WindowManager RU launcher.
+    $branch = $env:WINDOWMANAGER_BRANCH
+}
+else {
+    $branch = 'russian'
 }
 
-$branch = $env:WINDOWMANAGER_BRANCH
+$env:WINUTIL_RU_BRANCH = $branch
 $repoBase = 'https://raw.githubusercontent.com/TokhirjonYuldoshev/WindowManager'
 $launcherUrl = "$repoBase/$branch/run-russian.ps1"
 
@@ -56,7 +63,7 @@ function Invoke-WMStandalone {
 
             & $shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath
             if ($LASTEXITCODE -ne 0) {
-                throw "WindowManager exited with code $LASTEXITCODE."
+                throw "WinUtil RU exited with code $LASTEXITCODE."
             }
 
             $restartRequested = $false
@@ -90,7 +97,7 @@ if ($branch -eq 'russian-dev') {
 
 # Stable channel uses a persistent compiled cache.
 $cacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
-$cachedScript = Join-Path $cacheRoot 'WindowManager-RU.ps1'
+$cachedScript = Join-Path $cacheRoot 'winutil-RU.ps1'
 $cachedManifest = Join-Path $cacheRoot 'release.json'
 $remoteLocaleUrl = "$repoBase/$branch/config/localization_ru.json"
 
@@ -126,7 +133,7 @@ if (
     $cacheIntegrityOk -and
     ([string]::IsNullOrWhiteSpace($remoteVersion) -or $remoteVersion -eq $localVersion)
 ) {
-    Write-Host "WindowManager RU $localVersion - local cache" -ForegroundColor Green
+    Write-Host "WinUtil RU $localVersion Beta - local cache" -ForegroundColor Green
     Invoke-WMStandalone -ScriptPath $cachedScript
     return
 }
