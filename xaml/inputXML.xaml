@@ -1290,6 +1290,14 @@
                             <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Русский" Name="RussianLanguageMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
                             <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="English" Name="EnglishLanguageMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
                             <Separator/>
+                            <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="App icons" Name="AppIconsMenuItem" Foreground="{DynamicResource MainForegroundColor}">
+                                <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Auto" Name="AppIconsAutoMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
+                                <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Cache only" Name="AppIconsCacheOnlyMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
+                                <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Disabled" Name="AppIconsDisabledMenuItem" IsCheckable="True" Foreground="{DynamicResource MainForegroundColor}"/>
+                                <Separator/>
+                                <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Clear icon cache" Name="ClearIconCacheMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
+                            </MenuItem>
+                            <Separator/>
                             <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="About" Name="AboutMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
                             <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Documentation" Name="DocumentationMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
                             <MenuItem FontSize="{DynamicResource ButtonFontSize}" Header="Sponsors" Name="SponsorMenuItem" Foreground="{DynamicResource MainForegroundColor}"/>
