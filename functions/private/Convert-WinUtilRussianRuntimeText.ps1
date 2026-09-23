@@ -154,5 +154,9 @@ function Convert-WinUtilRussianRuntimeText {
         return "ВСЕ данные на диске $($Matches[1]) ($($Matches[2]), $($Matches[3]) ГБ) будут БЕЗВОЗВРАТНО УДАЛЕНЫ.`n`nПродолжить?"
     }
 
+    if ($trimmed -match "^Unable to apply registry state '(.+)'\.$") {
+        return "Не удалось применить состояние реестра '$($Matches[1])'."
+    }
+
     return $text
 }
