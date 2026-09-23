@@ -72,7 +72,7 @@ $launcherParseErrors = $null
     [ref]$launcherParseErrors
 )
 foreach ($parseError in @($launcherParseErrors)) {
-    Add-WinUtilValidationFailure "$launcherPath:$($parseError.Extent.StartLineNumber) $($parseError.Message)"
+    Add-WinUtilValidationFailure "${launcherPath}:$($parseError.Extent.StartLineNumber) $($parseError.Message)"
 }
 
 # Every config must be valid JSON.
