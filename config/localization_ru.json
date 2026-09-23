@@ -8,6 +8,7 @@
     "LocalizationVersion": "1.1.8"
   },
   "Exact": {
+    "Microsoft Defender Antivirus is not running; sample submission preference was not changed.": "Антивирус Microsoft Defender не работает; настройка отправки образцов не изменена.",
     "Change the WinUtil UI Theme": "Изменить тему интерфейса WinUtil",
     "Theme": "Тема",
     "Auto": "Авто",

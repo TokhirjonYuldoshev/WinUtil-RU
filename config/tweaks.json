@@ -537,7 +537,11 @@
     "InvokeScript": [
       "
       # Disable Defender Auto Sample Submission
-      Set-MpPreference -SubmitSamplesConsent 2
+      if ((Get-Service -Name WinDefend -ErrorAction SilentlyContinue).Status -eq 'Running') {
+          Set-MpPreference -SubmitSamplesConsent 2
+      } else {
+          Write-Warning (Convert-WinUtilRussianText 'Microsoft Defender Antivirus is not running; sample submission preference was not changed.')
+      }
 
       # Disable (Connected User Experiences and Telemetry) Service
       Set-Service -Name diagtrack -StartupType Disabled
@@ -558,7 +562,11 @@
     "UndoScript": [
       "
       # Enable Defender Auto Sample Submission
-      Set-MpPreference -SubmitSamplesConsent 1
+      if ((Get-Service -Name WinDefend -ErrorAction SilentlyContinue).Status -eq 'Running') {
+          Set-MpPreference -SubmitSamplesConsent 1
+      } else {
+          Write-Warning (Convert-WinUtilRussianText 'Microsoft Defender Antivirus is not running; sample submission preference was not changed.')
+      }
 
       # Enable (Connected User Experiences and Telemetry) Service
       Set-Service -Name diagtrack -StartupType Automatic
