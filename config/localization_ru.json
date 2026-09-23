@@ -2,7 +2,7 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "1.1.6",
+    "Version": "1.1.7",
     "Fallback": "en-US",
     "Note": "Presentation-only localization. Internal control names, config keys, commands and package IDs remain unchanged."
   },
@@ -509,7 +509,10 @@
     "App icon mode saved. The change will apply the next time WindowManager starts.": "Режим иконок сохранён. Изменение применится при следующем запуске WindowManager.",
     "Icon cache cleared.": "Кэш иконок очищен.",
     "Unable to clear the icon cache.": "Не удалось очистить кэш иконок.",
-    "Wait for the current operation to finish before changing this setting.": "Дождитесь завершения текущей операции перед изменением этой настройки."
+    "Wait for the current operation to finish before changing this setting.": "Дождитесь завершения текущей операции перед изменением этой настройки.",
+    "WinGet could not connect to a package source (0x80072EFD). Check the Internet connection, proxy, VPN, firewall, or source availability, then try again.": "WinGet не удалось подключиться к источнику пакетов (0x80072EFD). Проверьте интернет, прокси/VPN, брандмауэр и доступность источника, затем повторите попытку.",
+    "The connection to a package source was interrupted (0x80072EFE). Check the Internet connection, proxy, VPN, firewall, or TLS/network filtering, then try again.": "Соединение с источником пакетов было прервано (0x80072EFE). Проверьте интернет, прокси/VPN, брандмауэр и сетевую/TLS-фильтрацию, затем повторите попытку.",
+    "The package source request timed out (0x80D02002). Check the Internet connection, proxy, VPN, firewall, or source availability, then try again.": "Истекло время ожидания ответа источника пакетов (0x80D02002). Проверьте интернет, прокси/VPN, брандмауэр и доступность источника, затем повторите попытку."
   },
   "Phrases": [
     {
