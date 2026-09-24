@@ -17,21 +17,15 @@
         [string]$Key
     )
 
-    $localizedDescription = $Description
-    if (Get-Command Convert-WinUtilRussianText -ErrorAction SilentlyContinue) {
-        $localizedDescription = Convert-WinUtilRussianText $Description
+    $keyLabel = 'Preset key'
+    if ($null -ne $sync -and $sync.preferences.language -eq 'ru-RU') {
+        $Description = Convert-WinUtilRussianText $Description
+        $keyLabel = 'Ключ пресета'
     }
 
-    $isRussian = $false
-    $syncVariable = Get-Variable -Name sync -ErrorAction SilentlyContinue
-    if ($null -ne $syncVariable -and $null -ne $syncVariable.Value.preferences) {
-        $isRussian = $syncVariable.Value.preferences.language -eq 'ru-RU'
-    }
-    $keyLabel = if ($isRussian) { 'Ключ пресета' } else { 'Preset key' }
-
-    if ([string]::IsNullOrWhiteSpace($localizedDescription)) {
+    if ([string]::IsNullOrWhiteSpace($Description)) {
         return "${keyLabel}: $Key"
     }
 
-    return "$localizedDescription`n`n${keyLabel}: $Key"
+    return "$Description`n`n${keyLabel}: $Key"
 }

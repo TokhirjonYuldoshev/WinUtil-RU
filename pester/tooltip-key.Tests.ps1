@@ -91,7 +91,7 @@ Describe "Preset key tooltips" {
     }
 
     It "labels entries created by the application renderer" {
-        $script:appRenderer | Should -Match '\$border\.ToolTip\s*=\s*Get-WinUtilEntryToolTip\s+-Description\s+\$appDescription\s+-Key\s+\$appKey'
+        $script:appRenderer | Should -Match '\$border\.ToolTip\s*=\s*Get-WinUtilEntryToolTip\s+-Description\s+\$app\.description\s+-Key\s+\$appKey'
     }
 
     It "labels every entry with a key the preset importer accepts" {

@@ -21,8 +21,8 @@ try {
     }
 
     & (Join-Path $repoRoot 'Compile.ps1')
-    if ($LASTEXITCODE -ne 0) {
-        throw "Compile.ps1 failed with exit code $LASTEXITCODE."
+    if (-not $?) {
+        throw "Compile.ps1 failed."
     }
 
     New-Item -ItemType Directory -Path $distRoot -Force | Out-Null
@@ -30,6 +30,9 @@ try {
     # The standalone release must carry the original MIT notice even when the user
     # downloads only the PowerShell artifact rather than the whole repository.
     $compiledPath = Join-Path $repoRoot 'winutil.ps1'
+    if (-not (Test-Path -LiteralPath $compiledPath)) {
+        throw "Compile.ps1 did not create winutil.ps1."
+    }
     $compiledText = Get-Content -LiteralPath $compiledPath -Raw -Encoding UTF8
     $licenseSourcePath = Join-Path $repoRoot 'LICENSE'
     $licenseText = Get-Content -LiteralPath $licenseSourcePath -Raw -Encoding UTF8

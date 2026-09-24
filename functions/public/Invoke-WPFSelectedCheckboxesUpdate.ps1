@@ -18,11 +18,7 @@ function Invoke-WPFSelectedCheckboxesUpdate ($type, $checkboxName) {
     }
 
     if ($listName -eq "selectedApps" -and $selectionChanged) {
-        $selectedAppsText = "Selected Apps: $($sync.selectedApps.Count)"
-        if (Get-Command Convert-WinUtilRussianText -ErrorAction SilentlyContinue) {
-            $selectedAppsText = Convert-WinUtilRussianText $selectedAppsText
-        }
-        $sync.WPFselectedAppsButton.Content = $selectedAppsText
+        $sync.WPFselectedAppsButton.Content = Convert-WinUtilRussianText "Selected Apps: $($sync.selectedApps.Count)"
         $sync.selectedAppsstackPanel.Children.Clear()
         $sync.selectedApps | Sort-Object | ForEach-Object {
             Add-SelectedAppsMenuItem -name $sync.configs.applicationsHashtable.$_.Content -key $_

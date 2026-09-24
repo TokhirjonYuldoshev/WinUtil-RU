@@ -10,9 +10,6 @@ testResults.xml
 # general software/os specific
 desktop.ini
 .DS_Store
-__pycache__/
-*.pyc
-.venv/
 
 .vscode/
 .idea/

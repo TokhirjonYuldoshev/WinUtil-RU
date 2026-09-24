@@ -11,9 +11,7 @@ Function Invoke-WinUtilCurrentSystem {
     #>
 
     param(
-        $CheckBox,
-        [switch]$BypassToggleStatusCache,
-        [switch]$StopOnReadError
+        $CheckBox
     )
     if ($CheckBox -eq "choco") {
         $apps = (choco list | Select-String -Pattern "^\S+").Matches.Value
@@ -54,7 +52,6 @@ Function Invoke-WinUtilCurrentSystem {
     if ($CheckBox -eq "tweaks") {
 
         if (!(Test-Path 'HKU:\')) {$null = (New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS)}
-        $readErrorAction = if ($StopOnReadError) { "Stop" } else { "SilentlyContinue" }
 
         $sync.configs.tweaks | Get-Member -MemberType NoteProperty | ForEach-Object {
 
@@ -68,9 +65,7 @@ Function Invoke-WinUtilCurrentSystem {
                 $Values = @()
 
                 if ($entryType -eq "Toggle") {
-                    if (-not (Get-WinUtilToggleStatus $Config `
-                        -BypassCache:$BypassToggleStatusCache `
-                        -StopOnReadError:$StopOnReadError)) {
+                    if (-not (Get-WinUtilToggleStatus $Config)) {
                         $values += $False
                     }
                 } else {
@@ -82,12 +77,8 @@ Function Invoke-WinUtilCurrentSystem {
                             $registryTotal++
                             $regstate = $null
 
-                            if (Test-Path $tweak.Path -ErrorAction $readErrorAction) {
-                                if ($StopOnReadError) {
-                                    $regstate = (Get-ItemProperty -Path $tweak.Path -ErrorAction Stop).$($tweak.Name)
-                                } else {
-                                    $regstate = Get-ItemProperty -Name $tweak.Name -Path $tweak.Path -ErrorAction SilentlyContinue | Select-Object -ExpandProperty $($tweak.Name)
-                                }
+                            if (Test-Path $tweak.Path) {
+                                $regstate = Get-ItemProperty -Name $tweak.Name -Path $tweak.Path -ErrorAction SilentlyContinue | Select-Object -ExpandProperty $($tweak.Name)
                             }
 
                             if ($null -eq $regstate) {
@@ -117,17 +108,7 @@ Function Invoke-WinUtilCurrentSystem {
 
                 Foreach ($tweaks in $serviceKeys) {
                     Foreach ($tweak in $tweaks) {
-                        try {
-                            $Service = Get-Service -Name $tweak.Name -ErrorAction $readErrorAction
-                        } catch {
-                            if ($StopOnReadError -and $_.FullyQualifiedErrorId -like "NoServiceFoundForGivenName*") {
-                                # A removed optional service means this tweak is not applied; it does
-                                # not make the registry and service state for every other tweak unknown.
-                                $values += $False
-                                continue
-                            }
-                            throw
-                        }
+                        $Service = Get-Service -Name $tweak.Name
 
                         if ($Service) {
                             $actualValue = $Service.StartType
@@ -135,8 +116,6 @@ Function Invoke-WinUtilCurrentSystem {
                             if ($expectedValue -ne $actualValue) {
                                 $values += $False
                             }
-                        } elseif ($StopOnReadError) {
-                            $values += $False
                         }
                     }
                 }

@@ -16,17 +16,14 @@ function Initialize-InstallCategoryAppList {
             $Apps
         )
 
-        # Pre-group apps by category before creating WPF controls. Lists, because appending to
-        # an array copies it and there are several hundred apps.
+        # Pre-group apps by category before creating WPF controls.
         $appsByCategory = @{}
-        # Indexed, not dynamic member, lookup: the latter goes through the PSObject adapter and
-        # costs about seventy times as much per app.
         foreach ($appKey in $Apps.Keys) {
-            $category = $Apps[$appKey].Category
+            $category = $Apps.$appKey.Category
             if (-not $appsByCategory.ContainsKey($category)) {
-                $appsByCategory[$category] = [System.Collections.Generic.List[string]]::new()
+                $appsByCategory[$category] = @()
             }
-            $appsByCategory[$category].Add($appKey)
+            $appsByCategory[$category] += $appKey
         }
         $sync.InstallAppRenderQueue = [System.Collections.Queue]::new()
 
@@ -36,6 +33,7 @@ function Initialize-InstallCategoryAppList {
             $categoryContainer.Orientation = "Vertical"
             $categoryContainer.Margin = New-Object Windows.Thickness(0, 0, 0, 0)
             $categoryContainer.HorizontalAlignment = [Windows.HorizontalAlignment]::Stretch
+            $categoryContainer.Tag = $Category
             [System.Windows.Automation.AutomationProperties]::SetName($categoryContainer, $Category)
 
             # Bind Width to the ItemsControl's ActualWidth to force full-row layout in WrapPanel
@@ -48,7 +46,6 @@ function Initialize-InstallCategoryAppList {
             $toggleButton = New-Object Windows.Controls.Label
             $toggleButton.Content = "- $(Convert-WinUtilRussianText $Category)"
             $toggleButton.Tag = "CategoryToggleButton"
-            $toggleButton.Uid = $Category
             $toggleButton.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "HeaderFontSize")
             $toggleButton.SetResourceReference([Windows.Controls.Control]::FontFamilyProperty, "HeaderFontFamily")
             $toggleButton.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, "LabelboxForegroundColor")
@@ -68,7 +65,7 @@ function Initialize-InstallCategoryAppList {
 
                     # An explicit click wins over anything filtering expanded automatically
                     if ($sync.AppCategoryAutoExpanded) {
-                        $sync.AppCategoryAutoExpanded.Remove($categoryToggle.Uid)
+                        $sync.AppCategoryAutoExpanded.Remove([string]$categoryContainer.Tag)
                     }
 
                     # Toggle visibility

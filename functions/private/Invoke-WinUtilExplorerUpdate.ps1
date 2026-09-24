@@ -8,9 +8,7 @@ function Invoke-WinUtilExplorerUpdate {
     )
 
     if ($action -eq "refresh") {
-        # The handle is of no use to the caller, and leaving it in the pipeline puts it into
-        # whatever result the calling workflow returns
-        $null = Invoke-WPFRunspace -ScriptBlock {
+        Invoke-WPFRunspace -ScriptBlock {
             # Define the Win32 type only if it doesn't exist
             if (-not ([System.Management.Automation.PSTypeName]'Win32').Type) {
                 Add-Type -TypeDefinition @"

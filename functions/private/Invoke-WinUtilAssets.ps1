@@ -7,7 +7,7 @@ function Invoke-WinUtilAssets {
 
   if ($render -and $null -ne $sync) {
       if ($null -eq $sync.RenderedAssetCache) {
-          $sync.RenderedAssetCache = [Hashtable]::Synchronized(@{})
+          $sync.RenderedAssetCache = @{}
       }
 
       $cacheKey = "$(([string]$type).ToLowerInvariant())|$Size"
@@ -35,13 +35,6 @@ function Invoke-WinUtilAssets {
 
   switch ($type) {
       'logo' {
-          # The logo geometry reaches roughly 107x110. A 100x100 canvas can crop the
-          # right/bottom edges, so keep the requested Viewbox size but give the vector
-          # its full logical drawing area.
-          $canvas.Width = 125
-          $canvas.Height = 125
-          $scaleFactor = $Size / 125
-          $canvas.LayoutTransform = New-Object Windows.Media.ScaleTransform($scaleFactor, $scaleFactor)
           $LogoPathData1 = @"
 M 18.00,14.00
 C 18.00,14.00 45.00,27.74 45.00,27.74

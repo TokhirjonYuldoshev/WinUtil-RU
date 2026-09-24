@@ -55,9 +55,7 @@ function Remove-WinUtilProvisionedAPPX {
         $failureDetails = ($removalOutput | Out-String).Trim()
         $errorMessage = "AppX provisioned package removal failed: $failureDetails"
         Write-WinUtilLog -Level "ERROR" -Component "AppX" -Message $errorMessage
-        $exception = [System.InvalidOperationException]::new($errorMessage)
-        $exception.Data["WinUtilErrorReported"] = $true
-        throw $exception
+        throw $errorMessage
     }
 
     Write-WinUtilLog -Component "AppX" -Message "AppX provisioned package removal completed."

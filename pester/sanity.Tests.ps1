@@ -132,12 +132,10 @@ Describe "Compiled WinUtil sanity" {
             ('$sync.configs.applications = @' + "'"),
             ('$inputXML = @' + "'"),
             ('$WinUtilAutounattendXml = @' + "'"),
-            "SessionStateVariableEntry",
+            "SessionStateVariableEntry -ArgumentList 'sync'",
             "SessionStateFunctionEntry",
             "[runspacefactory]::CreateRunspacePool",
-            "[runspacefactory]::CreateRunspace(`$Host, (New-WinUtilSessionState))",
-            "function Invoke-WPFRunspace",
-            "function Start-WinUtilJob"
+            "function Invoke-WPFRunspace"
         )
 
         foreach ($snippet in $requiredSnippets) {
@@ -180,7 +178,7 @@ Describe "Compiled WinUtil sanity" {
             ('$sync.configs.applications = @' + "'"),
             ('$inputXML = @' + "'"),
             ('$WinUtilAutounattendXml = @' + "'"),
-            '$uiShell.AddScript({ Start-WinUtilUserInterface })'
+            '$sync.SearchBarClearButton.Add_Click({'
         )
 
         $lastIndex = -1
@@ -197,27 +195,20 @@ Describe "Compiled WinUtil sanity" {
         }
     }
 
-    It "replaces the generated build date placeholder" {
+    It "replaces the build placeholder with the Russian edition version" {
         $content = Get-Content -Path $script:compiledPath -Raw
-        $locale = Get-Content -Path (Join-Path $script:repoRoot "config\localization_ru.json") -Raw -Encoding UTF8 | ConvertFrom-Json
-        $expectedBuildVersion = [string]$locale.Meta.Version
-        $expectedLocalCompile = (-not [string]::Equals($env:GITHUB_ACTIONS, "true", [StringComparison]::OrdinalIgnoreCase)).ToString().ToLowerInvariant()
+        $locale = Get-Content -Path (Join-Path $script:repoRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+        $expectedVersion = [string]$locale.Meta.Version
 
         $content | Should -Not -Match ([regex]::Escape("#{replaceme}"))
-        $content | Should -Not -Match ([regex]::Escape("#{islocalcompile}"))
-        $content | Should -Match ([regex]::Escape('$sync.version = "' + $expectedBuildVersion + '"'))
-        $content | Should -Match ([regex]::Escape('$sync.IsLocalCompile = "' + $expectedLocalCompile + '" -eq "true"'))
+        $content | Should -Match ([regex]::Escape('$sync.version = "' + $expectedVersion + '"'))
     }
 }
 
 Describe "Runspace sanity" {
     BeforeAll {
-        . (Join-Path $script:repoRoot "functions\private\Get-WinUtilRunspacePoolLock.ps1")
-        . (Join-Path $script:repoRoot "functions\private\Register-WinUtilRunspaceCleanup.ps1")
         . (Join-Path $script:repoRoot "functions\public\Invoke-WPFRunspace.ps1")
         . (Join-Path $script:repoRoot "functions\private\Close-WinUtilRunspacePool.ps1")
-        . (Join-Path $script:repoRoot "functions\private\Stop-WinUtilActiveWork.ps1")
-        . (Join-Path $script:repoRoot "functions\private\New-WinUtilSessionState.ps1")
         . (Join-Path $script:repoRoot "functions\private\Initialize-WinUtilRunspacePool.ps1")
     }
 

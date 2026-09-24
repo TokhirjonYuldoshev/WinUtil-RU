@@ -8,9 +8,10 @@ function Get-WinUtilSelectedPackages {
          [string] $Preference
      )
 
-    # A single package has no meaningful percentage to show
     if ($PackageList.count -eq 1) {
-        Step-WinUtilJob -State "Indeterminate"
+        Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "Indeterminate" -value 0.01 -overlay "logo" }
+    } else {
+        Invoke-WPFUIThread -ScriptBlock { Set-WinUtilTaskbaritem -state "Normal" -value 0.01 -overlay "logo" }
     }
 
     $packagesWinget = [System.Collections.ArrayList]::new()

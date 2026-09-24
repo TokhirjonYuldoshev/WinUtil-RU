@@ -6,32 +6,21 @@
     .DESCRIPTION
         Internal control names, configuration keys, category IDs, commands, registry values,
         package identifiers and application names stay unchanged. Only presentation text is
-        translated. The selected language is stored per user and applied at startup.
+        translated. The chosen language is persisted per user and applied at startup.
     #>
 
-    $language = 'ru-RU'
+    $sync.preferences.language = 'ru-RU'
     try {
-        $savedLanguage = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name 'Language' -ErrorAction Stop).Language
+        $savedLanguage = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name Language -ErrorAction Stop).Language
         if ($savedLanguage -in @('ru-RU', 'en-US')) {
-            $language = $savedLanguage
+            $sync.preferences.language = $savedLanguage
         }
     } catch {
-        # Russian is the default for this branch.
+        # Russian is the default; reading a missing preference changes nothing.
     }
-    $sync.preferences.language = $language
-
-    $iconMode = 'Auto'
-    try {
-        $savedIconMode = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name 'AppIconMode' -ErrorAction Stop).AppIconMode
-        if ($savedIconMode -in @('Auto', 'CacheOnly', 'Disabled')) {
-            $iconMode = [string]$savedIconMode
-        }
-    } catch {
-        # Auto is the default icon mode.
-    }
-    $sync.preferences.iconMode = $iconMode
 
     $sync.WinUtilRussianExactTranslations = @{}
+    $sync.WinUtilRussianNormalizedTranslations = @{}
     $sync.WinUtilRussianPhraseTranslations = [ordered]@{}
 
     $russianLocale = $sync.configs.localization_ru
@@ -40,6 +29,8 @@
     } else {
         foreach ($property in @($russianLocale.Exact.PSObject.Properties)) {
             $sync.WinUtilRussianExactTranslations[[string]$property.Name] = [string]$property.Value
+            $normalized = ([string]$property.Name -replace '\s+', ' ').Trim()
+            $sync.WinUtilRussianNormalizedTranslations[$normalized] = [string]$property.Value
         }
 
         foreach ($entry in @($russianLocale.Phrases)) {
@@ -74,6 +65,11 @@
             $prefixLength = $text.Length - $text.TrimStart().Length
             $suffixLength = $text.Length - $text.TrimEnd().Length
             return (' ' * $prefixLength) + $translated + (' ' * $suffixLength)
+        }
+
+        $normalized = ($trimmed -replace '\s+', ' ').Trim()
+        if ($sync.WinUtilRussianNormalizedTranslations.ContainsKey($normalized)) {
+            return $sync.WinUtilRussianNormalizedTranslations[$normalized]
         }
 
         if ($trimmed -match '^Selected Apps:\s*(\d+)$') {
@@ -215,6 +211,42 @@
                         $headerAttribute.Value = $win11StepHeaders[$stepName]
                     }
                 }
+            }
+
+            # The ISO workflow compares these English TextBox values with fixed sentinels.
+            # Show Russian text above the untouched controls only while each sentinel is present.
+            foreach ($placeholder in @(
+                @{ Name = 'WPFWin11ISOPath'; GridPosition = 'Grid.Column="0"'; Margin = '7,0,14,0'; Alignment = 'Center'; Source = 'No ISO selected...' },
+                @{ Name = 'WPFWin11ISOStatusLog'; GridPosition = 'Grid.Row="1"'; Margin = '7,7,18,7'; Alignment = 'Stretch'; Source = 'Ready. Please select a Windows 11 ISO to begin.' }
+            )) {
+                $control = $localizedXaml.SelectSingleNode("//*[@Name='$($placeholder.Name)']")
+                if ($null -eq $control) {
+                    continue
+                }
+
+                $translatedPlaceholder = [System.Security.SecurityElement]::Escape(
+                    (Convert-WinUtilRussianText $placeholder.Source)
+                )
+                $fragment = $localizedXaml.CreateDocumentFragment()
+                $fragment.InnerXml = @"
+<TextBlock xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+           $($placeholder.GridPosition) Margin="$($placeholder.Margin)"
+           VerticalAlignment="$($placeholder.Alignment)" TextWrapping="Wrap"
+           IsHitTestVisible="False" Background="{DynamicResource MainBackgroundColor}"
+           Foreground="{DynamicResource MainForegroundColor}" Text="$translatedPlaceholder">
+  <TextBlock.Style>
+    <Style TargetType="TextBlock">
+      <Setter Property="Visibility" Value="Collapsed"/>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding Text, ElementName=$($placeholder.Name)}" Value="$($placeholder.Source)">
+          <Setter Property="Visibility" Value="Visible"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+  </TextBlock.Style>
+</TextBlock>
+"@
+                $control.ParentNode.AppendChild($fragment) | Out-Null
             }
 
             $script:inputXML = $localizedXaml.OuterXml

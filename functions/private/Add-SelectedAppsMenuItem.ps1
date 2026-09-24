@@ -33,7 +33,7 @@ function Add-SelectedAppsMenuItem {
     $selectedAppRemoveButton.Content = [string]([char]0xE711)
     $selectedAppRemoveButton.HorizontalAlignment = "Center"
     $selectedAppRemoveButton.Tag = $key
-    $selectedAppRemoveButton.ToolTip = Convert-WinUtilRussianText "Remove the App from Selection"
+    $selectedAppRemoveButton.ToolTip = "Remove the App from Selection"
     $selectedAppRemoveButton.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, "MainForegroundColor")
     $selectedAppRemoveButton.SetResourceReference([Windows.Controls.Control]::StyleProperty, "HoverButtonStyle")
 
@@ -41,7 +41,7 @@ function Add-SelectedAppsMenuItem {
     $selectedAppRemoveButton.Add_MouseEnter({ $this.Foreground = "Red" })
     $selectedAppRemoveButton.Add_MouseLeave({ $this.SetResourceReference([Windows.Controls.Control]::ForegroundProperty, "MainForegroundColor") })
     $selectedAppRemoveButton.Add_Click({
-            $sync.($this.Tag).isChecked = $false # On click of the remove button, we only have to uncheck the corresponding checkbox. This will kick off all necessary changes to update the UI
+            $sync.($this.Tag).isChecked = $false # On click of the remove button, we only have to uncheck the corresponding checkbox. This will kick of all necessary changes to update the UI
     })
     [System.Windows.Controls.Grid]::SetColumn($selectedAppRemoveButton, 1)
     $selectedAppGrid.Children.Add($selectedAppRemoveButton)

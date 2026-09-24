@@ -1,0 +1,27 @@
+name: Russian Parity Candidate
+
+on:
+  push:
+    branches: ["russian-parity-26.08.19"]
+
+jobs:
+  compile:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build standalone WinUtil RU
+        shell: pwsh
+        run: |
+          ./Compile.ps1
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'winutil.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count) { $errors | Format-List | Out-String | Write-Error; exit 1 }
+          Move-Item winutil.ps1 winutil-RU.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: winutil-RU-parity-candidate
+          path: |
+            winutil-RU.ps1
+            LICENSE
+          if-no-files-found: error

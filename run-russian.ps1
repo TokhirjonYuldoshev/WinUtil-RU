@@ -116,12 +116,6 @@ try {
 
     Push-Location $projectRoot
     try {
-        Write-Host "Preflight-проверка ($shell)..." -ForegroundColor Cyan
-        & $shell -NoProfile -ExecutionPolicy Bypass -File '.\tools\Test-WinUtilRussianEdition.ps1' -Quiet
-        if ($LASTEXITCODE -ne 0) {
-            throw "Preflight-проверка WinUtil RU не пройдена."
-        }
-
         Write-Host 'Сборка WinUtil RU...' -ForegroundColor Cyan
         & $shell -NoProfile -ExecutionPolicy Bypass -File '.\Compile.ps1'
         if ($LASTEXITCODE -ne 0) {

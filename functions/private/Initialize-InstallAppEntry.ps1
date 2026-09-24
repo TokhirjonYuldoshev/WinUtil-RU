@@ -13,27 +13,42 @@ function Initialize-InstallAppEntry {
             $appKey
         )
 
-        $app = $sync.configs.applicationsHashtable[$appKey]
-        $handlers = Get-WinUtilAppEntryHandlers
+        $app = $sync.configs.applicationsHashtable.$appKey
 
         # Create the outer Border for the application type
         $border = New-Object Windows.Controls.Border
         $border.Style = $sync.Form.Resources.AppEntryBorderStyle
         $border.Tag = $appKey
-
-        $catalogKey = $appKey -replace '^WPFInstall', ''
-        $appDescription = $app.description
+        $border.ToolTip = Get-WinUtilEntryToolTip -Description $app.description -Key $appKey
         if ($sync.preferences.language -eq 'ru-RU' -and $null -ne $sync.configs.applications_ru) {
+            $catalogKey = $appKey -replace '^WPFInstall', ''
             $localizedDescription = $sync.configs.applications_ru.PSObject.Properties[$catalogKey]
-            if ($null -ne $localizedDescription -and -not [string]::IsNullOrWhiteSpace([string]$localizedDescription.Value)) {
-                $appDescription = [string]$localizedDescription.Value
+            if ($null -ne $localizedDescription) {
+                $border.ToolTip = Get-WinUtilEntryToolTip -Description $localizedDescription.Value -Key $appKey
             }
         }
-        $border.ToolTip = Get-WinUtilEntryToolTip -Description $appDescription -Key $appKey
-        $border.Add_MouseLeftButtonUp($handlers.BorderClick)
-        $border.Add_MouseEnter($handlers.MouseEnter)
-        $border.Add_MouseLeave($handlers.MouseLeave)
-        $border.Add_MouseRightButtonUp($handlers.RightClick)
+        $border.Add_MouseLeftButtonUp({
+            # Resolve through $sync because the border's child is a layout Grid for FOSS entries
+            $childCheckbox = $sync.$($this.Tag)
+            $childCheckbox.IsChecked = -not $childCheckbox.IsChecked
+        })
+        $border.Add_MouseEnter({
+            if (($sync.$($this.Tag).IsChecked) -eq $false) {
+                $this.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, "AppInstallHighlightedColor")
+            }
+        })
+        $border.Add_MouseLeave({
+            if (($sync.$($this.Tag).IsChecked) -eq $false) {
+                $this.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, "AppInstallUnselectedColor")
+            }
+        })
+        $border.Add_MouseRightButtonUp({
+            # Store the selected app in a global variable so it can be used in the popup
+            $sync.appPopupSelectedApp = $this.Tag
+            # Set the popup position to the current mouse position
+            $sync.appPopup.PlacementTarget = $this
+            $sync.appPopup.IsOpen = $true
+        })
 
         $checkBox = New-Object Windows.Controls.CheckBox
         # Sanitize the name for WPF
@@ -41,8 +56,18 @@ function Initialize-InstallAppEntry {
         # Store the original appKey in Tag
         $checkBox.Tag = $appKey
         $checkbox.Style = $sync.Form.Resources.AppEntryCheckboxStyle
-        $checkbox.Add_Checked($handlers.Checked)
-        $checkbox.Add_Unchecked($handlers.Unchecked)
+        # The checkbox sits inside the entry layout Grid, so the border is one level further up
+        $checkbox.Add_Checked({
+            Invoke-WPFSelectedCheckboxesUpdate -type "Add" -checkboxName $this.Tag
+            $borderElement = $this.Parent.Parent
+            $borderElement.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, "AppInstallSelectedColor")
+        })
+
+        $checkbox.Add_Unchecked({
+            Invoke-WPFSelectedCheckboxesUpdate -type "Remove" -checkboxName $this.Tag
+            $borderElement = $this.Parent.Parent
+            $borderElement.SetResourceReference([Windows.Controls.Control]::BackgroundProperty, "AppInstallUnselectedColor")
+        })
 
         $contentPanel = New-Object Windows.Controls.StackPanel
         $contentPanel.Orientation = "Horizontal"
@@ -55,37 +80,16 @@ function Initialize-InstallAppEntry {
         $fallback = New-Object Windows.Controls.TextBlock
         $fallback.Text = $app.content.TrimStart(".").Substring(0, 1).ToUpper()
         $fallback.FontWeight = "Bold"; $fallback.HorizontalAlignment = "Center"; $fallback.VerticalAlignment = "Center"
+        if ($app.link) { $fallback.Visibility = "Collapsed" }
         $fallback.SetResourceReference([Windows.Controls.TextBlock]::FontSizeProperty, "AppEntryFontSize")
         $fallback.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, "ToggleButtonOnColor")
         [void]$icon.Children.Add($fallback)
-        $iconMode = if ($sync.preferences.iconMode -in @('Auto', 'CacheOnly', 'Disabled')) {
-            [string]$sync.preferences.iconMode
-        } else {
-            'Auto'
-        }
-
-        if ($app.link -and $iconMode -ne 'Disabled') {
-            $safeIconName = ($catalogKey -replace '[^A-Za-z0-9_.-]', '_') + '.png'
-            $iconCachePath = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\IconCache'
-            $cachedIcon = Join-Path $iconCachePath $safeIconName
-
-            if (Test-Path -LiteralPath $cachedIcon) {
-                try {
-                    $logo = New-Object Windows.Controls.Image
-                    $logo.Stretch = [Windows.Media.Stretch]::Uniform
-                    $logo.Source = [Windows.Media.Imaging.BitmapImage]::new([Uri]::new($cachedIcon))
-                    $fallback.Visibility = "Collapsed"
-                    [void]$icon.Children.Add($logo)
-                } catch {
-                    # Leave the letter fallback visible if a cached icon is invalid.
-                }
-            } elseif ($iconMode -eq 'Auto') {
-                $logo = New-Object Windows.Controls.Image
-                $logo.Stretch = [Windows.Media.Stretch]::Uniform
-                $logo.Add_ImageFailed($handlers.ImageFailed)
-                $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
-                [void]$icon.Children.Add($logo)
-            }
+        if ($app.link) {
+            $logo = New-Object Windows.Controls.Image
+            $logo.Stretch = [Windows.Media.Stretch]::Uniform
+            $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
+            $logo.Add_ImageFailed({ $this.Visibility = "Collapsed"; $this.Parent.Children[0].Visibility = "Visible" })
+            [void]$icon.Children.Add($logo)
         }
         [void]$contentPanel.Children.Add($icon)
 
@@ -93,8 +97,6 @@ function Initialize-InstallAppEntry {
         $appName = New-Object Windows.Controls.TextBlock
         $appName.Style = $sync.Form.Resources.AppEntryNameStyle
         $appName.Text = $app.content
-
-        # Add FOSS label after the name if FOSS
         [void]$contentPanel.Children.Add($appName)
         $checkBox.Content = $contentPanel
 
@@ -115,7 +117,6 @@ function Initialize-InstallAppEntry {
 
             [void]$entryLayout.Children.Add($fossBadge)
         }
-
         $border.Child = $entryLayout
         if ($sync.selectedApps -contains $appKey) {
             $checkBox.IsChecked = $true

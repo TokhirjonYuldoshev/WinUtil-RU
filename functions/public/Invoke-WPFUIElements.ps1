@@ -22,11 +22,7 @@ function Invoke-WPFUIElements {
         [string]$targetGridName,
 
         [Parameter(Mandatory, Position = 2)]
-        [int]$columncount,
-
-        # Let the interface answer between batches of entries. Only for content nobody is
-        # waiting on: a user who just clicked the tab is better served by finishing at once.
-        [switch]$Yield
+        [int]$columncount
     )
 
     $window = $sync.form
@@ -104,7 +100,7 @@ function Invoke-WPFUIElements {
     $panelcount = 0
 
     # Iterate through 'organizedData' by panel, category, and application
-    $yieldClock = [System.Diagnostics.Stopwatch]::StartNew()
+    $count = 0
     foreach ($panelKey in ($organizedData.Keys | Sort-Object)) {
         # Create a Border for each column
         $border = New-Object Windows.Controls.Border
@@ -154,13 +150,14 @@ function Invoke-WPFUIElements {
 
         # Now proceed with adding category labels and entries to $stackPanelContainer
         foreach ($category in ($organizedData[$panelKey].Keys | Sort-Object)) {
+            $count++
 
             $label = New-Object Windows.Controls.Label
             $categoryCleanName = $category -replace ".*__", ""
             $label.Content = Convert-WinUtilRussianText $categoryCleanName
             $label.Focusable = $true
             $label.IsTabStop = $true
-            [System.Windows.Automation.AutomationProperties]::SetName($label, $categoryCleanName)
+            [System.Windows.Automation.AutomationProperties]::SetName($label, $label.Content)
             $label.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "HeaderFontSize")
             $label.SetResourceReference([Windows.Controls.Control]::FontFamilyProperty, "HeaderFontFamily")
             $label.UseLayoutRounding = $true
@@ -177,24 +174,7 @@ function Invoke-WPFUIElements {
                 }
             }}, Content
             foreach ($entryInfo in $entries) {
-
-                # Constructing a panel's worth of controls in one go holds the interface for
-                # hundreds of milliseconds. Draining the queue on a deadline rather than every
-                # nth entry keeps the wait bounded whatever the entries cost to build.
-                if ($Yield -and $yieldClock.ElapsedMilliseconds -ge 25 -and (Test-WinUtilUIAlive)) {
-                    $yieldClock.Restart()
-                    $frame = New-Object Windows.Threading.DispatcherFrame
-                    $null = $sync.Form.Dispatcher.BeginInvoke(
-                        [Windows.Threading.DispatcherPriority]::Background,
-                        [Windows.Threading.DispatcherOperationCallback]{
-                            param($dispatcherFrame)
-                            $dispatcherFrame.Continue = $false
-                            return $null
-                        },
-                        $frame)
-                    [Windows.Threading.Dispatcher]::PushFrame($frame)
-                }
-
+                $count++
                 # Create the UI elements based on the entry type
                 switch ($entryInfo.Type) {
                     "Toggle" {
@@ -244,14 +224,14 @@ function Invoke-WPFUIElements {
                         $toggleButton = New-Object Windows.Controls.Primitives.ToggleButton
                         $toggleButton.Name = $entryInfo.Name
                         $toggleButton.Content = Convert-WinUtilRussianText $entryInfo.Content[1]
-                        $toggleButton.ToolTip = Get-WinUtilEntryToolTip -Description (Convert-WinUtilRussianText $entryInfo.Description) -Key $entryInfo.Name
+                        $toggleButton.ToolTip = Get-WinUtilEntryToolTip -Description $entryInfo.Description -Key $entryInfo.Name
                         $toggleButton.HorizontalAlignment = "Left"
                         $toggleButton.Style = $ToggleButtonStyle
                         [System.Windows.Automation.AutomationProperties]::SetName($toggleButton, $entryInfo.Content[0])
 
                         $toggleButton.Tag = @{
-                            contentOn = if ($entryInfo.Content.Count -ge 1) { $entryInfo.Content[0] } else { "" }
-                            contentOff = if ($entryInfo.Content.Count -ge 2) { $entryInfo.Content[1] } else { $contentOn }
+                            contentOn = if ($entryInfo.Content.Count -ge 1) { Convert-WinUtilRussianText $entryInfo.Content[0] } else { "" }
+                            contentOff = if ($entryInfo.Content.Count -ge 2) { Convert-WinUtilRussianText $entryInfo.Content[1] } else { $contentOn }
                         }
 
                         $stackPanelContainer.Children.Add($toggleButton) | Out-Null
@@ -259,11 +239,11 @@ function Invoke-WPFUIElements {
                         $sync[$entryInfo.Name] = $toggleButton
 
                         $sync[$entryInfo.Name].Add_Checked({
-                            $this.Content = Convert-WinUtilRussianText $this.Tag.contentOn
+                            $this.Content = $this.Tag.contentOn
                         })
 
                         $sync[$entryInfo.Name].Add_Unchecked({
-                            $this.Content = Convert-WinUtilRussianText $this.Tag.contentOff
+                            $this.Content = $this.Tag.contentOff
                         })
 
                         if ($null -eq $sync.Buttons) {
@@ -321,8 +301,16 @@ function Invoke-WPFUIElements {
 
                         foreach ($comboitem in $comboItems) {
                             $comboBoxItem = New-Object Windows.Controls.ComboBoxItem
-                            $comboBoxItem.Tag = [string]$comboitem
-                            $comboBoxItem.Content = Convert-WinUtilRussianText ([string]$comboitem)
+                            $comboBoxItem.Content = $comboitem
+                            $displayText = Convert-WinUtilRussianText $comboitem
+                            if ($displayText -ne $comboitem) {
+                                # Keep Content and ComboBox.Text as the original state/provider IDs.
+                                $displayTemplate = [Windows.DataTemplate]::new()
+                                $textFactory = [Windows.FrameworkElementFactory]::new([Windows.Controls.TextBlock])
+                                $textFactory.SetValue([Windows.Controls.TextBlock]::TextProperty, [string]$displayText)
+                                $displayTemplate.VisualTree = $textFactory
+                                $comboBoxItem.ContentTemplate = $displayTemplate
+                            }
                             if ($entryInfo.ComboDescriptions) {
                                 $comboDescription = $entryInfo.ComboDescriptions.PSObject.Properties[$comboitem].Value
                                 if ($comboDescription) {
@@ -340,14 +328,12 @@ function Invoke-WPFUIElements {
                         if ($entryInfo.Registry -and @($entryInfo.Registry)[0].Values) {
                             try {
                                 $comboBox.Tag.State = Get-WinUtilRegistryComboState -Registry $entryInfo.Registry
-                                $stateItem = @($comboBox.Items) | Where-Object { $_.Tag -eq [string]$comboBox.Tag.State } | Select-Object -First 1
-                                $comboBox.SelectedItem = $stateItem
+                                $comboBox.SelectedIndex = @($comboBox.Items.Content).IndexOf([string]$comboBox.Tag.State)
                             } catch {
                                 $unknownStateItem = New-Object Windows.Controls.ComboBoxItem
-                                $unknownStateItem.Tag = '__WinUtilUnknownState__'
-                                $unknownStateItem.Content = Convert-WinUtilRussianText "Custom / Unknown - select a state"
+                                $unknownStateItem.Content = "Custom / Unknown - select a state"
                                 $unknownStateItem.IsEnabled = $false
-                                $unknownStateItem.ToolTip = "$($_.Exception.Message) $(Convert-WinUtilRussianText 'Select one of the supported states to replace these values.')"
+                                $unknownStateItem.ToolTip = "$($_.Exception.Message) Select one of the supported states to replace these values."
                                 $comboBox.Items.Add($unknownStateItem) | Out-Null
                                 $comboBox.SelectedItem = $unknownStateItem
                                 $comboBox.ToolTip = $unknownStateItem.ToolTip
@@ -369,24 +355,28 @@ function Invoke-WPFUIElements {
                             if ($selectedItem) {
                                 $this.Text = $selectedItem.Content
                                 $registry = $this.Tag.Registry
-                                $selectedValue = if ($selectedItem.Tag -and $selectedItem.Tag -ne '__WinUtilUnknownState__') { [string]$selectedItem.Tag } else { [string]$selectedItem.Content }
-                                if ($registry -and $selectedItem.IsEnabled -and $selectedValue -ne $this.Tag.State -and $selectedItem.Tag -ne '__WinUtilUnknownState__') {
+                                if ($registry -and $selectedItem.IsEnabled -and $selectedItem.Content -ne $this.Tag.State) {
                                     try {
-                                        Set-WinUtilRegistryComboState -Registry $registry -State $selectedValue
-                                        $this.Tag.State = $selectedValue
+                                        Set-WinUtilRegistryComboState -Registry $registry -State $selectedItem.Content
+                                        $this.Tag.State = $selectedItem.Content
                                         $this.ToolTip = $null
-                                        $unknownStateItem = @($this.Items) | Where-Object Tag -EQ '__WinUtilUnknownState__' | Select-Object -First 1
+                                        $unknownStateItem = @($this.Items) | Where-Object Content -EQ "Custom / Unknown - select a state" | Select-Object -First 1
                                         if ($unknownStateItem) {
                                             $this.Items.Remove($unknownStateItem)
                                         }
                                     } catch {
                                         $applyError = $_.Exception.Message
                                         if ([string]::IsNullOrWhiteSpace($applyError)) {
-                                            $applyError = "Unable to apply registry state '$selectedValue'."
+                                            $applyError = "Unable to apply registry state '$($selectedItem.Content)'."
                                         }
-                                        $previousState = if ($this.Tag.State) { $this.Tag.State } else { '__WinUtilUnknownState__' }
-                                        $this.SelectedItem = @($this.Items) | Where-Object Tag -EQ $previousState | Select-Object -First 1
-                                        Show-WinUtilMessage -Message $applyError -Title "WinUtil" -Button "OK" -Icon "Warning" | Out-Null
+                                        $previousState = if ($this.Tag.State) { $this.Tag.State } else { "Custom / Unknown - select a state" }
+                                        $this.SelectedItem = @($this.Items) | Where-Object Content -EQ $previousState | Select-Object -First 1
+                                        [System.Windows.MessageBox]::Show(
+                                            $applyError,
+                                            "WinUtil",
+                                            [System.Windows.MessageBoxButton]::OK,
+                                            [System.Windows.MessageBoxImage]::Warning
+                                        ) | Out-Null
                                     }
                                 }
                             }
@@ -509,7 +499,7 @@ function Invoke-WPFUIElements {
                         $checkBox.Name = $entryInfo.Name
                         $checkBox.Content = Convert-WinUtilRussianText $entryInfo.Content
                         $checkBox.SetResourceReference([Windows.Controls.Control]::FontSizeProperty, "FontSize")
-                        $checkBox.ToolTip = Get-WinUtilEntryToolTip -Description (Convert-WinUtilRussianText $entryInfo.Description) -Key $entryInfo.Name
+                        $checkBox.ToolTip = Get-WinUtilEntryToolTip -Description $entryInfo.Description -Key $entryInfo.Name
                         $checkBox.SetResourceReference([Windows.Controls.Control]::MarginProperty, "CheckBoxMargin")
                         $checkBox.UseLayoutRounding = $true
                         [System.Windows.Automation.AutomationProperties]::SetName($checkBox, $entryInfo.Content)
@@ -573,15 +563,5 @@ function Invoke-WPFUIElements {
                 }
             }
         }
-    }
-
-    # A search event can run inside one of the yielded dispatcher frames above. Controls added
-    # after that event start visible, so reapply the live filter once this tab is complete.
-    $filterPanel = switch ($sync.currentTab) {
-        "Tweaks" { "tweakspanel" }
-        "AppX" { "appxpanel" }
-    }
-    if ($filterPanel -eq $targetGridName -and $null -ne $sync.SearchBar) {
-        Find-TweaksByNameOrDescription -SearchString $sync.SearchBar.Text
     }
 }

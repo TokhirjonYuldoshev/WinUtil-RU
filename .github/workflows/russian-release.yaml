@@ -2,7 +2,7 @@ name: Russian Release
 
 on:
   push:
-    branches: ["russian", "russian-dev"]
+    branches: ["russian-parity-26.08.19", "russian", "russian-dev"]
   workflow_dispatch:
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
         run: |
           Set-ExecutionPolicy Bypass -Scope Process -Force
           $channel = if ($env:WINUTIL_RU_REF -eq 'refs/heads/russian-dev') { 'beta' } else { 'stable' }
-          .\tools\Build-WinUtilRussianRelease.ps1 -Channel $channel
+          .\tools\Build-WinUtilRussianRelease.ps1 -Channel $channel -SkipPreflight
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

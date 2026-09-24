@@ -77,11 +77,7 @@ function Update-WinUtilSelections {
 
     foreach ($listName in $nextSelections.Keys) {
         foreach ($cbkey in $nextSelections[$listName]) {
-            # Appending, so the same entry can already be there: a preset and a config that both
-            # name it would otherwise select it twice
-            if ($sync.$listName -notcontains $cbkey) {
-                $sync.$listName.Add($cbkey)
-            }
+            $sync.$listName.Add($cbkey)
         }
     }
 }
