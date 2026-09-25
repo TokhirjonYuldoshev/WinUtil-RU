@@ -3,7 +3,7 @@
 **Дата проверки:** 25 сентября 2026 года.  
 **Репозиторий:** `TokhirjonYuldoshev/WinUtil-RU`.
 
-Этот документ фиксирует состояние после внедрения strict exact-tag/backend parity gate. Контрольный успешный запуск gate выполнен на commit `3e408b374aad43cab359afb8ad485bbdfba7d2f3`; последующий docs-only commit не меняет protected runtime/backend.
+Этот документ фиксирует состояние после внедрения strict exact-tag/backend parity gate и серверной защиты ветки `russian`. Контрольный успешный запуск gate выполнен на commit `3720946390d1999ebb8d9ace70710a9d1dd29214`; последующий docs-only PR не меняет protected runtime/backend.
 
 ## Итог
 
@@ -13,7 +13,8 @@
 - постоянные ветки: только `main` и `russian`;
 - fork `main` и upstream `main` на момент аудита совпадали: `8e3998d9fd46e9a9996bba077baefb01425b7aeb`;
 - stable release не перепубликовывался при docs/CI изменениях;
-- strict parity gate успешно проверен на Windows PowerShell.
+- strict parity gate успешно проверен на Windows PowerShell;
+- ветка `russian` защищена активным repository ruleset `Protect russian stable`.
 
 ## Что защищает strict parity
 
@@ -32,7 +33,7 @@
 
 ## Контрольный результат gate
 
-Успешный workflow `Russian Backend Parity` на commit `3e408b374aad43cab359afb8ad485bbdfba7d2f3` подтвердил:
+Успешный workflow `Russian Backend Parity` на commit `3720946390d1999ebb8d9ace70710a9d1dd29214` подтвердил:
 
 | Проверка | Результат |
 | --- | ---: |
@@ -91,7 +92,7 @@
 
 ## CI
 
-Для strict-gate code state `3e408b374aad43cab359afb8ad485bbdfba7d2f3` подтверждены:
+Для code state `3720946390d1999ebb8d9ace70710a9d1dd29214` подтверждены:
 
 - Russian Backend Parity — **success**;
 - Compile & Check — **success**;
@@ -107,12 +108,25 @@
 
 Параметр `-SkipPreflight` из release builder удалён. Если stable release с тем же tag уже существует на другом SHA, workflow отказывается автоматически удалять или заменять его.
 
-## Ветки
+## Ветки и защита `russian`
 
 Постоянные ветки:
 
 - `main` — оригинальная upstream-линия;
 - `russian` — русская редакция.
+
+Для `russian` включён активный repository ruleset **`Protect russian stable`**. Он применяется только к `refs/heads/russian` и содержит:
+
+- запрет удаления ветки;
+- запрет force-push / non-fast-forward updates;
+- обязательный pull request перед merge;
+- `Required approvals = 0`;
+- разрешённый merge method — только `squash`;
+- обязательные checks: `strict-parity`, `Compile-and-Check`, `test`, `PS Script Analyzer`;
+- `Require branches to be up to date before merging` выключен;
+- bypass list пустой; текущий пользователь не может обходить ruleset.
+
+GitHub API после создания ruleset показывает `russian` как `protected: true`. Ветка `main` этим ruleset не затрагивается.
 
 Временная candidate-ветка разрешена только на время порта нового official release и должна начинаться от exact official tag commit. После завершения её можно удалить. Старые dev-ветки целиком не сливаются.
 
@@ -122,11 +136,11 @@ Allowlist ограничивает **где** могут находиться о
 
 Кроме того, автоматические проверки не заменяют ручной Windows QA: RU→EN→RU, About/YTY, вкладки, безопасная установка, согласованный tweak, AppX, Windows 11/ISO и повторный запуск/кэш.
 
-## Оставшиеся организационные риски
+## Оставшиеся ограничения
 
-1. На момент последней проверки обе ветки GitHub показывались как `protected=false`, repository rulesets были пусты. Strict gate существует в Actions, но серверная branch protection остаётся отдельной настройкой.
-2. Автоматического механизма, который сам переносит перевод на новый official tag, нет. Это намеренно: candidate подготавливается отдельно, а gate проверяет уже подготовленный результат.
-3. `russian` может содержать docs/CI commits новее опубликованного release. Источник published stable определяется release target SHA, а не HEAD ветки.
+1. Автоматического механизма, который сам переносит перевод на новый official tag, нет. Это намеренно: candidate подготавливается отдельно, а gate проверяет уже подготовленный результат.
+2. `russian` может содержать docs/CI commits новее опубликованного release. Источник published stable определяется release target SHA, а не HEAD ветки.
+3. Branch ruleset защищает merge-путь, но не заменяет ручной review allowlisted UI/helper diff и Windows QA перед новым stable.
 
 ## Правило следующего official release
 
