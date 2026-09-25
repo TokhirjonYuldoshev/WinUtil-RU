@@ -4,7 +4,13 @@
 
 Documentation site for [WinUtil](https://github.com/ChrisTitusTech/winutil), built with [Astro](https://astro.build) and [Starlight](https://starlight.astro.build). Served at [winutil.christitus.com](https://winutil.christitus.com/).
 
-The site content describes the **original** WinUtil; its launch commands run the original project. For the independent Russian fork, use [WinUtil RU documentation](README-RU.md) and the launch command in the [fork README](../README.md). This fork does not publish the original site's contents as a translated RU site.
+The site content in `docs/src/content/docs/` describes the **original WinUtil** and its launch commands run the original project. The independent Russian fork does not present this inherited site as translated WinUtil RU documentation.
+
+For WinUtil RU use:
+
+- [Russian edition guide](README-RU.md)
+- [Technical audit](AUDIT-RU.md)
+- [Fork README](../README.md)
 
 ## 🚀 Project Structure
 
@@ -39,16 +45,16 @@ All commands run in a Docker container — there's no need to install Node or np
 
 All commands are run from the `docs/` directory, from a terminal:
 
-| Command                                          | Action                                           |
-| :------------------------------------------------ | :----------------------------------------------- |
-| `docker compose build`                             | Builds the dev image (needed after Dockerfile or dependency changes) |
-| `docker compose up winutil-astro`                                | Starts local dev server at `localhost:4321`      |
-| `docker compose run --rm winutil-astro npm run build`   | Build the production site to `./dist/`           |
-| `docker compose run --rm --service-ports winutil-astro npm run preview -- --host 0.0.0.0` | Preview the build locally, before deploying      |
+| Command | Action |
+| :--- | :--- |
+| `docker compose build` | Builds the dev image (needed after Dockerfile or dependency changes) |
+| `docker compose up winutil-astro` | Starts local dev server at `localhost:4321` |
+| `docker compose run --rm winutil-astro npm run build` | Build the production site to `./dist/` |
+| `docker compose run --rm --service-ports winutil-astro npm run preview -- --host 0.0.0.0` | Preview the build locally, before deploying |
 | `docker compose run --rm winutil-astro npm run astro ...` | Run CLI commands like `astro add`, `astro check` |
-| `docker compose down`                              | Stop and remove the dev container                |
+| `docker compose down` | Stop and remove the dev container |
 
-Source files are bind-mounted into the container, so edits on the host are picked up immediately by the dev server — no rebuild needed for normal content or code changes. After changing `package.json`, `package-lock.json`, or the `Dockerfile`, rebuild the image *and* drop the `node_modules` volume, since Docker only seeds a named volume from the image the first time it's created — a plain rebuild leaves the old `node_modules` in place:
+Source files are bind-mounted into the container, so edits on the host are picked up immediately — no rebuild is needed for normal content or code changes. After changing `package.json`, `package-lock.json`, or `Dockerfile`, rebuild the image and drop the `node_modules` volume:
 
 ```sh
 docker compose build
@@ -56,8 +62,6 @@ docker compose down -v
 docker compose up winutil-astro
 ```
 
-The first `docker compose up` (or any command before an image exists) builds the image and runs `npm install` from scratch, which can take a few minutes. Subsequent runs reuse the cached image and start almost immediately.
-
 ## 👀 Want to learn more?
 
-Check out [Starlight's docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+Check out [Starlight's docs](https://starlight.astro.build), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
