@@ -17,8 +17,19 @@ function Invoke-WinUtilGit {
         [string[]]$Arguments
     )
 
-    $output = @(& git @Arguments 2>&1)
-    $exitCode = $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        # Windows PowerShell 5.1 surfaces native stderr (for example git fetch
+        # progress) as ErrorRecord objects. Keep those capturable without turning
+        # successful native commands into terminating PowerShell errors.
+        $ErrorActionPreference = 'Continue'
+        $output = @(& git @Arguments 2>&1)
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
     if ($exitCode -ne 0) {
         $rendered = ($output | ForEach-Object { [string]$_ }) -join [Environment]::NewLine
         throw "git $($Arguments -join ' ') failed with exit code $exitCode.`n$rendered"
