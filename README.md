@@ -1,27 +1,19 @@
 # WinUtil RU
 
-Русская локализация [WinUtil от Chris Titus Tech](https://github.com/ChrisTitusTech/winutil). Основа этой версии — исходный выпуск **26.08.19**. Установка программ, твики, AppX и работа с ISO используют исходный код WinUtil; дополнены отображение на русском и английском языках, выбор языка, заставка YTY и сведения «О программе».
+Русская редакция [WinUtil от Chris Titus Tech](https://github.com/ChrisTitusTech/winutil), основанная на выпуске **26.08.19**. Это независимый форк: интерфейс переведён на русский с возможностью переключиться на английский; добавлены заставка YTY и сведения о переводе в окне «О программе». Основные действия WinUtil — установка программ, твики, AppX и работа с ISO — сохранены на основе оригинала.
 
-Проект является независимым форком, а не официальным выпуском Chris Titus Tech. Автор оригинального WinUtil и его участники указаны в окне «О программе» и в файле [LICENSE](LICENSE).
+## Запуск в Windows
 
-## Запуск
-
-Откройте PowerShell или Windows Terminal **от имени администратора** и выполните:
+Откройте PowerShell **от имени администратора** и выполните:
 
 ```powershell
 irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1 | iex
 ```
 
-Также можно скачать [последний стабильный выпуск](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest), извлечь `winutil-RU.ps1` и запустить его в PowerShell с правами администратора:
+Перед запуском удалённого скрипта проверьте адрес и его содержимое. Альтернатива: скачайте `winutil-RU.ps1` из [последнего стабильного выпуска](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest) и запустите файл с правами администратора.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
-```
+Инструкция по запуску, обновлениям, отличиям от оригинала и проверке будущих выпусков: **[документация WinUtil RU](docs/README-RU.md)**. Исходники проекта: [`russian`](https://github.com/TokhirjonYuldoshev/WinUtil-RU/tree/russian); оригинал: [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil).
 
-Выбор языка находится в меню настроек. После изменения языка перезапустите программу. Русский выбран по умолчанию; английский можно вернуть в том же меню.
+## Авторство и лицензия
 
-## Исходники и сборка
-
-Рабочие исходники находятся в `functions/`, `config/`, `scripts/` и `xaml/`. Скрипт `winutil.ps1` создаёт `Compile.ps1`; вручную менять сгенерированный скрипт не нужно. Кандидат на выпуск проходит компиляцию, Pester и PSScriptAnalyzer в GitHub Actions. Ветка `main` хранит исходное состояние оригинального проекта, `russian` — стабильную русскую редакцию, а `russian-parity-26.08.19` — проверяемый исходный кандидат.
-
-Оригинал: [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil). Русская редакция: [TokhirjonYuldoshev/WinUtil-RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU).
+Оригинальный WinUtil создан Chris Titus Tech и участниками проекта; авторское уведомление оригинала — **Copyright (c) 2022 CT Tech Group LLC**. Русская локализация и оформление YTY подготовлены [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev/WinUtil-RU). Форк распространяется на условиях [лицензии MIT оригинального проекта](LICENSE); уведомление об авторских правах и текст лицензии сохраняются при распространении копий или существенных частей программы.

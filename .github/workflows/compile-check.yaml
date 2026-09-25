@@ -4,9 +4,9 @@ on:
   push:
     branches: ["main", "russian"]
   pull_request:
-    branches: ["main"]
-  workflow_dispatch: # Manual trigger added
-  workflow_call: # Allow other Actions to call this workflow
+    branches: ["main", "russian"]
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
   Compile-and-Check:
@@ -19,4 +19,4 @@ jobs:
       shell: pwsh
       run: |
         Set-ExecutionPolicy Bypass -Scope Process -Force; ./Compile.ps1
-      continue-on-error: false # Directly fail the job on error, removing the need for a separate check
+      continue-on-error: false

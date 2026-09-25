@@ -4,6 +4,8 @@
 
 Documentation site for [WinUtil](https://github.com/ChrisTitusTech/winutil), built with [Astro](https://astro.build) and [Starlight](https://starlight.astro.build). Served at [winutil.christitus.com](https://winutil.christitus.com/).
 
+The site content describes the **original** WinUtil; its launch commands run the original project. For the independent Russian fork, use [WinUtil RU documentation](README-RU.md) and the launch command in the [fork README](../README.md). This fork does not publish the original site's contents as a translated RU site.
+
 ## 🚀 Project Structure
 
 ```
