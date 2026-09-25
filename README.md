@@ -25,11 +25,12 @@ WinUtil RU **не является официальной русской ред�
 
 - stable построен от exact official tag `26.08.19`, а не от более нового `main`;
 - операционные конфиги установки, tweaks, AppX и DNS побайтово совпадают с официальным tag;
-- в контрольном наборе из 97 upstream-файлов `functions/`, `scripts/` и основных конфигураций отсутствующих файлов нет: 86 совпадают по Git blob SHA, 11 отличаются только разрешённой UI/launcher-обвязкой;
+- strict parity-gate проверяет весь upstream `functions/`, `scripts/`, `config/`, `xaml/`, `tools/autounattend.xml` и `LICENSE`: на контрольном запуске 104 protected paths, 92 exact blob match, 12 заранее просмотренных UI/launcher отличий и 4 разрешённых RU-only additions;
 - старые backend-доработки не переносятся в stable;
 - постоянные ветки сокращены до двух: **`main` = оригинал**, **`russian` = русская редакция**;
 - stable release больше не публикуется от обычного push: публикация запускается вручную после Windows QA и явного решения владельца;
 - существующий stable release не удаляется и не заменяется автоматически;
+- release builder теперь всегда запускает strict exact-tag/backend preflight; обход `-SkipPreflight` удалён;
 - сохранён исходный MIT `LICENSE` и авторство CT Tech Group LLC.
 
 Подробный технический отчёт: **[аудит WinUtil RU](docs/AUDIT-RU.md)**.
@@ -55,7 +56,7 @@ irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/boot
 
 Когда выходит новый официальный release, новая кандидатура должна создаваться **от exact official release tag commit**. Временную candidate-ветку после завершения работы можно удалить. Старые dev-ветки целиком в новую версию не вливаются.
 
-Перед новым stable обязательны: сравнение backend с exact tag, CI, ручной Windows QA и отдельное разрешение владельца на публикацию.
+Перед новым stable обязательны: успешный `tools/Test-WinUtilRussianEdition.ps1`, CI, ручной Windows QA и отдельное разрешение владельца на публикацию.
 
 ## Авторство и лицензия
 

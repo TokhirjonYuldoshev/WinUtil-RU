@@ -3,89 +3,50 @@
 **Дата проверки:** 25 сентября 2026 года.  
 **Репозиторий:** `TokhirjonYuldoshev/WinUtil-RU`.
 
-Этот файл фиксирует проверенное состояние проекта. Контрольная точка кода до данного docs-only обновления документации: `russian` → `d64ad95c370c412b36d1873bb3eb56dcee7f8476`. Само обновление документации не меняет runtime/backend.
+Этот документ фиксирует состояние после внедрения strict exact-tag/backend parity gate. Контрольный успешный запуск gate выполнен на commit `3e408b374aad43cab359afb8ad485bbdfba7d2f3`; последующий docs-only commit не меняет protected runtime/backend.
 
 ## Итог
 
-Текущий проект соответствует принятой архитектуре **«точный официальный release + русская UI-локализация»** в проверенном объёме:
-
 - последний официальный non-draft/non-prerelease release upstream: **26.08.19**;
-- exact tag commit: `086aecf4b7d165f9fd1822049435c418a48e7cba`;
+- exact official tag commit: `086aecf4b7d165f9fd1822049435c418a48e7cba`;
 - опубликованный RU stable: **26.08.19-RU** → `f23c8b896885ba2fc46f05a64151a6a89d9aa024`;
 - постоянные ветки: только `main` и `russian`;
-- fork `main` и upstream `main` на момент аудита совпадают: `8e3998d9fd46e9a9996bba077baefb01425b7aeb`;
-- stable release после docs/CI merge не перепубликовывался;
-- исходный `LICENSE` совпадает с official tag по Git blob SHA.
+- fork `main` и upstream `main` на момент аудита совпадали: `8e3998d9fd46e9a9996bba077baefb01425b7aeb`;
+- stable release не перепубликовывался при docs/CI изменениях;
+- strict parity gate успешно проверен на Windows PowerShell.
 
-## Ветки
+## Что защищает strict parity
 
-На момент аудита GitHub API возвращает ровно две ветки:
+`tools/Test-WinUtilRussianEdition.ps1` не сравнивает кандидата с движущимся `main`. Он берёт базовую версию из `config/localization_ru.json`, проверяет официальный GitHub release по tag, требует `draft=false` и `prerelease=false`, затем через Git разыменовывает exact tag до commit. Annotated tags поддерживаются через peeled ref.
 
-| Ветка | SHA | Назначение |
-| --- | --- | --- |
-| `main` | `8e3998d9fd46e9a9996bba077baefb01425b7aeb` | Оригинальная линия upstream. |
-| `russian` | `d64ad95c370c412b36d1873bb3eb56dcee7f8476` до этого docs-only commit | Русская локализация и безопасная release-инфраструктура. |
+После этого gate требует, чтобы candidate был потомком exact official commit, и сравнивает Git blob SHA по protected tree:
 
-Удалённые исторические `russian-dev` и docs-candidate ветки не используются.
+- весь upstream `functions/`;
+- весь upstream `scripts/`;
+- весь upstream `config/`;
+- весь upstream `xaml/`;
+- `tools/autounattend.xml`;
+- `LICENSE`.
 
-## Official release и published RU stable
+Новые upstream-файлы внутри этих зон автоматически попадают в следующий parity check. Поэтому новый backend нельзя скрыть добавлением нового файла вместо изменения существующего.
 
-Upstream release:
+## Контрольный результат gate
 
-- tag: `26.08.19`;
-- published: 19.08.2026 22:25 UTC;
-- tag ref указывает непосредственно на commit `086aecf4b7d165f9fd1822049435c418a48e7cba`;
-- поле release `target_commitish=main` не используется как база сравнения.
+Успешный workflow `Russian Backend Parity` на commit `3e408b374aad43cab359afb8ad485bbdfba7d2f3` подтвердил:
 
-RU release:
+| Проверка | Результат |
+| --- | ---: |
+| Official release | `26.08.19` |
+| Official commit | `086aecf4b7d165f9fd1822049435c418a48e7cba` |
+| Protected upstream paths | **104** |
+| Exact Git blob match | **92** |
+| Allowed modified upstream paths | **12** |
+| Allowed RU-only additions | **4** |
+| Missing protected paths | **0** |
+| Forbidden modified paths | **0** |
+| Forbidden additions | **0** |
 
-- tag: `26.08.19-RU`;
-- target commit: `f23c8b896885ba2fc46f05a64151a6a89d9aa024`;
-- `draft=false`, `prerelease=false`;
-- assets: `winutil-RU.ps1`, `release.json`, `LICENSE`.
-
-Проверенные SHA-256 опубликованных assets:
-
-| Asset | SHA-256 |
-| --- | --- |
-| `winutil-RU.ps1` | `5f3ff05dbaa800dcfab72b69169b21e55559ae4cce108c70f898022d89c41ab3` |
-| `release.json` | `a02b760b9c322eac9ab2c3455f32d4ee76f163a9208a207eba8587c7f813d705` |
-| `LICENSE` | `61512a5ea110165ce800d00d2d85bbf1af0dc3ccc5d453ae8b5fe9ae20e6c5b5` |
-
-## Побайтовая проверка upstream operational scope
-
-Сравнение выполнено по Git blob SHA между exact official tag commit `086aecf...` и `russian` code state `d64ad95...`.
-
-Контрольный scope:
-
-- все существовавшие в official tag файлы `functions/`;
-- все существовавшие в official tag файлы `scripts/`;
-- `config/applications.json`;
-- `config/tweaks.json`;
-- `config/appx.json`;
-- `config/dns.json`.
-
-Результат:
-
-- проверено: **97** upstream-путей;
-- отсутствует в RU: **0**;
-- полностью совпадает по blob SHA: **86**;
-- отличается: **11**.
-
-Четыре основные операционные конфигурации совпадают полностью:
-
-| Файл | Blob SHA official = RU |
-| --- | --- |
-| `config/applications.json` | `05a4b325232d7baffd1a9148f890011c2660e8e5` |
-| `config/tweaks.json` | `a67e19b9b678c6f5c14e66c34b930a7bc99e8dfb` |
-| `config/appx.json` | `7a3550e947fb7c6ed39112cf1c2ada12b045e619` |
-| `config/dns.json` | `5c36a5f6edd382c4a7006d43efc1278a2ad7e081` |
-
-`LICENSE` также совпадает с official tag: blob `be8a1a82bcf58357213f359d91e363ed8de33c11`.
-
-## 11 отличающихся upstream-файлов
-
-Все 11 patch были просмотрены отдельно:
+### 12 reviewed modified upstream paths
 
 1. `functions/private/Find-AppsByNameOrDescription.ps1`
 2. `functions/private/Get-WinUtilEntryToolTip.ps1`
@@ -98,70 +59,87 @@ RU release:
 9. `functions/public/Invoke-WPFUIElements.ps1`
 10. `scripts/main.ps1`
 11. `scripts/start.ps1`
+12. `xaml/inputXML.xaml`
 
-Проверенные отличия относятся к:
+Они относятся к видимой локализации, поиску по русским описаниям, сохранению исходных внутренних значений при локализованном отображении, YTY/About, language switch и fork launcher/UI. Любой новый modified upstream path будет blocker, пока его отдельно не просмотрят и явно не добавят в allowlist.
 
-- переводу видимого текста;
-- поиску по русским описаниям;
-- сохранению исходной category identity при переведённой подписи;
-- отображению локализованных ComboBox значений при сохранении исходного `Content`/ID;
-- YTY-заставке;
-- RU/EN language switch;
-- About/атрибуции;
-- self-elevation URL русского standalone release.
+### 4 разрешённых RU-only additions внутри protected roots
 
-Во время этого аудита в этих patch не обнаружено добавления новой операции установки, tweak, DNS, AppX, Windows Update или ISO. Это не отменяет обязательный повторный review на каждом новом official tag.
+- `config/applications_ru.json`
+- `config/localization_ru.json`
+- `functions/private/Initialize-WinUtilRussianLocalization.ps1`
+- `functions/private/Set-WinUtilLanguagePreference.ps1`
 
-## Полный diff относительно official tag
+Любой другой новый файл внутри protected roots блокируется.
 
-В `russian` ожидаемо присутствуют дополнительные localization/build/test/docs файлы и UI-правки. Это означает, что **всё дерево форка не обязано быть побайтово равно upstream**. Побайтовая гарантия относится к операционному backend и явно проверяемым upstream-путям; разрешённые UI/launcher/build отличия должны быть перечислены и просмотрены.
+## Конфиги и LICENSE
+
+На текущей базе exact official tag совпадают по blob SHA в том числе:
+
+| Файл | Git blob SHA |
+| --- | --- |
+| `config/applications.json` | `05a4b325232d7baffd1a9148f890011c2660e8e5` |
+| `config/tweaks.json` | `a67e19b9b678c6f5c14e66c34b930a7bc99e8dfb` |
+| `config/appx.json` | `7a3550e947fb7c6ed39112cf1c2ada12b045e619` |
+| `config/dns.json` | `5c36a5f6edd382c4a7006d43efc1278a2ad7e081` |
+| `config/appnavigation.json` | `5ccf396b0535f8c5f0940d557887bae5643a1a98` |
+| `config/feature.json` | `2c32d2992bd27015a5259340accad5d8e7471306` |
+| `config/preset.json` | `852f0c7dfdfc5caf715b213926edd495be7a5988` |
+| `config/themes.json` | `3d0cd9cf12073ff9249ef8062ebfaca8d7e10775` |
+| `tools/autounattend.xml` | `d237be10991dedec9d1c7a42bb3cacde34efec8a` |
+| `LICENSE` | `be8a1a82bcf58357213f359d91e363ed8de33c11` |
 
 ## CI
 
-Для merge commit `d64ad95c370c412b36d1873bb3eb56dcee7f8476` GitHub Actions завершились успешно:
+Для strict-gate code state `3e408b374aad43cab359afb8ad485bbdfba7d2f3` подтверждены:
 
-- Compile & Check — success;
-- Unit Tests / Pester — success;
-- PS Script Analyzer — success;
-- generated `winutil.ps1` guard — success.
+- Russian Backend Parity — **success**;
+- Compile & Check — **success**;
+- Pester / Unit Tests — **success**;
+- PS Script Analyzer — **success**;
+- generated `winutil.ps1` guard — **success**.
 
-`Compile & Check` запускается на push в `main`/`russian` и PR в `main`/`russian`.
+`Russian Backend Parity` формирует JSON report как workflow artifact. CI не заменяет Windows GUI QA.
 
-`Unit Tests` запускает Pester и PSScriptAnalyzer; PR triggers настроены для `main`/`russian`.
+## Release safety
 
-CI не заменяет Windows GUI QA.
+`.github/workflows/russian-release.yaml` остаётся manual-only через `workflow_dispatch`. Публикация требует `publish_stable=true`. Перед сборкой workflow отдельно запускает strict parity, а release builder запускает тот же preflight ещё раз.
 
-## Stable release safety
+Параметр `-SkipPreflight` из release builder удалён. Если stable release с тем же tag уже существует на другом SHA, workflow отказывается автоматически удалять или заменять его.
 
-`.github/workflows/russian-release.yaml`:
+## Ветки
 
-- запускается только вручную через `workflow_dispatch`;
-- требует запуск из `russian`;
-- публикация выполняется только при `publish_stable=true`;
-- если release с тем же tag уже существует на другом commit, workflow останавливается и **не удаляет/не заменяет** его автоматически.
+Постоянные ветки:
 
-Поэтому обычный docs/code push в `russian` не должен публиковать stable.
+- `main` — оригинальная upstream-линия;
+- `russian` — русская редакция.
 
-## Известные ограничения и оставшиеся задачи
+Временная candidate-ветка разрешена только на время порта нового official release и должна начинаться от exact official tag commit. После завершения её можно удалить. Старые dev-ветки целиком не сливаются.
 
-1. GitHub API сообщает `protected=false` для обеих текущих веток; repository rulesets на момент аудита пусты. Защита от случайного прямого push остаётся организационной, а не серверной.
-2. `tools/Build-WinUtilRussianRelease.ps1` ожидает `tools/Test-WinUtilRussianEdition.ps1`, если не указан `-SkipPreflight`. Такого файла сейчас нет.
-3. Manual release workflow использует `-SkipPreflight`. Перед следующим stable нужен новый реально существующий parity/preflight gate, а не слепое восстановление исторического скрипта.
-4. Автоматического candidate-builder, который сам переносит локализацию на новый exact tag и доказывает backend parity, сейчас нет. Новый release должен пройти отдельную candidate-подготовку.
-5. Branch `russian` может содержать docs/CI commits новее опубликованного release. Источником опубликованного stable служит release target SHA, а не просто HEAD `russian`.
-6. Ручной Windows QA остаётся обязательным перед новым stable.
+## Что strict gate не доказывает
 
-## Правило для следующего official release
+Allowlist ограничивает **где** могут находиться отличия, но не может сам доказать семантическую безопасность новой правки внутри уже разрешённого UI/helper-файла. Поэтому при каждом новом official release diff всех allowlisted paths всё равно просматривается вручную.
 
-Новая версия считается допустимой кандидатурой только если:
+Кроме того, автоматические проверки не заменяют ручной Windows QA: RU→EN→RU, About/YTY, вкладки, безопасная установка, согласованный tweak, AppX, Windows 11/ISO и повторный запуск/кэш.
 
-1. определён exact official release tag commit;
-2. candidate создан от него, не от текущего upstream `main`;
-3. старые dev-ветки целиком не вливались;
-4. каждый операционный backend mismatch либо отсутствует, либо является blocker;
-5. все разрешённые UI/helper отличия просмотрены;
-6. compile/Pester/PSScriptAnalyzer прошли;
-7. владелец провёл Windows QA;
-8. владелец отдельно разрешил публикацию stable.
+## Оставшиеся организационные риски
 
-До выполнения этих пунктов stable release не публикуется.
+1. На момент последней проверки обе ветки GitHub показывались как `protected=false`, repository rulesets были пусты. Strict gate существует в Actions, но серверная branch protection остаётся отдельной настройкой.
+2. Автоматического механизма, который сам переносит перевод на новый official tag, нет. Это намеренно: candidate подготавливается отдельно, а gate проверяет уже подготовленный результат.
+3. `russian` может содержать docs/CI commits новее опубликованного release. Источник published stable определяется release target SHA, а не HEAD ветки.
+
+## Правило следующего official release
+
+Новый stable допустим только когда:
+
+1. определён published non-draft/non-prerelease official tag;
+2. exact tag разыменован до commit;
+3. candidate создан от этого commit, а не от движущегося `main`;
+4. старые dev-ветки целиком не вливались;
+5. `tools/Test-WinUtilRussianEdition.ps1` завершился успешно;
+6. allowlisted UI/helper diff просмотрен;
+7. Compile & Check, Pester и PSScriptAnalyzer прошли;
+8. владелец провёл Windows QA;
+9. владелец отдельно разрешил stable publication.
+
+До этого stable не публикуется.

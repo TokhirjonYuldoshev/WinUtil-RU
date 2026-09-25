@@ -39,10 +39,10 @@
 | Язык | Добавлены `Русский` и `English`; выбор меняет отображение, а не внутренние значения операций. |
 | YTY | При старте показывается рамка YTY, имя Tokhirjon Yuldoshev и WINUTIL RU. |
 | About | Сохранены Chris Titus Tech и исходные участники UI/runspace; форк/переводчик указан отдельно. |
-| Backend | Повторный Git blob-аудит: 97 upstream-путей проверено, 0 отсутствует, 86 полностью совпадают, 11 имеют только разрешённые UI/launcher-отличия. |
+| Backend | Strict parity-gate проверяет upstream `functions/`, `scripts/`, `config/`, `xaml/`, `tools/autounattend.xml` и `LICENSE`. Контрольный запуск: 104 protected paths, 92 exact match, 12 reviewed UI/launcher differences, 4 allowed RU additions, 0 forbidden/missing. |
 | Конфиги | `applications.json`, `tweaks.json`, `appx.json`, `dns.json` побайтово равны official tag. |
 | Ветки | Оставлены только две постоянные ветки: `main` и `russian`. |
-| CI | Compile & Check, Pester и PSScriptAnalyzer запускаются для `main`/`russian` и соответствующих PR. |
+| CI | Compile & Check, Pester, PSScriptAnalyzer и отдельный Russian Backend Parity gate запускаются для нужных push/PR. |
 | Release | Stable-публикация manual-only; обычный push не выпускает релиз. Существующий stable автоматически не удаляется и не заменяется. |
 | Лицензия | Исходный MIT LICENSE и Copyright CT Tech Group LLC сохранены. |
 
@@ -103,17 +103,21 @@
 3. Создать временную candidate-ветку непосредственно от этого commit.
 4. Перенести только локализацию, язык, YTY, About и необходимую build/launcher-инфраструктуру.
 5. Не вливать старые dev-ветки целиком.
-6. Сравнить операционные файлы кандидата с exact official tag по Git blob SHA/байтам. Любой необъяснённый backend mismatch — blocker.
+6. Запустить `tools/Test-WinUtilRussianEdition.ps1`. Он проверяет published upstream release, exact tag commit, ancestry кандидата, protected Git blobs, missing paths и запрещённые additions. Любой новый mismatch — blocker.
 7. Запустить Compile & Check, Pester и PSScriptAnalyzer.
 8. Провести Windows QA: запуск, YTY, RU→EN→RU, About, вкладки, безопасная установка, согласованный tweak, AppX, Windows 11/ISO и повторный запуск/кэш.
 9. Только после Windows QA и отдельного решения владельца обновлять stable.
 10. Публикацию запускать вручную; автоматического выпуска от push нет.
 
-## Важное ограничение текущей автоматизации
+## Strict parity / preflight
 
 GitHub Actions проверяет сборку, Pester и PSScriptAnalyzer, но это не равно ручному Windows QA.
 
-В текущем дереве `tools/Build-WinUtilRussianRelease.ps1` содержит поддержку preflight, однако исторический `tools/Test-WinUtilRussianEdition.ps1` отсутствует, а manual release workflow сейчас вызывает builder с `-SkipPreflight`. Поэтому перед следующим release нужен новый реально существующий candidate parity/preflight gate; старый файл не следует восстанавливать вслепую.
+`tools/Test-WinUtilRussianEdition.ps1` теперь является обязательным strict gate. Он берёт базовую версию из `config/localization_ru.json`, проверяет, что upstream release опубликован и не является draft/prerelease, разыменовывает exact tag до commit, требует ancestry кандидата от этого commit и сравнивает protected tree по Git blob SHA.
+
+Protected scope: весь upstream `functions/`, `scripts/`, `config/`, `xaml/`, `tools/autounattend.xml` и `LICENSE`. Новые upstream-файлы внутри этих зон автоматически входят в проверку. Любой missing path, новый modified path или новый файл внутри protected roots блокирует candidate, если он явно не добавлен в reviewed allowlist.
+
+`.github/workflows/russian-parity-check.yaml` запускает gate на push/PR для `russian`. `tools/Build-WinUtilRussianRelease.ps1` также всегда запускает preflight перед release-сборкой; bypass `-SkipPreflight` удалён.
 
 ## Документация оригинала
 
