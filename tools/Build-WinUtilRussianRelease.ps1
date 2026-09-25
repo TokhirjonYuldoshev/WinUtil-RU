@@ -1,5 +1,4 @@
 param(
-    [switch]$SkipPreflight,
     [ValidateSet('stable', 'beta')]
     [string]$Channel = 'stable'
 )

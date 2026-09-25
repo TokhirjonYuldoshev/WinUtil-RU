@@ -1,0 +1,38 @@
+name: Russian Backend Parity
+
+on:
+  push:
+    branches: ["russian"]
+  pull_request:
+    branches: ["russian"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strict-parity:
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact official release and protected backend parity
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          .\tools\Test-WinUtilRussianEdition.ps1 -ReportPath "$env:RUNNER_TEMP\russian-parity-report.json"
+
+      - name: Upload parity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinUtil-RU-parity-${{ github.sha }}
+          path: ${{ runner.temp }}\russian-parity-report.json
+          if-no-files-found: warn

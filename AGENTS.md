@@ -29,6 +29,10 @@ These rules override everything else in this file when in conflict:
   ```powershell
   .\Compile.ps1 -Run
   ```
+- Verify WinUtil RU exact-tag/backend parity:
+  ```powershell
+  .\tools\Test-WinUtilRussianEdition.ps1
+  ```
 - Install the supported Pester version (one-time). `-SkipPublisherCheck` is required because Windows ships an inbox Pester 3.4.0 that is catalog-signed, and PowerShell Gallery's Pester 5.8.0 is Authenticode-signed — `Install-Module` refuses the upgrade without it. This does not skip download integrity (still HTTPS + NuGet package hash verification); `-Repository PSGallery` pins the trusted source explicitly rather than relying on whatever repositories happen to be registered:
   ```powershell
   Install-Module -Name Pester -RequiredVersion 5.8.0 -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck
@@ -170,7 +174,7 @@ Proceed without asking when:
 When the user corrects an agent approach, add or tighten one concrete rule here before ending the session. Keep this section short and prune rules that no longer matter.
 
 - Keep `winutil.ps1` generated-only: change source files, compile to verify, and never stage the generated script.
-- For WinUtil RU localization, base the candidate on the exact original release the user tested; preserve its tweak/install/update handlers and internal values, and limit fork changes to visible language, language selection, and requested branding.
+- For WinUtil RU localization, base the candidate on the exact original release the user tested; preserve its tweak/install/update handlers and internal values, and limit fork changes to visible language, language selection, requested branding, and necessary fork build/launcher glue. Every RU candidate and release build must pass `tools/Test-WinUtilRussianEdition.ps1`; never bypass the strict parity gate.
 - Keep WinUtil runtime logging in the existing timestamped `%LocalAppData%\winutil\logs\winutil_*.log` session file; do not create a separate root `winutil.log`.
 - Import Pester 5.8.0 before running tests so `Invoke-Pester -Output Detailed -CI` does not resolve to Windows' inbox Pester 3.4.0.
 - Keep package install/uninstall process launches simple unless explicitly requested; do not add a separate stdout/stderr process logging helper for winget or Chocolatey.

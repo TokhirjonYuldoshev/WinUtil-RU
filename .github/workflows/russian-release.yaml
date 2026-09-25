@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_stable:
-        description: "Publish/update the stable GitHub release after Windows QA and owner approval"
+        description: "Publish the stable GitHub release after strict parity, Windows QA and owner approval"
         required: true
         default: false
         type: boolean
@@ -29,11 +29,27 @@ jobs:
               throw "Stable release workflow must be run from the russian branch."
           }
 
-      - name: Build Russian standalone artifact
+      - name: Strict official-tag and backend parity preflight
         shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           Set-ExecutionPolicy Bypass -Scope Process -Force
-          .\tools\Build-WinUtilRussianRelease.ps1 -Channel stable -SkipPreflight
+          .\tools\Test-WinUtilRussianEdition.ps1 -ReportPath "$env:RUNNER_TEMP\russian-parity-report.json"
+
+      - name: Upload parity report
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinUtil-RU-release-parity-${{ github.sha }}
+          path: ${{ runner.temp }}\russian-parity-report.json
+
+      - name: Build Russian standalone artifact
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          .\tools\Build-WinUtilRussianRelease.ps1 -Channel stable
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

@@ -52,7 +52,7 @@ WinUtil is a Windows PowerShell utility with a WPF interface. The repository is 
 
 `Compile.ps1` combines the repository sources into `winutil.ps1` in this order:
 
-1. Read `scripts/start.ps1` and replace `#{replaceme}` with the current `yy.MM.dd` build date.
+1. Read `scripts/start.ps1` and replace `#{replaceme}` with `Meta.Version` from `config/localization_ru.json`.
 2. Append every file under `functions/` recursively.
 3. Convert each `config/*.json` file into embedded `$sync.configs` objects.
 4. Special-case `config/applications.json` so keys receive the `WPFInstall` prefix in compiled config.
@@ -105,8 +105,10 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 - `.\Compile.ps1 -Run` compiles and launches the generated utility for manual GUI verification.
 - Pester 5.8.0 runs the suite under `pester/*.Tests.ps1`. GitHub Actions (`unittests.yaml`) installs Pester 5.8.0 fresh and runs with `-CI`, which produces `testResults.xml` and exits non-zero on failure.
 - GitHub Actions also runs PowerShell Script Analyzer with `lint/PSScriptAnalyser.ps1` on every push.
+- `tools/Test-WinUtilRussianEdition.ps1` is the strict RU release preflight. It verifies that the version maps to a published non-draft/non-prerelease upstream tag, resolves that tag to its exact commit, requires the candidate to descend from that commit, and enforces Git-blob parity across protected runtime/config paths except for an explicit reviewed UI/launcher allowlist.
+- `.github/workflows/russian-parity-check.yaml` runs that strict parity gate on pushes and pull requests targeting `russian`; any new protected mismatch, missing upstream file, or unapproved addition fails the check.
 - The generated `winutil.ps1` may appear locally after compile. It remains ignored build output (see root `.gitignore`) and must not be committed.
 
 ## Release Artifact
 
-GitHub Actions is responsible for producing the release `winutil.ps1` from repository sources. A release is considered valid only if the generated script came from the compile process, not from direct manual edits to `winutil.ps1`.
+For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first runs the strict parity preflight, then compiles repository sources and produces `dist/winutil-RU.ps1`, `dist/release.json`, and `dist/LICENSE`. The stable release workflow is manual-only; publishing additionally requires `publish_stable=true`. A release is not valid merely because it compiles: strict parity must pass and Windows QA plus explicit owner approval remain required before stable publication.
