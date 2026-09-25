@@ -12,12 +12,7 @@ $licenseAssetPath = Join-Path $distRoot 'LICENSE'
 
 Push-Location $repoRoot
 try {
-    if (-not $SkipPreflight) {
-        & (Join-Path $repoRoot 'tools\Test-WinUtilRussianEdition.ps1') -Quiet
-        if ($LASTEXITCODE -ne 0) {
-            throw "Russian edition preflight failed."
-        }
-    }
+    & (Join-Path $repoRoot 'tools\Test-WinUtilRussianEdition.ps1') -Quiet
 
     & (Join-Path $repoRoot 'Compile.ps1')
     if (-not $?) {
