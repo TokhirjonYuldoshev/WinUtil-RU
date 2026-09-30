@@ -111,6 +111,7 @@
         "category": "Games",
         "choco": "na",
         "winget": "Blizzard.BattleNet",
+        "wingetInstallLocation": "%PROGRAMFILES(X86)%\\Battle.net",
         "content": "Battle.net",
         "description": "Battle.net is a launcher for games created and developed by Activision Blizzard",
         "link": "https://battle.net",

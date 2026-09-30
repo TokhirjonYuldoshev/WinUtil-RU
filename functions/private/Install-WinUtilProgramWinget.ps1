@@ -12,6 +12,10 @@ Function Install-WinUtilProgramWinget {
         than the whole batch. Progress moves per package: winget hides its own progress bar once
         its output is redirected, so there is nothing to report from inside a single install.
 
+    .PARAMETER InstallLocation
+        Optional install path for packages whose WinGet manifest requires an explicit location.
+        Environment variables in the configured path are expanded before invoking WinGet.
+
     #>
     param (
         [Parameter(Mandatory=$true)]
@@ -19,7 +23,9 @@ Function Install-WinUtilProgramWinget {
         [string]$Action,
 
         [Parameter(Mandatory=$true)]
-        [string[]]$Programs
+        [string[]]$Programs,
+
+        [string]$InstallLocation
     )
 
     # APPINSTALLER_CLI_ERROR_ADMIN_CONTEXT_ACTION_PROHIBITED. WinGet refuses to act on a package
@@ -73,6 +79,10 @@ Function Install-WinUtilProgramWinget {
                 }
             }
             default     { @("install", "--id", $program, "--accept-package-agreements", "--accept-source-agreements", "--source", $source, "--silent") }
+        }
+
+        if ($Action -eq "Install" -and -not [string]::IsNullOrWhiteSpace($InstallLocation)) {
+            $arguments += @("--location", [Environment]::ExpandEnvironmentVariables($InstallLocation))
         }
 
         $process = Start-Process -FilePath winget -ArgumentList $arguments -NoNewWindow -Wait -PassThru

@@ -34,7 +34,7 @@ BeforeAll {
     function Install-WinUtilWinget { }
     function Install-WinUtilChoco { }
     function Install-WinUtilProgramWinget {
-        param($Action, $Programs)
+        param($Action, $Programs, $InstallLocation)
     }
     function Install-WinUtilProgramChoco {
         param($Action, $Programs)
@@ -53,7 +53,8 @@ BeforeAll {
         param(
             [string]$Name = "Git",
             [string]$Winget = "Git.Git",
-            [string]$Choco = "git"
+            [string]$Choco = "git",
+            [string]$WingetInstallLocation = $null
         )
 
         [pscustomobject]@{
@@ -61,6 +62,7 @@ BeforeAll {
             Description = "$Name package"
             winget = $Winget
             choco = $Choco
+            wingetInstallLocation = $WingetInstallLocation
         }
     }
 
@@ -242,6 +244,25 @@ Describe "Invoke-WPFInstall job body" {
         }
         Should -Invoke -CommandName Step-WinUtilJob -Times 1 -Exactly -ParameterFilter {
             $Status -eq "Installed Chocolatey packages (2/2)" -and $Percent -eq 100
+        }
+    }
+
+    It "forwards a configured WinGet install location" {
+        $script:package = New-WinUtilPackage -Name "Battle.net" -Winget "Blizzard.BattleNet" -Choco "na" -WingetInstallLocation "%PROGRAMFILES(X86)%\\Battle.net"
+        New-WinUtilInstallTestContext -Packages @($script:package)
+        Mock Get-WinUtilSelectedPackages {
+            New-WinUtilPackageSplit -Winget @("Blizzard.BattleNet")
+        }
+
+        Invoke-WPFInstall
+
+        $jobParameters = $script:capturedInstallJob.Parameters
+        & $script:capturedInstallJob.ScriptBlock @jobParameters
+
+        Should -Invoke -CommandName Install-WinUtilProgramWinget -Times 1 -Exactly -ParameterFilter {
+            $Action -eq "Install" -and
+                @($Programs)[0] -eq "Blizzard.BattleNet" -and
+                $InstallLocation -eq "%PROGRAMFILES(X86)%\\Battle.net"
         }
     }
 

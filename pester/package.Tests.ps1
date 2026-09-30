@@ -143,6 +143,18 @@ Describe "Install-WinUtilProgramWinget" {
         }
     }
 
+    It "passes an expanded install location when configured" {
+        $configuredLocation = "%PROGRAMFILES(X86)%\\Battle.net"
+        $expandedLocation = [Environment]::ExpandEnvironmentVariables($configuredLocation)
+
+        Install-WinUtilProgramWinget -Action Install -Programs @("Blizzard.BattleNet") -InstallLocation $configuredLocation
+
+        Should -Invoke -CommandName Start-Process -Times 1 -Exactly -ParameterFilter {
+            $FilePath -eq "winget" -and
+                (@($ArgumentList) -join "|") -eq "install|--id|Blizzard.BattleNet|--accept-package-agreements|--accept-source-agreements|--source|winget|--silent|--location|$expandedLocation"
+        }
+    }
+
     It "starts winget with uninstall arguments and msstore source when requested" {
         Install-WinUtilProgramWinget -Action Uninstall -Programs @("msstore:9NBLGGH4NNS1")
 
