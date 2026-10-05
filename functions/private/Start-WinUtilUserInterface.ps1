@@ -1,4 +1,4 @@
-function Start-WinUtilUserInterface {
+﻿function Start-WinUtilUserInterface {
     <#
         .SYNOPSIS
             Builds the WinUtil window, wires its event handlers and runs it to completion
