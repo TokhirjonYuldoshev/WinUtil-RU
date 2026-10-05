@@ -1,4 +1,4 @@
-function Get-WinUtilEntryToolTip {
+﻿function Get-WinUtilEntryToolTip {
     <#
         .SYNOPSIS
             Builds the tooltip string for an app/tweak/feature entry: its description plus its preset JSON key
@@ -17,9 +17,15 @@ function Get-WinUtilEntryToolTip {
         [string]$Key
     )
 
-    if ([string]::IsNullOrWhiteSpace($Description)) {
-        return "Preset key: $Key"
+    $keyLabel = 'Preset key'
+    if ($null -ne $sync -and $sync.preferences.language -eq 'ru-RU') {
+        $Description = Convert-WinUtilRussianText $Description
+        $keyLabel = 'Ключ пресета'
     }
 
-    return "$Description`n`nPreset key: $Key"
+    if ([string]::IsNullOrWhiteSpace($Description)) {
+        return "${keyLabel}: $Key"
+    }
+
+    return "$Description`n`n${keyLabel}: $Key"
 }

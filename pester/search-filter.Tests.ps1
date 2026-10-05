@@ -360,6 +360,24 @@ Describe "Find-AppsByNameOrDescription" {
         $editorItem.Visibility | Should -Be ([Windows.Visibility]::Collapsed)
     }
 
+    It "searches Russian app descriptions without changing the original app keys" {
+        $browserItem = New-WinUtilAppSearchItem -Tag "WPFInstallBrowser"
+        $mediaItem = New-WinUtilAppSearchItem -Tag "WPFInstallMedia"
+        $category = New-WinUtilAppCategory -Label "- Browsers" -Items @($browserItem, $mediaItem)
+        New-WinUtilAppSearchContext -Categories @($category)
+        $script:sync.preferences = @{ language = 'ru-RU' }
+        $script:sync.configs.applications_ru = [pscustomobject]@{
+            Browser = 'Браузер для приватного просмотра сайтов'
+            Media = 'Медиаплеер для музыки и видео'
+        }
+
+        Find-AppsByNameOrDescription -SearchString 'приватного'
+
+        $browserItem.Visibility | Should -Be ([Windows.Visibility]::Visible)
+        $mediaItem.Visibility | Should -Be ([Windows.Visibility]::Collapsed)
+        $script:sync.configs.applicationsHashtable.WPFInstallBrowser.Content | Should -Be 'Firefox'
+    }
+
     It "matches apps by preset key" {
         $browserItem = New-WinUtilAppSearchItem -Tag "WPFInstallBrowser"
         $mediaItem = New-WinUtilAppSearchItem -Tag "WPFInstallMedia"

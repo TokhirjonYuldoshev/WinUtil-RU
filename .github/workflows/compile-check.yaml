@@ -2,11 +2,11 @@ name: Compile & Check
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "russian", "update/*"]
   pull_request:
-    branches: ["main"]
-  workflow_dispatch: # Manual trigger added
-  workflow_call: # Allow other Actions to call this workflow
+    branches: ["main", "russian"]
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
   Compile-and-Check:
@@ -19,4 +19,22 @@ jobs:
       shell: pwsh
       run: |
         Set-ExecutionPolicy Bypass -Scope Process -Force; ./Compile.ps1
-      continue-on-error: false # Directly fail the job on error, removing the need for a separate check
+      continue-on-error: false
+
+    - name: Build Russian Windows QA candidate
+      if: startsWith(github.head_ref, 'update/') || startsWith(github.ref_name, 'update/')
+      shell: powershell
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        .\tools\Build-WinUtilRussianRelease.ps1 -Channel beta
+
+    - name: Upload Russian Windows QA candidate
+      if: startsWith(github.head_ref, 'update/') || startsWith(github.ref_name, 'update/')
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinUtil-RU-candidate-${{ github.sha }}
+        path: |
+          dist/winutil-RU.ps1
+          dist/release.json
+          dist/LICENSE

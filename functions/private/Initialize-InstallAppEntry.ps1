@@ -21,6 +21,13 @@ function Initialize-InstallAppEntry {
         $border.Style = $sync.Form.Resources.AppEntryBorderStyle
         $border.Tag = $appKey
         $border.ToolTip = Get-WinUtilEntryToolTip -Description $app.description -Key $appKey
+        if ($sync.preferences.language -eq 'ru-RU' -and $null -ne $sync.configs.applications_ru) {
+            $catalogKey = $appKey -replace '^WPFInstall', ''
+            $localizedDescription = $sync.configs.applications_ru.PSObject.Properties[$catalogKey]
+            if ($null -ne $localizedDescription) {
+                $border.ToolTip = Get-WinUtilEntryToolTip -Description $localizedDescription.Value -Key $appKey
+            }
+        }
         $border.Add_MouseLeftButtonUp($handlers.BorderClick)
         $border.Add_MouseEnter($handlers.MouseEnter)
         $border.Add_MouseLeave($handlers.MouseLeave)

@@ -75,8 +75,8 @@ function Step-WinUtilJob {
             $sync.WPFTweaksProgressBar.Visibility = [Windows.Visibility]::Visible
         }
         if ($HasStatus) {
-            $sync.WPFTweaksProgressLabel.Text = $Status
-            $sync.WPFTweaksProgressLabel.ToolTip = $Status
+            $sync.WPFTweaksProgressLabel.Text = Convert-WinUtilRussianText $Status
+            $sync.WPFTweaksProgressLabel.ToolTip = Convert-WinUtilRussianText $Status
         }
         if ($hasPercent) {
             $sync.WPFTweaksProgressValue.Value = $Percent

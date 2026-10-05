@@ -417,6 +417,16 @@ function Start-WinUtilUserInterface {
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
         Invoke-WPFExportEnvironmentReport
     })
+    $sync["RussianLanguageMenuItem"].IsChecked = $sync.preferences.language -eq 'ru-RU'
+    $sync["EnglishLanguageMenuItem"].IsChecked = $sync.preferences.language -eq 'en-US'
+    $sync["RussianLanguageMenuItem"].Add_Click({
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+        Set-WinUtilLanguagePreference -Language 'ru-RU'
+    })
+    $sync["EnglishLanguageMenuItem"].Add_Click({
+        Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
+        Set-WinUtilLanguagePreference -Language 'en-US'
+    })
     $sync["AboutMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")
 
@@ -425,9 +435,21 @@ Author   : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
 UI       : <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
 Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
 GitHub   : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
-Version  : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version)">$($sync.version)</a>
+Version  : <a href="https://github.com/ChrisTitusTech/winutil/releases/tag/$($sync.version -replace '-RU$', '')">$($sync.version -replace '-RU$', '')</a>
 "@
-        Show-CustomDialog -Title "About" -Message $authorInfo
+        if ($sync.preferences.language -eq 'ru-RU') {
+            $authorInfo = @"
+Автор    : <a href="https://github.com/ChrisTitusTech">@ChrisTitusTech</a>
+Интерфейс: <a href="https://github.com/MyDrift-user">@MyDrift-user</a>, <a href="https://github.com/Marterich">@Marterich</a>
+Runspace : <a href="https://github.com/DeveloperDurp">@DeveloperDurp</a>, <a href="https://github.com/Marterich">@Marterich</a>
+Оригинал : <a href="https://github.com/ChrisTitusTech/winutil">ChrisTitusTech/winutil</a>
+Перевод  : <a href="https://github.com/TokhirjonYuldoshev/WinUtil-RU">TokhirjonYuldoshev/WinUtil-RU</a>
+WinUtil RU: $($sync.version)
+"@
+        } else {
+            $authorInfo += "`nRussian localization: <a href=`"https://github.com/TokhirjonYuldoshev/WinUtil-RU`">TokhirjonYuldoshev/WinUtil-RU</a>"
+        }
+        Show-CustomDialog -Title (Convert-WinUtilRussianText 'About') -Message $authorInfo
     })
     $sync["DocumentationMenuItem"].Add_Click({
         Invoke-WPFPopup -Action "Hide" -Popups @("Settings")

@@ -1,0 +1,106 @@
+name: Russian Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_stable:
+        description: "Publish the stable GitHub release after strict parity, Windows QA and owner approval"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require russian branch
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -ne 'refs/heads/russian') {
+              throw "Stable release workflow must be run from the russian branch."
+          }
+
+      - name: Strict official-tag and backend parity preflight
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          .\tools\Test-WinUtilRussianEdition.ps1 -ReportPath "$env:RUNNER_TEMP\russian-parity-report.json"
+
+      - name: Upload parity report
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinUtil-RU-release-parity-${{ github.sha }}
+          path: ${{ runner.temp }}\russian-parity-report.json
+
+      - name: Build Russian standalone artifact
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          .\tools\Build-WinUtilRussianRelease.ps1 -Channel stable
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WinUtil-RU-${{ github.ref_name }}
+          path: |
+            dist/winutil-RU.ps1
+            dist/release.json
+            dist/LICENSE
+
+      - name: Validate release manifest
+        shell: pwsh
+        env:
+          WINUTIL_RU_SHA: ${{ github.sha }}
+        run: |
+          $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ([string]$manifest.Channel -ne 'stable') {
+              throw "release.json Channel mismatch: expected stable, got $($manifest.Channel)"
+          }
+          if ([bool]$manifest.Prerelease) {
+              throw "release.json stable artifact must not be prerelease."
+          }
+          if ([string]$manifest.SourceCommit -ne $env:WINUTIL_RU_SHA) {
+              throw "release.json SourceCommit mismatch: expected $env:WINUTIL_RU_SHA, got $($manifest.SourceCommit)"
+          }
+          $actualHash = (Get-FileHash .\dist\winutil-RU.ps1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ([string]$manifest.Sha256 -ne $actualHash) {
+              throw "release.json SHA256 does not match winutil-RU.ps1"
+          }
+          Write-Host "Release manifest verified: commit=$env:WINUTIL_RU_SHA sha256=$actualHash"
+
+      - name: Publish WinUtil RU stable release
+        if: ${{ inputs.publish_stable }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $manifest = Get-Content .\dist\release.json -Raw -Encoding UTF8 | ConvertFrom-Json
+          $tag = [string]$manifest.Version
+          $existingReleaseJson = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$tag" 2>$null
+          if ($LASTEXITCODE -eq 0) {
+              $existingRelease = $existingReleaseJson | ConvertFrom-Json
+              $existingTarget = [string]$existingRelease.target_commitish
+              if ($existingTarget -eq $env:GITHUB_SHA) {
+                  Write-Host "Stable release $tag already targets current russian commit $env:GITHUB_SHA."
+                  exit 0
+              }
+              throw "Stable release $tag already exists at $existingTarget. Refusing to replace or delete it automatically."
+          }
+          gh release create $tag "dist/winutil-RU.ps1" "dist/release.json" "dist/LICENSE" --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "WinUtil RU $($manifest.Version)" --generate-notes --latest
+          if ($LASTEXITCODE -ne 0) {
+              throw "Failed to publish stable release $tag."
+          }
+          Write-Host "Stable release published: $tag -> $env:GITHUB_SHA"

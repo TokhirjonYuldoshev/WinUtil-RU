@@ -86,6 +86,12 @@ namespace System.Windows.Controls
     . (Join-Path $script:repoRoot "functions\public\Invoke-WPFButton.ps1")
     . (Join-Path $script:repoRoot "functions\public\Invoke-WPFToggleAllCategories.ps1")
 
+    # These state tests run without a localized WPF window; keep their English display input.
+    function Convert-WinUtilRussianText {
+        param([AllowNull()][object]$Value)
+        return $Value
+    }
+
     function Invoke-WPFRunspace {
         param($ArgumentList, $ParameterList, [scriptblock]$ScriptBlock)
     }

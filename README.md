@@ -1,91 +1,72 @@
-# Chris Titus Tech's Windows Utility
-
-[![Version](https://img.shields.io/github/v/release/ChrisTitusTech/winutil?color=%230567ff&label=Latest%20Release&style=for-the-badge)](https://github.com/ChrisTitusTech/winutil/releases/latest)
-![Downloads](https://img.shields.io/github/downloads/ChrisTitusTech/winutil/winutil.ps1?label=Total%20Downloads&style=for-the-badge)
-[![Discord](https://dcbadge.limes.pink/api/server/https://discord.gg/RUbZUZyByQ?theme=default-inverted&style=for-the-badge)](https://discord.gg/RUbZUZyByQ)
-
-A curated compilation of Windows system tasks streamline **installs**, debloat with **tweaks**, troubleshoot with **config**, and configure **Windows updates**. Run it fresh on every new Windows install.
-
-![Title Screen](docs/src/assets/branding/title-screen.png)
+# WinUtil RU
 
 
----
+## Кандидат обновления 26.09.29-RU
 
-## Quick Start
+Ветка `update/26.09.29-ru` готовится на точном официальном теге `26.09.29` (`9419b2803e505b67a71b632205ce59132b52b41b`). Это кандидат для Windows QA; опубликованный stable по-прежнему `26.08.19-RU`. Язык, About и перевод прогресса перенесены в новую upstream-архитектуру интерфейса. Конфиги и операционные функции берутся из нового official tag. Перед merge и публикацией нужны успешные проверки, Windows QA и отдельное разрешение владельца.
 
-> **WinUtil must be run as Administrator** because it performs system-wide changes.
+**WinUtil RU** — независимая русская локализация [Chris Titus Tech's Windows Utility (WinUtil)](https://github.com/ChrisTitusTech/winutil).
 
-Open PowerShell or Terminal as admin, then run:
+Текущая опубликованная русская версия основана на **точном официальном выпуске WinUtil 26.08.19**, tag commit `086aecf4b7d165f9fd1822049435c418a48e7cba`. Проект сохраняет оригинальную логику WinUtil и меняет только пользовательское представление и необходимую инфраструктуру форка.
 
-**Stable Branch (recommended)**
-```ps1
-irm https://christitus.com/win | iex
-```
+## Что это
 
-**Development Branch**
-```ps1
-irm https://christitus.com/windev | iex
-```
+Оригинальный WinUtil позволяет устанавливать программы, применять настройки Windows, работать с DNS, AppX, Windows Update, системными инструментами и ISO Windows 11.
 
-### How to open an admin terminal
+WinUtil RU сохраняет эти возможности исходного выпуска и добавляет:
 
-- **Start menu:** Right-click Start → *Windows PowerShell (Admin)* or *Terminal (Admin)*
-- **Search:** Press the `Windows key`, and type `PowerShell` or `Terminal`, then `Ctrl + Shift + Enter`
+- русский интерфейс с возможностью вернуть **English**;
+- переключатель языка;
+- заставку **YTY / TOKHIRJON YULDOSHEV / WINUTIL RU**;
+- русские подписи, описания и сообщения интерфейса;
+- окно **«О программе»** с сохранением авторства оригинального WinUtil и отдельным указанием русского форка;
+- загрузчик и сборку `winutil-RU.ps1`, `release.json` и `LICENSE`.
 
----
+WinUtil RU **не является официальной русской редакцией Chris Titus Tech**.
 
-## Automation / Presets
+## Что мы сделали
 
-Apply a predefined configuration without manual selection:
+Для текущего stable мы отказались от подхода «переписать/улучшить WinUtil» и вернули проект к строгой модели **оригинал + локализация**:
+
+- stable построен от exact official tag `26.08.19`, а не от более нового `main`;
+- операционные конфиги установки, tweaks, AppX и DNS побайтово совпадают с официальным tag;
+- strict parity-gate проверяет весь upstream `functions/`, `scripts/`, `config/`, `xaml/`, `tools/autounattend.xml` и `LICENSE`: на контрольном запуске 104 protected paths, 92 exact blob match, 12 заранее просмотренных UI/launcher отличий и 4 разрешённых RU-only additions;
+- старые backend-доработки не переносятся в stable;
+- постоянные ветки сокращены до двух: **`main` = оригинал**, **`russian` = русская редакция**;
+- stable release больше не публикуется от обычного push: публикация запускается вручную после Windows QA и явного решения владельца;
+- существующий stable release не удаляется и не заменяется автоматически;
+- release builder теперь всегда запускает strict exact-tag/backend preflight; обход `-SkipPreflight` удалён;
+- сохранён исходный MIT `LICENSE` и авторство CT Tech Group LLC.
+
+Подробный технический отчёт: **[аудит WinUtil RU](docs/AUDIT-RU.md)**.
+
+## Запуск в Windows
+
+Откройте PowerShell **от имени администратора**:
 
 ```powershell
-& ([ScriptBlock]::Create((irm https://christitus.com/win))) -Preset Standard
+irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1 | iex
 ```
 
-| Preset | Description |
-|--------|-------------|
-| `Standard` | Balanced defaults for most users |
-| `Minimal` | Minimal changes to suit every user |
-| `Advanced` | Deep tweaks for power users |
+Перед выполнением удалённого скрипта можно просмотреть [bootstrap.ps1](bootstrap.ps1). Альтернатива — скачать `winutil-RU.ps1` из [последнего стабильного выпуска](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest) и запустить его с правами администратора.
 
-To view exactly what each preset does, see:
-https://github.com/ChrisTitusTech/winutil/blob/main/config/preset.json
+Полное руководство: **[docs/README-RU.md](docs/README-RU.md)**.
 
----
+## Ветки и обновления
 
-## Build & Develop
+В репозитории поддерживаются две постоянные ветки:
 
-See https://github.com/ChrisTitusTech/winutil/blob/main/.github/CONTRIBUTING.md
+- **`main`** — синхронизированная линия оригинального WinUtil; локализацию сюда не добавляем.
+- **`russian`** — текущая русская редакция.
 
----
+Когда выходит новый официальный release, новая кандидатура должна создаваться **от exact official release tag commit**. Временную candidate-ветку после завершения работы можно удалить. Старые dev-ветки целиком в новую версию не вливаются.
 
-## Resources
+Перед новым stable обязательны: успешный `tools/Test-WinUtilRussianEdition.ps1`, CI, ручной Windows QA и отдельное разрешение владельца на публикацию.
 
-- [Official Documentation](https://winutil.christitus.com/)
-- [YouTube Tutorial](https://www.youtube.com/watch?v=6UQZ5oQg8XA)
-- [ChrisTitus.com Article](https://christitus.com/windows-tool/)
-- [Known Issues](https://winutil.christitus.com/knownissues/)
-- [Report an Issue](https://github.com/ChrisTitusTech/winutil/issues)
+## Авторство и лицензия
 
----
+Оригинальный WinUtil создан Chris Titus Tech и участниками проекта. Исходное уведомление: **Copyright (c) 2022 CT Tech Group LLC**.
 
-## Support
+Русская локализация и оформление форка: [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev/WinUtil-RU).
 
-- Leave a ⭐ to show support!
-- Faster Dotnet Implementation for sale here: https://www.cttstore.com/windows-toolbox
-
-## Sponsors
-
-These are the sponsors that help keep this project alive with monthly contributions.
-
-<!-- sponsors --><a href="https://github.com/dwelfusius"><img src="https:&#x2F;&#x2F;github.com&#x2F;dwelfusius.png" width="60px" alt="User avatar: " /></a><a href="https://github.com/mews-se"><img src="https:&#x2F;&#x2F;github.com&#x2F;mews-se.png" width="60px" alt="User avatar: Martin" /></a><a href="https://github.com/jdiegmueller"><img src="https:&#x2F;&#x2F;github.com&#x2F;jdiegmueller.png" width="60px" alt="User avatar: Jason A. Diegmueller" /></a><a href="https://github.com/robertsandrock"><img src="https:&#x2F;&#x2F;github.com&#x2F;robertsandrock.png" width="60px" alt="User avatar: RMS" /></a><a href="https://github.com/paulsheets"><img src="https:&#x2F;&#x2F;github.com&#x2F;paulsheets.png" width="60px" alt="User avatar: Paul" /></a><a href="https://github.com/djones369"><img src="https:&#x2F;&#x2F;github.com&#x2F;djones369.png" width="60px" alt="User avatar: Dave J  (WhamGeek)" /></a><a href="https://github.com/anthonymendez"><img src="https:&#x2F;&#x2F;github.com&#x2F;anthonymendez.png" width="60px" alt="User avatar: Anthony Mendez" /></a><a href="https://github.com/FatBastard0"><img src="https:&#x2F;&#x2F;github.com&#x2F;FatBastard0.png" width="60px" alt="User avatar: " /></a><a href="https://github.com/DursleyGuy"><img src="https:&#x2F;&#x2F;github.com&#x2F;DursleyGuy.png" width="60px" alt="User avatar: DursleyGuy" /></a><a href="https://github.com/DwayneTheRockLobster1"><img src="https:&#x2F;&#x2F;github.com&#x2F;DwayneTheRockLobster1.png" width="60px" alt="User avatar: " /></a><a href="https://github.com/KieraKujisawa"><img src="https:&#x2F;&#x2F;github.com&#x2F;KieraKujisawa.png" width="60px" alt="User avatar: Kiera Meredith" /></a><a href="https://github.com/seanh1995"><img src="https:&#x2F;&#x2F;github.com&#x2F;seanh1995.png" width="60px" alt="User avatar: Sean (ANGRYxScotsman)" /></a><a href="https://github.com/F-L-Perez"><img src="https:&#x2F;&#x2F;github.com&#x2F;F-L-Perez.png" width="60px" alt="User avatar: Fra · ppe" /></a><a href="https://github.com/josencarnacao"><img src="https:&#x2F;&#x2F;github.com&#x2F;josencarnacao.png" width="60px" alt="User avatar: José Encarnação" /></a><!-- sponsors -->
-
-*<sub>Sponsors with a recurring subscription also get access to the .NET alternative.</sub>
-
----
-
-## Contributors
-
-[![Contributors](https://contrib.rocks/image?repo=ChrisTitusTech/winutil)](https://github.com/ChrisTitusTech/winutil/graphs/contributors)
-
-Thanks to everyone who has contributed time and effort to this project. Keep rocking 🍻
+Проект распространяется на условиях исходной [MIT License](LICENSE). Авторство оригинального WinUtil не передаётся форку и не заменяется авторством локализатора.

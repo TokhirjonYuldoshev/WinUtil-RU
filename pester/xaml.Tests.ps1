@@ -485,7 +485,10 @@ Describe "XAML and sync wiring" {
             "Win11ISOWorkDir",
             "Win11ISOContentsDir",
             "Win11ISOExistingWorkRetryPending",
-            "Win11ISOUSBDisks"
+            "Win11ISOUSBDisks",
+            "WinUtilRussianExactTranslations"
+            "WinUtilRussianNormalizedTranslations"
+            "WinUtilRussianPhraseTranslations"
         )
         $allowedNames = @($xamlNames + $generatedNames + $dynamicStateNames) | Sort-Object -Unique
         $bracketReferences = @(

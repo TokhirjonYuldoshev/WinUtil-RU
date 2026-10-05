@@ -70,7 +70,7 @@ function Find-AppsByNameOrDescription {
                     $categoryLabel.Visibility = [Windows.Visibility]::Visible
 
                     # A category that filtering expanded goes back to how the user left it
-                    $categoryName = $categoryLabel.Content -replace '^[+-] ', ''
+                    $categoryName = [string]$_.Tag
                     if ($sync.AppCategoryAutoExpanded.ContainsKey($categoryName)) {
                         $categoryLabel.Content = $categoryLabel.Content -replace "^- ", "+ "
                         $sync.AppCategoryAutoExpanded.Remove($categoryName)
@@ -113,9 +113,18 @@ function Find-AppsByNameOrDescription {
 
                     if ($null -ne $appEntry) {
                         $categoryMatch = -not $hasCategories -or $activeCategories -contains $appEntry.Category
+                        $localizedDescription = ''
+                        if ($sync.preferences.language -eq 'ru-RU' -and $null -ne $sync.configs.applications_ru) {
+                            $catalogKey = $appTag -replace '^WPFInstall', ''
+                            $translation = $sync.configs.applications_ru.PSObject.Properties[$catalogKey]
+                            if ($null -ne $translation) {
+                                $localizedDescription = [string]$translation.Value
+                            }
+                        }
                         $textMatch = -not $hasSearch -or
                             $appEntry.Content -like "*$escapedSearchString*" -or
                             $appEntry.Description -like "*$escapedSearchString*" -or
+                            $localizedDescription -like "*$escapedSearchString*" -or
                             $appTag -like "*$escapedSearchString*"
 
                         if ($categoryMatch -and $textMatch) {
@@ -139,7 +148,7 @@ function Find-AppsByNameOrDescription {
                     # Remember that it was collapsed so clearing the filter can put it back.
                     if ($categoryLabel.Content -like "+*") {
                         $categoryLabel.Content = $categoryLabel.Content -replace "^\+ ", "- "
-                        $sync.AppCategoryAutoExpanded[($categoryLabel.Content -replace '^- ', '')] = $true
+                        $sync.AppCategoryAutoExpanded[[string]$_.Tag] = $true
                     }
                 }
                 else {

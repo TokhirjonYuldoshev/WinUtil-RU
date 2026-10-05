@@ -11,6 +11,8 @@ BeforeAll {
 
     . (Join-Path $script:repoRoot "functions\private\Step-WinUtilJob.ps1")
 
+    # These upstream colour tests keep English fixture text; locale behaviour has its own tests.
+    function Convert-WinUtilRussianText { param($Value); return $Value }
     function Test-WinUtilUIAlive { return $true }
     function Write-WinUtilConsoleProgress { param([string]$Status, [int]$Percent) }
     function Write-WinUtilLog { param($Message, $Level, $Component) }
