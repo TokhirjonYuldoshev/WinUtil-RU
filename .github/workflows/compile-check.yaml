@@ -15,6 +15,9 @@ jobs:
     - name: Checkout Sources
       uses: actions/checkout@v7
 
+      with:
+        fetch-depth: 0
+
     - name: Compile and Syntax check winutil.ps1
       shell: pwsh
       run: |
