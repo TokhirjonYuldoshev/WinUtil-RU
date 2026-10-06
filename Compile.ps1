@@ -11,6 +11,8 @@ $sync.configs = @{}
 $ruLocale = Get-Content -Path config\localization_ru.json -Raw -Encoding UTF8 | ConvertFrom-Json
 $buildVersion = [string]$ruLocale.Meta.Version
 $script = (Get-Content -Path scripts\start.ps1 -Encoding UTF8) -replace '#{replaceme}', $buildVersion
+$isLocalCompile = -not [string]::Equals($env:GITHUB_ACTIONS, "true", [StringComparison]::OrdinalIgnoreCase)
+$script = $script -replace '#{islocalcompile}', $isLocalCompile.ToString().ToLowerInvariant()
 
 $script += Get-ChildItem -Path functions -Recurse -File | ForEach-Object {
     Get-Content -Path $_.FullName -Raw -Encoding UTF8

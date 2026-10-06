@@ -210,7 +210,9 @@ try {
         'functions/private/Initialize-InstallAppEntry.ps1',
         'functions/private/Initialize-InstallCategoryAppList.ps1',
         'functions/private/Reset-WPFCheckBoxes.ps1',
-        'functions/private/Set-WinUtilTweaksProgressIndicator.ps1',
+        # 26.09.29 moved the UI handlers and progress display into these files.
+        'functions/private/Start-WinUtilUserInterface.ps1',
+        'functions/private/Step-WinUtilJob.ps1',
         'functions/private/Show-CustomDialog.ps1',
         'functions/public/Invoke-WPFSelectedCheckboxesUpdate.ps1',
         'functions/public/Invoke-WPFUIElements.ps1',

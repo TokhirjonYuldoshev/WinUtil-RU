@@ -2,12 +2,22 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "26.08.19-RU",
+    "Version": "26.09.29-RU",
     "Fallback": "en-US",
     "Note": "Presentation-only Russian localization for WinUtil RU. Internal control names, config keys, commands and package IDs remain unchanged.",
-    "LocalizationVersion": "1.1.9"
+    "LocalizationVersion": "1.2.0"
   },
   "Exact": {
+    "Select Installed Tweaks": "Выбрать применённые настройки",
+    "- Notifies when downloaded updates are ready to install": "- Уведомляет, когда загруженные обновления готовы к установке",
+    "You must use an official Microsoft ISO": "Используйте официальный ISO-образ Microsoft",
+    "Injects boot-storage drivers for Setup and adds exported drivers to the selected install.wim edition individually, skipping incompatible packages.": "Добавляет драйверы накопителей для установки Windows в boot.wim и по отдельности добавляет экспортированные драйверы в выбранную редакцию install.wim, пропуская несовместимые пакеты.",
+    "Select Installed": "Выбрать установленные",
+    "Logitech Download Assistant Auto-Install - Disable": "Отключить автоматическую установку Logitech Download Assistant",
+    "Lock Screen - Disable": "Отключить экран блокировки",
+    "Movies & TV": "Кино и ТВ",
+    "The default video player and storefront for purchasing or renting media.": "Стандартный видеоплеер и магазин для покупки или аренды фильмов и другого видеоконтента.",
+
     "Delete the temporary working directory and reset the interface back to Step 1": "Удалить временную рабочую папку и вернуться к шагу 1",
     "Microsoft Defender Antivirus is not running; sample submission preference was not changed.": "Антивирус Microsoft Defender не работает; настройка отправки образцов не изменена.",
     "Change the WinUtil UI Theme": "Изменить тему интерфейса WinUtil",

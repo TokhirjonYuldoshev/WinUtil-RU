@@ -217,7 +217,7 @@
             # Show Russian text above the untouched controls only while each sentinel is present.
             foreach ($placeholder in @(
                 @{ Name = 'WPFWin11ISOPath'; GridPosition = 'Grid.Column="0"'; Margin = '7,0,14,0'; Alignment = 'Center'; Source = 'No ISO selected...' },
-                @{ Name = 'WPFWin11ISOStatusLog'; GridPosition = 'Grid.Row="1"'; Margin = '7,7,18,7'; Alignment = 'Stretch'; Source = 'Ready. Please select a Windows 11 ISO to begin.' }
+                @{ Name = 'WPFWin11ISOStatusLog'; GridPosition = ''; Margin = '0'; Alignment = 'Stretch'; Source = 'Ready. Please select a Windows 11 ISO to begin.' }
             )) {
                 $control = $localizedXaml.SelectSingleNode("//*[@Name='$($placeholder.Name)']")
                 if ($null -eq $control) {
@@ -246,7 +246,15 @@
   </TextBlock.Style>
 </TextBlock>
 "@
-                $control.ParentNode.AppendChild($fragment) | Out-Null
+                $overlayPanel = $control.ParentNode
+                if ($overlayPanel.LocalName -eq 'Border') {
+                    # Border accepts one child. Keep the original status field and its
+                    # display-only translation together without changing the field value.
+                    $overlayPanel = $localizedXaml.CreateElement('Grid', $control.NamespaceURI)
+                    $control.ParentNode.ReplaceChild($overlayPanel, $control) | Out-Null
+                    $overlayPanel.AppendChild($control) | Out-Null
+                }
+                $overlayPanel.AppendChild($fragment) | Out-Null
             }
 
             $script:inputXML = $localizedXaml.OuterXml

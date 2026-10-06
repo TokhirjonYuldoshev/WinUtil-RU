@@ -2,7 +2,7 @@ name: Compile & Check
 
 on:
   push:
-    branches: ["main", "russian"]
+    branches: ["main", "russian", "update/*"]
   pull_request:
     branches: ["main", "russian"]
   workflow_dispatch:
@@ -15,8 +15,29 @@ jobs:
     - name: Checkout Sources
       uses: actions/checkout@v7
 
+      with:
+        fetch-depth: 0
+
     - name: Compile and Syntax check winutil.ps1
       shell: pwsh
       run: |
         Set-ExecutionPolicy Bypass -Scope Process -Force; ./Compile.ps1
       continue-on-error: false
+
+    - name: Build Russian Windows QA candidate
+      if: startsWith(github.head_ref, 'update/') || startsWith(github.ref_name, 'update/')
+      shell: powershell
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        .\tools\Build-WinUtilRussianRelease.ps1 -Channel beta
+
+    - name: Upload Russian Windows QA candidate
+      if: startsWith(github.head_ref, 'update/') || startsWith(github.ref_name, 'update/')
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinUtil-RU-candidate-${{ github.sha }}
+        path: |
+          dist/winutil-RU.ps1
+          dist/release.json
+          dist/LICENSE

@@ -2,7 +2,7 @@ name: Russian Backend Parity
 
 on:
   push:
-    branches: ["russian"]
+    branches: ["russian", "update/*"]
   pull_request:
     branches: ["russian"]
   workflow_dispatch:

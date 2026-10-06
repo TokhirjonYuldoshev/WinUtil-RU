@@ -157,3 +157,18 @@ Allowlist ограничивает **где** могут находиться о
 9. владелец отдельно разрешил stable publication.
 
 До этого stable не публикуется.
+
+## Кандидат 26.09.29-RU — 2026-10-05
+
+Live-проверка показала, что upstream `26.09.29` теперь имеет `prerelease=false`. Кандидат начинается непосредственно от exact tag commit `9419b2803e505b67a71b632205ce59132b52b41b`.
+
+В 26.09.29 upstream удалил `Set-WinUtilTweaksProgressIndicator.ps1` и перенёс интерфейс в `Start-WinUtilUserInterface.ps1`, прогресс — в `Step-WinUtilJob.ps1`. Поэтому reviewed allowlist заменяет удалённый путь двумя новыми UI-путями:
+
+- `Start-WinUtilUserInterface.ps1`: только RU/EN меню, About и ссылки версии; upstream UI-thread/lifecycle сохранены.
+- `Step-WinUtilJob.ps1`: только перевод назначаемых `Text` и `ToolTip`; числовой прогресс, состояния, диспетчеризация и headless-вывод сохранены.
+
+`scripts/main.ps1` отличается от нового official tag только YTY-заставкой; `scripts/start.ps1` — только URL форка при повышении прав. Все новые backend-функции, включая DNS benchmark, install/job layer, Windows Update и ISO servicing, берутся из exact upstream tag. Ветка Battle.net в кандидата не переносится.
+
+Переведены новые UI-подписи и четыре новых описания приложений. Версия локализации — `1.2.0`. Candidate artifacts создаются с `Channel=beta`; workflow не публикует release.
+
+Синтаксис и 22 focused Pester tests прошли локально. Полный Windows CI и ручной Windows QA остаются отдельными проверками. Таблицы выше относятся к историческому checkpoint 26.08.19 и не объявляют кандидата проверенным.
