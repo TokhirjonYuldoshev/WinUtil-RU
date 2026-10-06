@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   generate:
+    if: github.repository == 'ChrisTitusTech/winutil'
     runs-on: windows-latest
     timeout-minutes: 15
     env:

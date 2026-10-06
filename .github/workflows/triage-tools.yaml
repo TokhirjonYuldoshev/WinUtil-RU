@@ -36,7 +36,10 @@ jobs:
             const comment = context.payload.comment;
             const commentAuthor = comment.user;
 
-            if (!trustedUsers.includes(commentAuthor.id)) {
+            const trusted = context.repo.owner === 'ChrisTitusTech'
+              ? trustedUsers.includes(commentAuthor.id)
+              : commentAuthor.login === context.repo.owner;
+            if (!trusted) {
               console.log(`Comment author ${commentAuthor.login} is not a trusted user. Exiting.`);
               return;
             }
