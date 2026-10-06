@@ -33,6 +33,19 @@ Describe 'Russian presentation without changing internal keys' {
         $localized.SelectSingleNode("//*[@Name='EnglishLanguageMenuItem']") | Should -Not -BeNullOrEmpty
     }
 
+    It 'keeps each localized Border at one visual child' {
+        [xml]$localized = $script:inputXML
+        foreach ($border in $localized.SelectNodes("//*[local-name()='Border']")) {
+            $children = @($border.ChildNodes | Where-Object {
+                $_.NodeType -eq [System.Xml.XmlNodeType]::Element -and $_.LocalName -notlike '*.*'
+            })
+            $children.Count | Should -BeLessOrEqual 1
+        }
+        $status = $localized.SelectSingleNode("//*[@Name='WPFWin11ISOStatusLog']")
+        $status.ParentNode.LocalName | Should -Be 'Grid'
+        $status.ParentNode.ParentNode.LocalName | Should -Be 'Border'
+    }
+
     It 'shows Russian ISO placeholders without replacing the values read by the original handler' {
         $script:sync.preferences.language = 'ru-RU'
         [xml]$localized = $script:inputXML

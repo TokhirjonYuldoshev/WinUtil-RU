@@ -44,6 +44,12 @@ $licenseText
     [System.IO.File]::WriteAllText($artifactPath, $licenseHeader + $compiledText, $utf8Bom)
     Copy-Item -LiteralPath $licenseSourcePath -Destination $licenseAssetPath -Force
 
+    if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+        & (Join-Path $repoRoot 'tools/Test-WinUtilRussianXaml.ps1') -CompiledScriptPath $artifactPath
+    } else {
+        Write-Warning 'WPF XAML validation requires Windows; this build has not passed the GUI load check.'
+    }
+
     $locale = Get-Content -LiteralPath (Join-Path $repoRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $applications = Get-Content -LiteralPath (Join-Path $repoRoot 'config\applications.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 
