@@ -1,3 +1,51 @@
+﻿function Publish-WinUtilStableCache {
+    param(
+        [Parameter(Mandatory)][string]$CompiledPath,
+        [Parameter(Mandatory)][string]$CacheRoot,
+        [Parameter(Mandatory)][string]$SourceCommit,
+        [Parameter(Mandatory)][object]$Locale
+    )
+    if ($SourceCommit -notmatch '^[0-9a-f]{40}$') { throw 'A full source commit is required for the cache.' }
+    $hash = (Get-FileHash -LiteralPath $CompiledPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $artifact = "versions/$SourceCommit-$hash/winutil-RU.ps1"
+    $target = Join-Path $CacheRoot $artifact
+    $directory = Split-Path -Parent $target
+    New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    if (-not (Test-Path -LiteralPath $target)) {
+        # Publish without overwriting an existing immutable artifact.
+        $stagedScript = Join-Path $directory ("script-" + [guid]::NewGuid().ToString('N') + '.tmp')
+        try {
+            Copy-Item -LiteralPath $CompiledPath -Destination $stagedScript
+            [IO.File]::Move($stagedScript, $target)
+        } catch {
+            if (-not (Test-Path -LiteralPath $target)) { throw }
+        } finally {
+            Remove-Item -LiteralPath $stagedScript -Force -ErrorAction SilentlyContinue
+        }
+    }
+    if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) {
+        throw 'The cached artifact does not match the validated build.'
+    }
+    $manifest = [ordered]@{
+        Product = 'WinUtil RU'; Channel = 'stable'
+        Version = [string]$Locale.Meta.Version
+        LocalizationVersion = [string]$Locale.Meta.LocalizationVersion
+        SourceBranch = 'russian'; SourceCommit = $SourceCommit
+        Artifact = $artifact; Sha256 = $hash; CachedAt = (Get-Date).ToString('o')
+    }
+    $pointer = Join-Path $CacheRoot 'release.json'
+    $previous = Join-Path $CacheRoot 'release.previous.json'
+    $temporary = Join-Path $CacheRoot ("manifest-" + [guid]::NewGuid().ToString('N') + '.tmp')
+    try {
+        $utf8 = New-Object System.Text.UTF8Encoding($false)
+        [IO.File]::WriteAllText($temporary, ($manifest | ConvertTo-Json), $utf8)
+        if (Test-Path -LiteralPath $pointer) { [IO.File]::Replace($temporary, $pointer, $previous) }
+        else { [IO.File]::Move($temporary, $pointer) }
+    } finally {
+        Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue
+    }
+}
+
 $ErrorActionPreference = 'Stop'
 
 $previousRestartCapability = $env:WINDOWMANAGER_LAUNCHER_RESTART
@@ -5,7 +53,6 @@ $env:WINDOWMANAGER_LAUNCHER_RESTART = '1'
 
 $requestedBranch = if ($env:WINUTIL_RU_BRANCH) { $env:WINUTIL_RU_BRANCH } else { $env:WINDOWMANAGER_BRANCH }
 $branch = if ($requestedBranch -in @('russian', 'russian-dev')) { $requestedBranch } else { 'russian' }
-$repoZip = "https://github.com/TokhirjonYuldoshev/WinUtil-RU/archive/refs/heads/$branch.zip"
 $tempRoot = Join-Path $env:TEMP ("WindowManager-$branch-" + [guid]::NewGuid().ToString('N'))
 $zipPath = Join-Path $tempRoot "$branch.zip"
 $extractPath = Join-Path $tempRoot 'src'
@@ -18,13 +65,15 @@ try {
     # "The underlying connection was closed" on older Windows/.NET defaults.
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-    $sourceCommit = $null
-    try {
-        $branchInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/TokhirjonYuldoshev/WinUtil-RU/branches/$branch" -Headers @{ 'User-Agent' = 'WinUtil-RU' } -TimeoutSec 15
+    $sourceCommit = $env:WINUTIL_RU_COMMIT
+    if ([string]::IsNullOrWhiteSpace($sourceCommit)) {
+        $encodedBranch = [Uri]::EscapeDataString($branch)
+        $branchInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/TokhirjonYuldoshev/WinUtil-RU/branches/$encodedBranch" -Headers @{ 'User-Agent' = 'WinUtil-RU' } -TimeoutSec 15
         $sourceCommit = [string]$branchInfo.commit.sha
-    } catch {
-        # SourceCommit is advisory for cache freshness. Build/run may continue if the API is temporarily unavailable.
     }
+    if ($sourceCommit -notmatch '^[0-9a-fA-F]{40}$') { throw 'GitHub did not return a valid source commit.' }
+    $sourceCommit = $sourceCommit.ToLowerInvariant()
+    $repoZip = "https://github.com/TokhirjonYuldoshev/WinUtil-RU/archive/$sourceCommit.zip"
 
     Write-Host 'Загрузка WinUtil RU...' -ForegroundColor Cyan
     for ($attempt = 1; $attempt -le 3; $attempt++) {
@@ -124,35 +173,13 @@ try {
 
         $runTarget = Join-Path $projectRoot 'winutil.ps1'
 
-        if ($branch -eq 'russian') {
-            $stableCacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
-            $stableScript = Join-Path $stableCacheRoot 'winutil-RU.ps1'
-            $stableManifestPath = Join-Path $stableCacheRoot 'release.json'
-
-            New-Item -ItemType Directory -Path $stableCacheRoot -Force | Out-Null
-            Copy-Item -LiteralPath $runTarget -Destination $stableScript -Force
-            $legacyStableScript = Join-Path $stableCacheRoot 'WindowManager-RU.ps1'
-            if (Test-Path -LiteralPath $legacyStableScript) {
-                Remove-Item -LiteralPath $legacyStableScript -Force -ErrorAction SilentlyContinue
-            }
-
-            $localeInfo = Get-Content -LiteralPath (Join-Path $projectRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-            $stableHash = (Get-FileHash -LiteralPath $stableScript -Algorithm SHA256).Hash.ToLowerInvariant()
-            $stableManifest = [ordered]@{
-                Product = 'WinUtil RU'
-                Channel = 'stable'
-                Version = [string]$localeInfo.Meta.Version
-                LocalizationVersion = [string]$localeInfo.Meta.LocalizationVersion
-                SourceBranch = $branch
-                SourceCommit = $sourceCommit
-                Sha256 = $stableHash
-                CachedAt = (Get-Date).ToString('o')
-            }
-            $stableManifest | ConvertTo-Json | Set-Content -LiteralPath $stableManifestPath -Encoding UTF8
-
-            $runTarget = $stableScript
-            Write-Host "Локальный кэш WinUtil RU обновлён: $($stableManifest.Version)" -ForegroundColor DarkGreen
-        }
+        $tokens = $null
+        $parseErrors = $null
+        [System.Management.Automation.Language.Parser]::ParseFile($runTarget, [ref]$tokens, [ref]$parseErrors) | Out-Null
+        if ($parseErrors.Count -gt 0) { throw ($parseErrors.Message -join [Environment]::NewLine) }
+        # ZIP launch checks generated syntax and WPF; Git parity is a CI/release check.
+        & powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File (Join-Path $projectRoot 'tools/Test-WinUtilRussianXaml.ps1') -CompiledScriptPath $runTarget
+        if ($LASTEXITCODE -ne 0) { throw 'The Russian interface failed WPF validation.' }
 
         $restartRegistryPath = 'HKCU:\Software\YTY\WindowManager'
         do {
@@ -175,6 +202,14 @@ try {
         } while ($restartRequested)
 
         Remove-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction SilentlyContinue
+
+        # The old build remains available until the new validated build exits successfully.
+        if ($branch -eq 'russian') {
+            $locale = Get-Content -LiteralPath (Join-Path $projectRoot 'config/localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+            $cacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
+            Publish-WinUtilStableCache -CompiledPath $runTarget -CacheRoot $cacheRoot -SourceCommit $sourceCommit -Locale $locale
+            Write-Host "Локальный кэш WinUtil RU обновлён: $($locale.Meta.Version)" -ForegroundColor DarkGreen
+        }
     }
     finally {
         Pop-Location

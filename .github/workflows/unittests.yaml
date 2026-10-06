@@ -26,6 +26,9 @@ jobs:
         } else {
             Write-Host "PSScriptAnalyzer found no diagnostics."
         }
+        if (@($results | Where-Object { $_.Severity -eq 'Error' }).Count -gt 0) {
+            throw "PSScriptAnalyzer reported severity Error diagnostics."
+        }
       shell: pwsh
   test:
     runs-on: windows-latest
