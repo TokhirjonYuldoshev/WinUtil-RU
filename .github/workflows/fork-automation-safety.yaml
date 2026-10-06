@@ -1,0 +1,55 @@
+name: Fork Automation Safety
+
+on:
+  push:
+    branches: ["russian"]
+  pull_request:
+    branches: ["russian"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fork-automation-safety
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect upstream-only workflows without changing settings
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ./tools/Set-WinUtilForkAutomation.ps1 -Repository $env:GITHUB_REPOSITORY -ReportPath "$env:RUNNER_TEMP/fork-automation-inspection.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fork-automation-inspection-${{ github.run_id }}
+          path: ${{ runner.temp }}/fork-automation-inspection.json
+
+  disable-upstream:
+    needs: inspect
+    if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU' && github.ref == 'refs/heads/russian' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Disable and verify upstream-only workflows across all refs
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ./tools/Set-WinUtilForkAutomation.ps1 -Repository $env:GITHUB_REPOSITORY -Apply -ReportPath "$env:RUNNER_TEMP/fork-automation-policy.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fork-automation-policy-${{ github.run_id }}
+          path: ${{ runner.temp }}/fork-automation-policy.json
