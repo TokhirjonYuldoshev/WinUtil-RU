@@ -1,138 +1,91 @@
-# WinUtil RU — руководство по русской редакции
+# WinUtil RU — руководство
 
+[Главная](../README.md) · [English](../README.en.md) · [Технический аудит](AUDIT-RU.md)
 
-## Кандидат обновления 26.09.29-RU
+## Текущий выпуск
 
-Ветка `update/26.09.29-ru` готовится на точном официальном теге `26.09.29` (`9419b2803e505b67a71b632205ce59132b52b41b`). Это кандидат для Windows QA; опубликованный stable по-прежнему `26.08.19-RU`. Язык, About и перевод прогресса перенесены в новую upstream-архитектуру интерфейса. Конфиги и операционные функции берутся из нового official tag. Перед merge и публикацией нужны успешные проверки, Windows QA и отдельное разрешение владельца.
+**[26.09.29-RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU)** — стабильная русская редакция официального WinUtil **26.09.29**, локализация **1.2.0**.
 
-Этот документ относится к [TokhirjonYuldoshev/WinUtil-RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU). Унаследованный сайт в `docs/src/content/docs/` остаётся документацией **оригинального WinUtil**; его команды запуска относятся к оригинальному проекту.
+[WinUtil RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU) сохраняет операционные функции оригинала и добавляет русский интерфейс, выбор языка и окно «О программе» с исходными авторами.
 
-## Что это за проект
-
-[WinUtil](https://github.com/ChrisTitusTech/winutil) — PowerShell/WPF-утилита для Windows. Она объединяет установку программ, системные tweaks, DNS, AppX, Windows Update, системные инструменты и работу с ISO Windows 11.
-
-**WinUtil RU** — независимый форк-локализация. Текущий опубликованный stable основан на официальном выпуске **26.08.19**, exact tag commit:
-
-`086aecf4b7d165f9fd1822049435c418a48e7cba`
-
-Цель проекта — не переписывать WinUtil, а предоставить русский пользовательский интерфейс поверх функциональности конкретного официального выпуска.
-
-### Что разрешено менять
-
-- видимый RU/EN текст интерфейса;
-- переключатель **Русский / English**;
-- YTY-заставку;
-- окно **«О программе»** и сведения о форке при сохранении исходных авторов;
-- локализационные таблицы;
-- необходимый launcher/build/release glue;
-- тесты и CI, которые проверяют локализацию и безопасность выпуска.
-
-### Что не переводится и не переписывается
-
-Внутренние имена WPF-элементов, config keys, package IDs, пути и значения реестра, аргументы команд, машинные состояния и sentinel values должны оставаться исходными. Названия продуктов вроде WinGet, Chrome, BitLocker и Windows 11 сохраняются как собственные названия.
-
-Операционные механизмы установки, tweaks, DNS, AppX, Windows Update и ISO берутся из exact official release. Новые «улучшения backend» не должны попадать в stable под видом локализации.
-
-## Что мы сделали
-
-Текущая линия проекта приведена к модели **«оригинал + локализация»**.
-
-| Область | Что сделано |
+| Состав выпуска | Назначение |
 | --- | --- |
-| База | Stable возвращён на exact official release `26.08.19`, а не на более новый upstream `main`. |
-| Интерфейс | Переведены пользовательские вкладки, подписи, описания, основные статусы и диалоги. |
-| Язык | Добавлены `Русский` и `English`; выбор меняет отображение, а не внутренние значения операций. |
-| YTY | При старте показывается рамка YTY, имя Tokhirjon Yuldoshev и WINUTIL RU. |
-| About | Сохранены Chris Titus Tech и исходные участники UI/runspace; форк/переводчик указан отдельно. |
-| Backend | Strict parity-gate проверяет upstream `functions/`, `scripts/`, `config/`, `xaml/`, `tools/autounattend.xml` и `LICENSE`. Контрольный запуск: 104 protected paths, 92 exact match, 12 reviewed UI/launcher differences, 4 allowed RU additions, 0 forbidden/missing. |
-| Конфиги | `applications.json`, `tweaks.json`, `appx.json`, `dns.json` побайтово равны official tag. |
-| Ветки | Оставлены только две постоянные ветки: `main` и `russian`. |
-| CI | Compile & Check, Pester, PSScriptAnalyzer и отдельный Russian Backend Parity gate запускаются для нужных push/PR. |
-| Release | Stable-публикация manual-only; обычный push не выпускает релиз. Существующий stable автоматически не удаляется и не заменяется. |
-| Лицензия | Исходный MIT LICENSE и Copyright CT Tech Group LLC сохранены. |
+| `winutil-RU.ps1` | Готовая утилита |
+| `release.json` | Версия, исходный commit и SHA256 |
+| `LICENSE` | Исходная лицензия MIT |
 
-Полный контрольный отчёт с SHA и известными рисками: [AUDIT-RU.md](AUDIT-RU.md).
+## Запуск через загрузчик
 
-## Текущий stable
+Откройте PowerShell или Windows Terminal **от имени администратора**:
 
-Опубликованный stable: **26.08.19-RU**.
+```powershell
+irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1 | iex
+```
 
-Он остаётся привязан к commit:
+Загрузчик использует ветку `russian`. Он проверяет локальный кэш по версии, исходному commit и SHA256. При необходимости исходники загружаются, проходят preflight, компилируются и сохраняются для следующего запуска. Если обновление недоступно, загрузчик может запустить последний локальный кэш с подтверждённым хешем.
 
-`f23c8b896885ba2fc46f05a64151a6a89d9aa024`
+Исходники загрузчика: [bootstrap.ps1](../bootstrap.ps1) и [run-russian.ps1](../run-russian.ps1).
 
-Последующие изменения документации и CI в ветке `russian` сами по себе **не переиздают** этот release.
+## Запуск скачанного файла
 
-## Запуск и смена языка
+Скачайте `winutil-RU.ps1` из [стабильного выпуска](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest). Откройте PowerShell в папке с файлом от имени администратора:
 
-1. Откройте PowerShell или Windows Terminal **от имени администратора**.
-2. Запустите загрузчик:
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
+```
 
-   ```powershell
-   irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1 | iex
-   ```
+Так запускается конкретный скачанный выпуск. Загрузчик из предыдущего раздела следует текущим исходникам `russian`, в том числе более поздним изменениям документации.
 
-3. Либо скачайте `winutil-RU.ps1` из [Releases](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest) и запустите локально:
+## Язык и «О программе»
 
-   ```powershell
-   powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
-   ```
+Русский выбран по умолчанию. В меню с шестерёнкой выберите **Русский** или **English** и перезапустите приложение. Выбор сохраняется для текущего пользователя Windows.
 
-Русский выбран по умолчанию. В меню с шестерёнкой можно выбрать **English** или **Русский**, после чего перезапустить приложение. Пункт **«О программе»** находится там же.
+Пункт **«О программе»** находится в том же меню. Он показывает версию, сведения о русском форке и авторство оригинального WinUtil.
 
-Выбор языка хранится для текущего пользователя Windows и должен менять только отображение.
+Перевод меняет видимые подписи и описания. Внутренние имена WPF-элементов, ключи конфигов, package IDs и машинные значения сохраняются.
 
-## Журналы и проверка результата
+## Журналы
 
-Логи WinUtil находятся в:
+Журналы текущего сеанса:
 
-`%LOCALAPPDATA%\winutil\logs\winutil_*.log`
+```text
+%LOCALAPPDATA%\winutil\logs\winutil_*.log
+```
 
-Выбранный checkbox означает только выбранное действие. Для подтверждения результата операции нужно смотреть итоговое сообщение, фактическое состояние Windows и журнал.
+Строки `INFO` и `DEBUG` показывают ход работы. Для подтверждения операции проверяйте итоговое сообщение, журнал и фактический результат в Windows.
 
-## Ветки
+## Проверки выпуска
 
-Постоянных веток две:
+Для опубликованного `26.09.29-RU` подтверждены:
 
-- `main` — оригинальная линия upstream;
-- `russian` — русская редакция.
+- строгая проверка исходников относительно официального тега;
+- **871 пройденный тест, 0 ошибок, 0 пропусков**;
+- успешные Compile & Check и PS Script Analyzer;
+- загрузка готового WPF-интерфейса **RU → EN → RU**;
+- успешная проверка на Windows, сообщённая владельцем;
+- совпадение SHA256 файлов с опубликованными assets.
 
-Временную candidate-ветку допустимо создавать только для нового официального release и только **от exact official tag commit**. После завершения обновления её следует удалить. Старые dev-ветки в новую версию не сливаются.
+CI и загрузка WPF не доказывают успешность каждой системной операции. Подробная область проверки: [AUDIT-RU.md](AUDIT-RU.md).
 
-Важно: upstream `main` может быть новее последнего официального release. Поэтому `main` не используется как автоматическая база stable.
+## Ветки и обновления
 
-## Как обновлять WinUtil RU после нового официального release
+Основные линии:
 
-1. Проверить, что release у ChrisTitusTech/winutil не draft и не prerelease.
-2. Получить tag ref и exact commit SHA; для annotated tag сначала разыменовать его до commit.
-3. Создать временную candidate-ветку непосредственно от этого commit.
-4. Перенести только локализацию, язык, YTY, About и необходимую build/launcher-инфраструктуру.
-5. Не вливать старые dev-ветки целиком.
-6. Запустить `tools/Test-WinUtilRussianEdition.ps1`. Он проверяет published upstream release, exact tag commit, ancestry кандидата, protected Git blobs, missing paths и запрещённые additions. Любой новый mismatch — blocker.
-7. Запустить Compile & Check, Pester и PSScriptAnalyzer.
-8. Провести Windows QA: запуск, YTY, RU→EN→RU, About, вкладки, безопасная установка, согласованный tweak, AppX, Windows 11/ISO и повторный запуск/кэш.
-9. Только после Windows QA и отдельного решения владельца обновлять stable.
-10. Публикацию запускать вручную; автоматического выпуска от push нет.
+| Ветка | Назначение |
+| --- | --- |
+| `main` | Исходная линия WinUtil |
+| `russian` | Русская редакция |
 
-## Strict parity / preflight
+Отдельные рабочие ветки используются для проверяемых изменений. `fix/battlenet-install-location` содержит самостоятельную работу по Battle.net и не включается в русскую редакцию. Завершённые ветки можно удалять после проверки, что работа сохранена.
 
-GitHub Actions проверяет сборку, Pester и PSScriptAnalyzer, но это не равно ручному Windows QA.
-
-`tools/Test-WinUtilRussianEdition.ps1` теперь является обязательным strict gate. Он берёт базовую версию из `config/localization_ru.json`, проверяет, что upstream release опубликован и не является draft/prerelease, разыменовывает exact tag до commit, требует ancestry кандидата от этого commit и сравнивает protected tree по Git blob SHA.
-
-Protected scope: весь upstream `functions/`, `scripts/`, `config/`, `xaml/`, `tools/autounattend.xml` и `LICENSE`. Новые upstream-файлы внутри этих зон автоматически входят в проверку. Любой missing path, новый modified path или новый файл внутри protected roots блокирует candidate, если он явно не добавлен в reviewed allowlist.
-
-`.github/workflows/russian-parity-check.yaml` запускает gate на push/PR для `russian`. `tools/Build-WinUtilRussianRelease.ps1` также всегда запускает preflight перед release-сборкой; bypass `-SkipPreflight` удалён.
+Новый выпуск начинается от **точного официального тега**, с переносом локализации и необходимых изменений загрузчика. Затем проверяются backend parity, CI и работа на Windows. Публикация выполняется вручную после явного подтверждения владельца. Обычный push не публикует стабильный выпуск.
 
 ## Документация оригинала
 
-Каталог `docs/src/content/docs/` унаследован от upstream и описывает оригинальный WinUtil. Он не является переведённым сайтом WinUtil RU.
+[Сайт WinUtil](https://winutil.christitus.com/) и унаследованный каталог `docs/src/content/docs/` описывают оригинальную утилиту. Их команды запуска относятся к upstream.
 
 ## Авторы и лицензия
 
-- Оригинальный проект: [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil).
-- Исходное уведомление: **Copyright (c) 2022 CT Tech Group LLC**.
-- Русская локализация и оформление форка: [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev/WinUtil-RU).
-- Лицензия: [MIT](../LICENSE).
+Оригинальный проект: [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil). Русская локализация: [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev).
 
-WinUtil RU не заявляет, что является официальным русским выпуском Chris Titus Tech, и не присваивает авторство исходного продукта.
+Исходная [MIT License](../LICENSE) и **Copyright (c) 2022 CT Tech Group LLC** сохранены.
