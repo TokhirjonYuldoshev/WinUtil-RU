@@ -174,6 +174,7 @@ Proceed without asking when:
 
 When the user corrects an agent approach, add or tighten one concrete rule here before ending the session. Keep this section short and prune rules that no longer matter.
 
+- After a stable RU release is published, update the README, RU guide and audit to that released version; remove superseded update-candidate notices and keep detailed release evidence out of the landing README.
 - A passing XML/syntax check does not prove WPF can load localized XAML. Validate the generated RU/EN markup with `tools/Test-WinUtilRussianXaml.ps1` on Windows; a `Border` must retain only one visual child.
 - Keep `winutil.ps1` generated-only: change source files, compile to verify, and never stage the generated script.
 - For WinUtil RU localization, base the candidate on the exact original release the user tested; preserve its tweak/install/update handlers and internal values, and limit fork changes to visible language, language selection, requested branding, and necessary fork build/launcher glue. Every RU candidate and release build must pass `tools/Test-WinUtilRussianEdition.ps1`; never bypass the strict parity gate.

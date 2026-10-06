@@ -1,72 +1,68 @@
+<div align="center">
+
 # WinUtil RU
 
+**Возможности оригинального WinUtil — с русским интерфейсом.**
 
-## Кандидат обновления 26.09.29-RU
+[![Stable release](https://img.shields.io/github/v/release/TokhirjonYuldoshev/WinUtil-RU?label=stable&color=2563eb)](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest)
+[![Backend parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/workflows/russian-parity-check.yaml/badge.svg?branch=russian)](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/workflows/russian-parity-check.yaml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-22c55e.svg)](LICENSE)
+![Languages](https://img.shields.io/badge/interface-RU%20%2F%20EN-7c3aed.svg)
 
-Ветка `update/26.09.29-ru` готовится на точном официальном теге `26.09.29` (`9419b2803e505b67a71b632205ce59132b52b41b`). Это кандидат для Windows QA; опубликованный stable по-прежнему `26.08.19-RU`. Язык, About и перевод прогресса перенесены в новую upstream-архитектуру интерфейса. Конфиги и операционные функции берутся из нового official tag. Перед merge и публикацией нужны успешные проверки, Windows QA и отдельное разрешение владельца.
+[**Скачать**](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest) · [**Руководство**](docs/README-RU.md) · [**English**](README.en.md)
 
-**WinUtil RU** — независимая русская локализация [Chris Titus Tech's Windows Utility (WinUtil)](https://github.com/ChrisTitusTech/winutil).
+</div>
 
-Текущая опубликованная русская версия основана на **точном официальном выпуске WinUtil 26.08.19**, tag commit `086aecf4b7d165f9fd1822049435c418a48e7cba`. Проект сохраняет оригинальную логику WinUtil и меняет только пользовательское представление и необходимую инфраструктуру форка.
+---
 
-## Что это
+**WinUtil RU** — независимая русская локализация [Chris Titus Tech's Windows Utility](https://github.com/ChrisTitusTech/winutil). Установка программ, настройки Windows и системные инструменты сохраняют логику официального выпуска; перевод и выбор языка относятся к интерфейсу.
 
-Оригинальный WinUtil позволяет устанавливать программы, применять настройки Windows, работать с DNS, AppX, Windows Update, системными инструментами и ISO Windows 11.
+Текущий стабильный выпуск: **[26.09.29-RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU)**. Основа — официальный **WinUtil 26.09.29**. Версия локализации — **1.2.0**.
 
-WinUtil RU сохраняет эти возможности исходного выпуска и добавляет:
+## Быстрый запуск
 
-- русский интерфейс с возможностью вернуть **English**;
-- переключатель языка;
-- заставку **YTY / TOKHIRJON YULDOSHEV / WINUTIL RU**;
-- русские подписи, описания и сообщения интерфейса;
-- окно **«О программе»** с сохранением авторства оригинального WinUtil и отдельным указанием русского форка;
-- загрузчик и сборку `winutil-RU.ps1`, `release.json` и `LICENSE`.
-
-WinUtil RU **не является официальной русской редакцией Chris Titus Tech**.
-
-## Что мы сделали
-
-Для текущего stable мы отказались от подхода «переписать/улучшить WinUtil» и вернули проект к строгой модели **оригинал + локализация**:
-
-- stable построен от exact official tag `26.08.19`, а не от более нового `main`;
-- операционные конфиги установки, tweaks, AppX и DNS побайтово совпадают с официальным tag;
-- strict parity-gate проверяет весь upstream `functions/`, `scripts/`, `config/`, `xaml/`, `tools/autounattend.xml` и `LICENSE`: на контрольном запуске 104 protected paths, 92 exact blob match, 12 заранее просмотренных UI/launcher отличий и 4 разрешённых RU-only additions;
-- старые backend-доработки не переносятся в stable;
-- постоянные ветки сокращены до двух: **`main` = оригинал**, **`russian` = русская редакция**;
-- stable release больше не публикуется от обычного push: публикация запускается вручную после Windows QA и явного решения владельца;
-- существующий stable release не удаляется и не заменяется автоматически;
-- release builder теперь всегда запускает strict exact-tag/backend preflight; обход `-SkipPreflight` удалён;
-- сохранён исходный MIT `LICENSE` и авторство CT Tech Group LLC.
-
-Подробный технический отчёт: **[аудит WinUtil RU](docs/AUDIT-RU.md)**.
-
-## Запуск в Windows
-
-Откройте PowerShell **от имени администратора**:
+Откройте **PowerShell от имени администратора** и выполните:
 
 ```powershell
 irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/bootstrap.ps1 | iex
 ```
 
-Перед выполнением удалённого скрипта можно просмотреть [bootstrap.ps1](bootstrap.ps1). Альтернатива — скачать `winutil-RU.ps1` из [последнего стабильного выпуска](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest) и запустить его с правами администратора.
+Загрузчик проверяет локальную сборку и обновляет её из ветки `russian`, когда это требуется. Его исходный код доступен в [bootstrap.ps1](bootstrap.ps1).
 
-Полное руководство: **[docs/README-RU.md](docs/README-RU.md)**.
+Для запуска конкретного стабильного выпуска скачайте [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.09.29-RU/winutil-RU.ps1), откройте PowerShell в папке с файлом от имени администратора и выполните:
 
-## Ветки и обновления
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
+```
 
-В репозитории поддерживаются две постоянные ветки:
+## Возможности
 
-- **`main`** — синхронизированная линия оригинального WinUtil; локализацию сюда не добавляем.
-- **`russian`** — текущая русская редакция.
+| Раздел | Что доступно |
+| --- | --- |
+| Программы | Поиск, установка, обновление и удаление через инструменты оригинального WinUtil |
+| Настройки | Системные настройки Windows и предусмотренный оригиналом откат |
+| DNS и AppX | Выбор DNS и управление приложениями Windows |
+| Windows Update | Режимы обновления из официального выпуска |
+| Windows 11 | Работа с ISO и инструментами создания установочного образа |
+| Интерфейс | Русский и English, переведённые описания, статусы и окно «О программе» |
 
-Когда выходит новый официальный release, новая кандидатура должна создаваться **от exact official release tag commit**. Временную candidate-ветку после завершения работы можно удалить. Старые dev-ветки целиком в новую версию не вливаются.
+Язык выбирается в меню с шестерёнкой: **Русский / English**. После смены языка перезапустите приложение.
 
-Перед новым stable обязательны: успешный `tools/Test-WinUtilRussianEdition.ps1`, CI, ручной Windows QA и отдельное разрешение владельца на публикацию.
+## Проверенная основа
 
-## Авторство и лицензия
+Операционные файлы сравниваются с **точным официальным тегом**. Все отличия интерфейса и загрузчика проходят отдельную проверку. Перед стабильным выпуском обязательны CI, проверка на Windows и подтверждение владельца.
 
-Оригинальный WinUtil создан Chris Titus Tech и участниками проекта. Исходное уведомление: **Copyright (c) 2022 CT Tech Group LLC**.
+Для `26.09.29-RU` прошли **871 тест**, строгая проверка backend parity и загрузка WPF-интерфейса **RU → EN → RU**. Подробности и границы проверки: [технический аудит](docs/AUDIT-RU.md).
 
-Русская локализация и оформление форка: [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev/WinUtil-RU).
+## Документация и участие
 
-Проект распространяется на условиях исходной [MIT License](LICENSE). Авторство оригинального WinUtil не передаётся форку и не заменяется авторством локализатора.
+- [Руководство WinUtil RU](docs/README-RU.md) — запуск, язык, журналы и обновления.
+- [Технический аудит](docs/AUDIT-RU.md) — основа выпуска, проверки и защита ветки.
+- [Как участвовать](.github/CONTRIBUTING.md) — правила изменений и pull request.
+- [Документация оригинального WinUtil](https://winutil.christitus.com/) — возможности исходной утилиты.
+
+## Авторы и лицензия
+
+Оригинальный WinUtil: **Chris Titus Tech и участники проекта**. Русская локализация: **[Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev)**.
+
+Проект распространяется по исходной [MIT License](LICENSE). Уведомление **Copyright (c) 2022 CT Tech Group LLC** сохранено. WinUtil RU — самостоятельный форк с сохранением авторства оригинала.
