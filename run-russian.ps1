@@ -36,14 +36,67 @@
     $pointer = Join-Path $CacheRoot 'release.json'
     $previous = Join-Path $CacheRoot 'release.previous.json'
     $temporary = Join-Path $CacheRoot ("manifest-" + [guid]::NewGuid().ToString('N') + '.tmp')
+    $previousTemporary = $temporary + '.previous'
     try {
         $utf8 = New-Object System.Text.UTF8Encoding($false)
         [IO.File]::WriteAllText($temporary, ($manifest | ConvertTo-Json), $utf8)
-        if (Test-Path -LiteralPath $pointer) { [IO.File]::Replace($temporary, $pointer, $previous) }
+        # Back up only the exact pointer whose artifact was verified. A corrupt
+        # active pointer must never replace an older, still valid recovery build.
+        $verifiedPointer = Get-WinUtilVerifiedCachePointer -CacheRoot $CacheRoot -PointerPath $pointer
+        if ($null -ne $verifiedPointer) {
+            [IO.File]::WriteAllText($previousTemporary, $verifiedPointer, $utf8)
+            if (Test-Path -LiteralPath $previous) { [IO.File]::Replace($previousTemporary, $previous, [System.Management.Automation.Language.NullString]::Value) }
+            else { [IO.File]::Move($previousTemporary, $previous) }
+        }
+        if (Test-Path -LiteralPath $pointer) { [IO.File]::Replace($temporary, $pointer, [System.Management.Automation.Language.NullString]::Value) }
         else { [IO.File]::Move($temporary, $pointer) }
     } finally {
         Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $previousTemporary -Force -ErrorAction SilentlyContinue
     }
+}
+
+function Get-WinUtilVerifiedCachePointer {
+    param([string]$CacheRoot, [string]$PointerPath)
+    try {
+        if (-not (Test-Path -LiteralPath $PointerPath -PathType Leaf)) { return $null }
+        $text = Get-Content -LiteralPath $PointerPath -Raw -Encoding UTF8
+        $manifest = $text | ConvertFrom-Json
+        $artifact = [string]$manifest.Artifact
+        if ([string]::IsNullOrWhiteSpace($artifact)) { $artifact = 'winutil-RU.ps1' }
+        if ($artifact -ne 'winutil-RU.ps1' -and $artifact -notmatch '^versions/[0-9a-f]{40}-[0-9a-f]{64}/winutil-RU\.ps1$') { return $null }
+        if ([string]$manifest.Sha256 -notmatch '^[0-9a-fA-F]{64}$') { return $null }
+        $path = Join-Path $CacheRoot $artifact
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $null }
+        if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne [string]$manifest.Sha256) { return $null }
+        return $text
+    } catch { return $null }
+}
+
+function Test-WinUtilLauncherAdministrator {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    try {
+        $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+        return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    } finally { $identity.Dispose() }
+}
+
+function Invoke-WinUtilLauncherApplication {
+    param([Parameter(Mandatory)][string]$Shell, [Parameter(Mandatory)][string]$ScriptPath)
+    if (Test-WinUtilLauncherAdministrator) {
+        & $Shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath | Out-Host
+        return [int]$LASTEXITCODE
+    }
+    # Elevate before executing the temporary script, and wait for its process
+    # tree. The compiled GUI's detached self-elevation cannot outlive cleanup.
+    $literalPath = $ScriptPath.Replace("'", "''")
+    $literalShell = [IO.Path]::GetFileName($Shell).Replace("'", "''")
+    # Keep -File ownership/exit semantics inside the elevated host.
+    $command = "`$env:WINDOWMANAGER_LAUNCHER_RESTART = '1'; try { & (Join-Path `$PSHOME '$literalShell') -NoProfile -ExecutionPolicy Bypass -File '$literalPath'; exit `$LASTEXITCODE } catch { Write-Error `$_ -ErrorAction Continue; exit 1 }"
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+    $process = Start-Process -FilePath $Shell -Verb RunAs -ArgumentList @('-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded) -Wait -PassThru -ErrorAction Stop
+    if ($null -eq $process.ExitCode) { throw 'The elevated application did not return an exit code.' }
+    return [int]$process.ExitCode
 }
 
 $ErrorActionPreference = 'Stop'
@@ -188,9 +241,9 @@ try {
             }
 
             Write-Host 'Запуск интерфейса WinUtil RU...' -ForegroundColor Green
-            & $shell -NoProfile -ExecutionPolicy Bypass -File $runTarget
-            if ($LASTEXITCODE -ne 0) {
-                throw "WinUtil RU завершился с кодом $LASTEXITCODE."
+            $appExitCode = Invoke-WinUtilLauncherApplication -Shell $shell -ScriptPath $runTarget
+            if ($appExitCode -ne 0) {
+                throw "WinUtil RU завершился с кодом $appExitCode."
             }
 
             $restartRequested = $false
@@ -205,10 +258,16 @@ try {
 
         # The old build remains available until the new validated build exits successfully.
         if ($branch -eq 'russian') {
-            $locale = Get-Content -LiteralPath (Join-Path $projectRoot 'config/localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-            $cacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
-            Publish-WinUtilStableCache -CompiledPath $runTarget -CacheRoot $cacheRoot -SourceCommit $sourceCommit -Locale $locale
-            Write-Host "Локальный кэш WinUtil RU обновлён: $($locale.Meta.Version)" -ForegroundColor DarkGreen
+            try {
+                $locale = Get-Content -LiteralPath (Join-Path $projectRoot 'config/localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+                $cacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
+                Publish-WinUtilStableCache -CompiledPath $runTarget -CacheRoot $cacheRoot -SourceCommit $sourceCommit -Locale $locale
+                Write-Host "Локальный кэш WinUtil RU обновлён: $($locale.Meta.Version)" -ForegroundColor DarkGreen
+            } catch {
+                # The application already completed successfully. A cache write
+                # failure must not make bootstrap launch an older application.
+                Write-Warning "WinUtil RU завершил работу, но кэш не обновлён: $($_.Exception.Message)"
+            }
         }
     }
     finally {

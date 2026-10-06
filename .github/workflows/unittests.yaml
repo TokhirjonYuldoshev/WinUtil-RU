@@ -43,6 +43,7 @@ jobs:
         Install-Module -Name Pester -RequiredVersion 5.8.0 -Force -SkipPublisherCheck -AllowClobber
         Import-Module Pester -RequiredVersion 5.8.0 -Force
         Get-Module Pester | Select-Object Name, Version, Path
+        "WINUTIL_RU_PESTER_PATH=$((Get-Module Pester).Path)" >> $env:GITHUB_ENV
       shell: pwsh
 
     - name: Run Pester tests
@@ -54,3 +55,12 @@ jobs:
       shell: pwsh
       env:
         TEMP: ${{ runner.temp }}
+
+    - name: Test launcher and release guards with Windows PowerShell 5.1
+      shell: powershell
+      env:
+        TEMP: ${{ runner.temp }}
+      run: |
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+        Import-Module -Name $env:WINUTIL_RU_PESTER_PATH -Force
+        Invoke-Pester -Path 'pester/russian-launcher.Tests.ps1', 'pester/russian-release-safety.Tests.ps1' -Output Detailed -CI
