@@ -1,7 +1,24 @@
-# Security Policy
+# Security Policy / Безопасность
 
-If you find a security issue, please post it in the Issues tab. If you think it should be private, you can email me at contact@christitus.com.
+WinUtil RU is maintained by [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev).
+Original WinUtil is maintained independently by [Chris Titus Tech](https://github.com/ChrisTitusTech/winutil).
 
-For immediate response check out our Discord server:
+## WinUtil RU
 
-[![](https://dcbadge.limes.pink/api/server/https://discord.gg/RUbZUZyByQ?theme=default-inverted&style=for-the-badge)](https://discord.gg/RUbZUZyByQ)
+For ordinary bugs, use this fork's [Issues](https://github.com/TokhirjonYuldoshev/WinUtil-RU/issues).
+For a vulnerability, use **Security → Report a vulnerability** if private reporting is available.
+If that control is unavailable, open an Issue requesting a private contact channel without disclosing exploit details or secrets.
+Private reporting availability is controlled by repository settings; this document does not enable it.
+
+## Original WinUtil
+
+For a problem affecting the original project, follow its
+[Security Policy](https://github.com/ChrisTitusTech/winutil/blob/main/.github/SECURITY.md).
+Original author attribution and the MIT notice are preserved.
+
+## Русская версия
+
+Ошибки локализации и загрузчика относятся к этому форку.
+Об уязвимости сообщайте через **Security → Report a vulnerability**, если приватная форма доступна.
+Если её нет, создайте Issue с просьбой организовать приватный канал, без подробностей эксплуатации и секретных данных.
+Проблемы оригинального WinUtil направляйте согласно политике безопасности оригинала.

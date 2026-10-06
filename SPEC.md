@@ -107,8 +107,9 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 - `.\Compile.ps1` verifies the compiler can generate `winutil.ps1`.
 - `.\Compile.ps1 -Run` compiles and launches the generated utility for manual GUI verification.
 - Pester 5.8.0 runs the suite under `pester/*.Tests.ps1`. GitHub Actions (`unittests.yaml`) installs Pester 5.8.0 fresh and runs with `-CI`, which produces `testResults.xml` and exits non-zero on failure.
-- GitHub Actions also runs PowerShell Script Analyzer with `lint/PSScriptAnalyser.ps1` on every push.
+- GitHub Actions also runs PowerShell Script Analyzer with `lint/PSScriptAnalyser.ps1` on every push. Severity Error diagnostics fail the job; accepted convention warnings remain visible.
 - `tools/Test-WinUtilRussianEdition.ps1` is the strict RU release preflight. It verifies that the version maps to a published non-draft/non-prerelease upstream tag, resolves that tag to its exact commit, requires the candidate to descend from that commit, and enforces Git-blob parity across protected runtime/config paths except for an explicit reviewed UI/launcher allowlist.
+- Compile & Check validates a Russian standalone artifact for every PR targeting `russian` and every push to `russian`/`update/*`, independently of the PR head branch name. It also explicitly parses compiled output.
 - Windows RU builds validate the embedded RU→EN→RU XAML with `tools/Test-WinUtilRussianXaml.ps1` using WPF's `XamlReader.Load` before uploading an artifact. This loads the window without showing it or running system operations; manual GUI QA remains required.
 - `.github/workflows/russian-parity-check.yaml` runs that strict parity gate on pushes and pull requests targeting `russian`; any new protected mismatch, missing upstream file, or unapproved addition fails the check.
 - The generated `winutil.ps1` may appear locally after compile. It remains ignored build output (see root `.gitignore`) and must not be committed.
@@ -117,3 +118,11 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 ## Release Artifact
 
 For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first runs the strict parity preflight, then compiles repository sources and produces `dist/winutil-RU.ps1`, `dist/release.json`, and `dist/LICENSE`. The stable release workflow is manual-only; publishing additionally requires `publish_stable=true`. A release is not valid merely because it compiles: strict parity must pass and Windows QA plus explicit owner approval remain required before stable publication.
+
+## Source Launcher and Cache
+
+`bootstrap.ps1` resolves the requested branch once and downloads `run-russian.ps1` by exact commit. The launcher downloads the same commit archive, compiles, parses the generated script and validates actual WPF via Windows PowerShell STA before starting it. ZIP launch does not perform Git ancestry/parity; that remains a CI/release check.
+
+After successful application exit, the launcher publishes a content-addressed script under `%LocalAppData%/YTY/WindowManager/Stable/versions/<commit>-<hash>/`. `release.json` is an atomically replaced pointer; `release.previous.json` retains the previous pointer. Old artifact paths are not overwritten. Bootstrap verifies script hashes, supports the legacy flat cache and uses only a verified cache when source commit lookup or updating fails.
+
+The fork maintains its own CODEOWNERS and security routing. Upstream publishing, auto-merge, sponsors, title-screen and issue-maintenance workflows are repository-guarded; they do not mutate this fork automatically.

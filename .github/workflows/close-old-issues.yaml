@@ -7,6 +7,7 @@ on:
 
 jobs:
   close-issues:
+    if: github.repository == 'ChrisTitusTech/winutil'
     runs-on: ubuntu-latest
     permissions:
       issues: write  # Ensure necessary permissions for issues

@@ -174,6 +174,7 @@ Proceed without asking when:
 
 When the user corrects an agent approach, add or tighten one concrete rule here before ending the session. Keep this section short and prune rules that no longer matter.
 
+- Bind source launcher and archive downloads to one exact commit. Keep cached scripts immutable, publish the manifest atomically only after successful validation/run, and test failed updates against the previous verified cache.
 - After a stable RU release is published, update the README, RU guide and audit to that released version; remove superseded update-candidate notices and keep detailed release evidence out of the landing README.
 - A passing XML/syntax check does not prove WPF can load localized XAML. Validate the generated RU/EN markup with `tools/Test-WinUtilRussianXaml.ps1` on Windows; a `Border` must retain only one visual child.
 - Keep `winutil.ps1` generated-only: change source files, compile to verify, and never stage the generated script.

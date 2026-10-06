@@ -1,9 +1,2 @@
-# Chris rules EVERYTHING (including paths listed below)
-*          @ChrisTitusTech
-
-# Seanh1917 (ANGRYxScotsmans) is the docs guy
-docs/      @ChrisTitusTech @seanh1995
-tools/devdocs-generator.*  @ChrisTitusTech @seanh1995
-
-# Title screen generation
-tools/title-screen/  @ChrisTitusTech @mewclouds
+# WinUtil RU fork maintenance. Original authors are credited in README and LICENSE.
+* @TokhirjonYuldoshev
