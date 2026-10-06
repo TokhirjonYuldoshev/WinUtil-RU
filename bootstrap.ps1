@@ -49,6 +49,32 @@ function Get-WMCachedBuild {
     return $null
 }
 
+function Test-WinUtilLauncherAdministrator {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    try {
+        $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+        return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    } finally { $identity.Dispose() }
+}
+
+function Invoke-WinUtilLauncherApplication {
+    param([Parameter(Mandatory)][string]$Shell, [Parameter(Mandatory)][string]$ScriptPath)
+    if (Test-WinUtilLauncherAdministrator) {
+        & $Shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath | Out-Host
+        return [int]$LASTEXITCODE
+    }
+    # Elevate before executing the temporary script, and wait for its process
+    # tree. The compiled GUI's detached self-elevation cannot outlive cleanup.
+    $literalPath = $ScriptPath.Replace("'", "''")
+    $literalShell = [IO.Path]::GetFileName($Shell).Replace("'", "''")
+    # Keep -File ownership/exit semantics inside the elevated host.
+    $command = "`$env:WINDOWMANAGER_LAUNCHER_RESTART = '1'; try { & (Join-Path `$PSHOME '$literalShell') -NoProfile -ExecutionPolicy Bypass -File '$literalPath'; exit `$LASTEXITCODE } catch { Write-Error `$_ -ErrorAction Continue; exit 1 }"
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
+    $process = Start-Process -FilePath $Shell -Verb RunAs -ArgumentList @('-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded) -Wait -PassThru -ErrorAction Stop
+    if ($null -eq $process.ExitCode) { throw 'The elevated application did not return an exit code.' }
+    return [int]$process.ExitCode
+}
+
 function Invoke-WMStandalone {
     param([Parameter(Mandatory = $true)][string]$ScriptPath)
     $previousRestartCapability = $env:WINDOWMANAGER_LAUNCHER_RESTART
@@ -60,8 +86,8 @@ function Invoke-WMStandalone {
             if (Test-Path $restartRegistryPath) {
                 Remove-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction SilentlyContinue
             }
-            & $shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath
-            if ($LASTEXITCODE -ne 0) { throw "WinUtil RU exited with code $LASTEXITCODE." }
+            $appExitCode = Invoke-WinUtilLauncherApplication -Shell $shell -ScriptPath $ScriptPath
+            if ($appExitCode -ne 0) { throw "WinUtil RU exited with code $appExitCode." }
             $restartRequested = $false
             try {
                 $restartRequested = [bool]((Get-ItemProperty -Path $restartRegistryPath -Name 'RestartRequested' -ErrorAction Stop).RestartRequested)

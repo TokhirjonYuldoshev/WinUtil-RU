@@ -35,6 +35,7 @@ BeforeEach {
     $cacheRoot = Join-Path $scenario 'YTY/WindowManager/Stable'
     $compiled = Join-Path $scenario 'compiled.ps1'
     [IO.File]::WriteAllText($compiled, 'new validated build')
+    Mock Test-WinUtilLauncherAdministrator { $true }
 }
 
 Describe 'Stable cache publication and recovery' {
@@ -102,6 +103,89 @@ Describe 'Stable cache publication and recovery' {
         $old = New-TestLegacyCache $cacheRoot
         [IO.File]::WriteAllText($old, 'changed')
         Get-WMCachedBuild $cacheRoot | Should -BeNullOrEmpty
+    }
+    It 'preserves a verified previous manifest across replacement of a corrupt active pointer' {
+        $old = New-TestLegacyCache $cacheRoot
+        Publish-WinUtilStableCache $compiled $cacheRoot $newCommit $locale
+        [IO.File]::WriteAllText((Join-Path $cacheRoot 'release.json'), '{corrupt')
+        (Get-WMCachedBuild $cacheRoot).ScriptPath | Should -Be $old
+        [IO.File]::WriteAllText($compiled, 'next verified build')
+        Publish-WinUtilStableCache $compiled $cacheRoot ('c' * 40) $locale
+        [IO.File]::WriteAllText((Join-Path $cacheRoot 'release.json'), '{corrupt again')
+        (Get-WMCachedBuild $cacheRoot).ScriptPath | Should -Be $old
+    }
+    It 'does not back up an active pointer whose artifact hash is invalid' {
+        $old = New-TestLegacyCache $cacheRoot
+        Publish-WinUtilStableCache $compiled $cacheRoot $newCommit $locale
+        [IO.File]::WriteAllText((Get-WMCachedBuild $cacheRoot).ScriptPath, 'corrupt artifact')
+        [IO.File]::WriteAllText($compiled, 'next verified build')
+        Publish-WinUtilStableCache $compiled $cacheRoot ('c' * 40) $locale
+        [IO.File]::WriteAllText((Join-Path $cacheRoot 'release.json'), '{broken')
+        (Get-WMCachedBuild $cacheRoot).ScriptPath | Should -Be $old
+    }
+}
+
+Describe 'Application elevation and process lifetime' {
+    BeforeAll {
+        function pwsh.exe { param([switch]$NoProfile, $ExecutionPolicy, $File) }
+        $hostExecutable = (Get-Process -Id $PID).Path
+    }
+    It 'waits for the elevated process tree and returns its actual exit code' {
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process { [pscustomobject]@{ ExitCode = 7 } }
+        Invoke-WinUtilLauncherApplication -Shell 'pwsh.exe' -ScriptPath $compiled | Should -Be 7
+        Should -Invoke Start-Process -Times 1 -ParameterFilter { $Verb -eq 'RunAs' -and $Wait -and $PassThru -and $ArgumentList -contains '-EncodedCommand' }
+    }
+    It 'propagates UAC cancellation rather than reporting success' {
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process { throw 'UAC cancelled' }
+        { Invoke-WinUtilLauncherApplication -Shell 'pwsh.exe' -ScriptPath $compiled } | Should -Throw '*UAC cancelled*'
+    }
+    It 'refuses an elevated child with no exit status' {
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process { [pscustomobject]@{ ExitCode = $null } }
+        { Invoke-WinUtilLauncherApplication -Shell 'pwsh.exe' -ScriptPath $compiled } | Should -Throw '*exit code*'
+    }
+    It 'executes an encoded path containing Unicode, spaces and an apostrophe and passes restart capability explicitly' {
+        $path = Join-Path $scenario "Тест ' с пробелом.ps1"
+        [IO.File]::WriteAllText($path, 'Write-Output $env:WINDOWMANAGER_LAUNCHER_RESTART')
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process {
+            $script:encodedCommand = $ArgumentList[-1]
+            [pscustomobject]@{ ExitCode = 0 }
+        }
+        Invoke-WinUtilLauncherApplication -Shell $hostExecutable -ScriptPath $path | Should -Be 0
+        $output = & $hostExecutable -NoProfile -EncodedCommand $script:encodedCommand
+        $LASTEXITCODE | Should -Be 0
+        $output | Should -Be '1'
+    }
+    It 'returns a failing status from an unhandled error in the encoded child' {
+        [IO.File]::WriteAllText($compiled, "throw 'fixture failure'")
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process {
+            $script:encodedCommand = $ArgumentList[-1]
+            [pscustomobject]@{ ExitCode = 0 }
+        }
+        $null = Invoke-WinUtilLauncherApplication -Shell $hostExecutable -ScriptPath $compiled
+        & $hostExecutable -NoProfile -EncodedCommand $script:encodedCommand 2>$null | Out-Null
+        $LASTEXITCODE | Should -Be 1
+    }
+    It 'uses an ordinary child when already elevated and preserves the native exit code' {
+        Mock pwsh.exe { $global:LASTEXITCODE = 3 }
+        Mock Start-Process { throw 'unexpected extra elevation' }
+        Invoke-WinUtilLauncherApplication -Shell 'pwsh.exe' -ScriptPath $compiled | Should -Be 3
+        Should -Invoke Start-Process -Times 0
+    }
+    It 'preserves file-process ownership and explicit failure exit inside the elevated host' {
+        [IO.File]::WriteAllText($compiled, "if ([Environment]::GetCommandLineArgs() -contains '-File') { exit 7 }; return 7")
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process {
+            $script:encodedCommand = $ArgumentList[-1]
+            [pscustomobject]@{ ExitCode = 0 }
+        }
+        $null = Invoke-WinUtilLauncherApplication -Shell $hostExecutable -ScriptPath $compiled
+        & $hostExecutable -NoProfile -EncodedCommand $script:encodedCommand | Out-Null
+        $LASTEXITCODE | Should -Be 7
     }
 }
 
@@ -176,7 +260,11 @@ Describe 'Pinned source launcher transaction' {
         $originalBranch = $env:WINUTIL_RU_BRANCH
         $originalRestart = $env:WINDOWMANAGER_LAUNCHER_RESTART
         $originalExitCode = $global:LASTEXITCODE
-        $script:sourceLauncher = Get-Content (Join-Path $repoRoot 'run-russian.ps1') -Raw -Encoding UTF8
+        $tokens = $null; $errors = $null
+        $sourceAst = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $repoRoot 'run-russian.ps1'), [ref]$tokens, [ref]$errors)
+        # Functions were loaded from the same AST in BeforeAll. Run the actual
+        # entry statements without redefining functions over Pester mocks.
+        $script:sourceLauncher = ($sourceAst.EndBlock.Statements | Where-Object { $_ -isnot [System.Management.Automation.Language.FunctionDefinitionAst] } | ForEach-Object { $_.Extent.Text }) -join [Environment]::NewLine
         function pwsh.exe { param([switch]$NoProfile, $ExecutionPolicy, $File) }
         function powershell.exe { param([switch]$NoProfile, [switch]$STA, $ExecutionPolicy, $File, $CompiledScriptPath) }
     }
@@ -192,6 +280,8 @@ Describe 'Pinned source launcher transaction' {
         $env:WINUTIL_RU_COMMIT = $newCommit
         $script:compileExit = 0; $script:wpfExit = 0; $script:appExit = 0
         $script:archiveUri = $null; $script:manifestAtLaunch = $null
+        $script:newAppRuns = 0; $script:oldAppRuns = 0; $script:blockBackup = $false
+        $script:elevatedTarget = $null
         $old = New-TestLegacyCache $cacheRoot
         Mock Get-ItemProperty { [pscustomobject]@{ AppIconMode = 'Disabled'; RestartRequested = $false } }
         Mock Remove-ItemProperty {}
@@ -209,7 +299,12 @@ Describe 'Pinned source launcher transaction' {
             if ($File -eq '.\Compile.ps1') {
                 [IO.File]::WriteAllText((Join-Path $PWD 'winutil.ps1'), "Write-Output 'validated fixture'")
                 $global:LASTEXITCODE = $script:compileExit
+            } elseif ($File -eq $old) {
+                $script:oldAppRuns++
+                $global:LASTEXITCODE = 0
             } else {
+                $script:newAppRuns++
+                if ($script:blockBackup) { New-Item -ItemType Directory (Join-Path $cacheRoot 'release.previous.json') -Force | Out-Null }
                 $script:manifestAtLaunch = (Get-Content (Join-Path $cacheRoot 'release.json') -Raw | ConvertFrom-Json).SourceCommit
                 $global:LASTEXITCODE = $script:appExit
             }
@@ -238,6 +333,52 @@ Describe 'Pinned source launcher transaction' {
     It 'leaves the old pointer intact when the new application exits with an error' {
         $script:appExit = 1
         { & ([scriptblock]::Create($script:sourceLauncher)) } | Should -Throw '*завершился с кодом 1*'
+        (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
+        [IO.File]::ReadAllText($old) | Should -Be 'old verified build'
+    }
+    It 'keeps the temporary application available until the elevated child has finished' {
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process {
+            $script:elevatedTarget = Join-Path $PWD 'winutil.ps1'
+            Test-Path -LiteralPath $script:elevatedTarget | Should -BeTrue
+            (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
+            [pscustomobject]@{ ExitCode = 0 }
+        }
+        & ([scriptblock]::Create($script:sourceLauncher))
+        Should -Invoke Start-Process -Times 1 -ParameterFilter { $Wait -and $PassThru -and $Verb -eq 'RunAs' }
+        (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $newCommit
+        Test-Path -LiteralPath $script:elevatedTarget | Should -BeFalse
+        Should -Invoke pwsh.exe -Times 0 -ParameterFilter { $File -ne '.\Compile.ps1' }
+    }
+    It 'does not publish a failed elevated application' {
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process { [pscustomobject]@{ ExitCode = 2 } }
+        { & ([scriptblock]::Create($script:sourceLauncher)) } | Should -Throw '*завершился с кодом 2*'
+        (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
+    }
+    It 'waits for each elevated language restart before promoting the cache' {
+        $script:restartReads = 0
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Get-ItemProperty {
+            $script:restartReads++
+            [pscustomobject]@{ RestartRequested = ($script:restartReads -eq 1) }
+        } -ParameterFilter { $Name -eq 'RestartRequested' }
+        Mock Start-Process {
+            Test-Path -LiteralPath (Join-Path $PWD 'winutil.ps1') | Should -BeTrue
+            (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
+            [pscustomobject]@{ ExitCode = 0 }
+        }
+        & ([scriptblock]::Create($script:sourceLauncher))
+        Should -Invoke Start-Process -Times 2 -ParameterFilter { $Wait -and $PassThru }
+        (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $newCommit
+    }
+    It 'does not reopen the old application after a successful session and failed cache publication' {
+        $script:blockBackup = $true
+        Mock Get-WMRemoteText { $script:sourceLauncher }
+        Mock Get-WMSourceCommit { $newCommit }
+        Invoke-WMSourceBootstrap -Branch 'russian'
+        $script:newAppRuns | Should -Be 1
+        $script:oldAppRuns | Should -Be 0
         (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
         [IO.File]::ReadAllText($old) | Should -Be 'old verified build'
     }
