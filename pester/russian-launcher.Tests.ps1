@@ -167,8 +167,21 @@ Describe 'Application elevation and process lifetime' {
             [pscustomobject]@{ ExitCode = 0 }
         }
         $null = Invoke-WinUtilLauncherApplication -Shell $hostExecutable -ScriptPath $compiled
-        & $hostExecutable -NoProfile -EncodedCommand $script:encodedCommand 2>$null | Out-Null
-        $LASTEXITCODE | Should -Be 1
+        # Start-Process observes the OS exit code, without PowerShell 5.1's
+        # native pipeline CLIXML decoder. Exercise the same boundary here.
+        $startInfo = New-Object Diagnostics.ProcessStartInfo
+        $startInfo.FileName = $hostExecutable
+        $startInfo.Arguments = "-NoProfile -EncodedCommand $script:encodedCommand"
+        $startInfo.UseShellExecute = $false
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        $process = [Diagnostics.Process]::Start($startInfo)
+        try {
+            $null = $process.StandardOutput.ReadToEnd()
+            $null = $process.StandardError.ReadToEnd()
+            $process.WaitForExit()
+            $process.ExitCode | Should -Be 1
+        } finally { $process.Dispose() }
     }
     It 'uses an ordinary child when already elevated and preserves the native exit code' {
         Mock pwsh.exe { $global:LASTEXITCODE = 3 }
