@@ -3,7 +3,7 @@ BeforeAll {
     . (Join-Path $repoRoot 'tools/Test-WinUtilBuildInputs.ps1')
     $nativeGit = (Get-Command git -CommandType Application | Select-Object -First 1).Source
     $fixture = Join-Path $TestDrive 'build-input-fixture'
-    & $nativeGit clone --quiet --shared $repoRoot $fixture
+    & $nativeGit clone --quiet --no-hardlinks $repoRoot $fixture
     if ($LASTEXITCODE) { throw 'Unable to create isolated build fixture.' }
     foreach ($file in @('Test-WinUtilBuildInputs.ps1', 'Test-WinUtilRussianEdition.ps1', 'Build-WinUtilRussianRelease.ps1')) {
         Copy-Item -LiteralPath (Join-Path $repoRoot "tools/$file") -Destination (Join-Path $fixture "tools/$file") -Force
@@ -19,6 +19,13 @@ BeforeAll {
     # may be shallow; the real official-tag comparison runs in strict-parity.
     $officialCommit = $fixtureCommit
     function git { param([Parameter(ValueFromRemainingArguments)][string[]]$Arguments) }
+}
+AfterAll {
+    # Git objects can be read-only on Windows. Remove our independent clone
+    # with Force before Pester's TestDrive cleanup uses Directory.Delete.
+    if ($fixture -and (Test-Path -LiteralPath $fixture)) {
+        Remove-Item -LiteralPath $fixture -Recurse -Force
+    }
 }
 Describe 'Release build input binding' {
     BeforeEach {
