@@ -115,6 +115,20 @@ function Invoke-WMUpdate {
     }
 }
 
+function Test-WinUtilElevationCancelled {
+    param([Parameter(Mandatory)][System.Management.Automation.ErrorRecord]$ErrorRecord)
+    # PowerShell can wrap the Win32 exception in a RuntimeException or
+    # MethodInvocationException. Inspect the cause, not localized message text.
+    $exception = $ErrorRecord.Exception
+    while ($null -ne $exception) {
+        if ($exception -is [ComponentModel.Win32Exception] -and $exception.NativeErrorCode -eq 1223) {
+            return $true
+        }
+        $exception = $exception.InnerException
+    }
+    return $false
+}
+
 function Invoke-WMSourceBootstrap {
     param([Parameter(Mandatory = $true)][string]$Branch)
     $cacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
@@ -133,6 +147,7 @@ function Invoke-WMSourceBootstrap {
     }
     try { Invoke-WMUpdate -Commit $commit }
     catch {
+        if (Test-WinUtilElevationCancelled -ErrorRecord $_) { throw }
         if ($null -eq $cached) { throw }
         # This path was verified before the update and was never overwritten.
         Write-Warning 'Stable update failed; starting the previous verified local cache.'

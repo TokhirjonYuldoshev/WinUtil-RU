@@ -395,6 +395,42 @@ Describe 'Pinned source launcher transaction' {
         (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
         [IO.File]::ReadAllText($old) | Should -Be 'old verified build'
     }
+    It 'stops the public bootstrap after UAC cancellation without a second elevation request' {
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Get-WMRemoteText { $script:sourceLauncher }
+        Mock Get-WMSourceCommit { $newCommit }
+        Mock Start-Process { throw [ComponentModel.Win32Exception]::new(1223, 'fixture cancellation') }
+        { Invoke-WMSourceBootstrap -Branch 'russian' } | Should -Throw '*fixture cancellation*'
+        Should -Invoke Start-Process -Times 1 -Exactly
+        (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
+        $script:oldAppRuns | Should -Be 0
+    }
+    It 'recognizes wrapped cancellation without depending on the exception language' {
+        Mock Get-WMRemoteText { $script:sourceLauncher }
+        Mock Get-WMSourceCommit { $newCommit }
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        Mock Start-Process {
+            $cause = [ComponentModel.Win32Exception]::new(1223, 'Отмена')
+            throw [System.Management.Automation.RuntimeException]::new('wrapper', $cause)
+        }
+        { Invoke-WMSourceBootstrap -Branch 'russian' } | Should -Throw '*wrapper*'
+        Should -Invoke Start-Process -Times 1 -Exactly
+        (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
+    }
+    It 'retains the verified cache fallback for a different Win32 failure' {
+        Mock Get-WMRemoteText { $script:sourceLauncher }
+        Mock Get-WMSourceCommit { $newCommit }
+        Mock Test-WinUtilLauncherAdministrator { $false }
+        $script:elevationAttempts = 0
+        Mock Start-Process {
+            $script:elevationAttempts++
+            if ($script:elevationAttempts -eq 1) { throw [ComponentModel.Win32Exception]::new(2, 'fixture missing executable') }
+            [pscustomobject]@{ ExitCode = 0 }
+        }
+        Invoke-WMSourceBootstrap -Branch 'russian'
+        Should -Invoke Start-Process -Times 2 -Exactly
+        (Get-WMCachedBuild $cacheRoot).Manifest.SourceCommit | Should -Be $oldCommit
+    }
 }
 
 Describe 'Analyzer CI severity gate' {
