@@ -222,6 +222,14 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     break
 }
 
+function Initialize-WinUtilConsoleEncoding {
+    # WinGet writes UTF-8. Match the shared console before any worker starts so
+    # Cyrillic output is readable in the terminal and the existing transcript.
+    [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+}
+
+Initialize-WinUtilConsoleEncoding
+
 # Variable to sync between runspaces
 $sync = [Hashtable]::Synchronized(@{})
 $sync.version = "#{replaceme}"
