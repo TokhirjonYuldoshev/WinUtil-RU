@@ -1,5 +1,5 @@
 function Test-WinUtilBuildInputs {
-    <# Ensures the files consumed by Compile.ps1/release packaging match HEAD. #>
+    <# Ensures compiler, package and upstream-baseline inputs match HEAD. #>
     param(
         [Parameter(Mandatory)][string]$RepositoryRoot,
         [string]$ExpectedCommit
@@ -20,7 +20,7 @@ function Test-WinUtilBuildInputs {
     $commit = ([string](@(Invoke-WinUtilBuildGit @('rev-parse', 'HEAD'))[0])).Trim()
     if ($ExpectedCommit -and $commit -ne $ExpectedCommit) { throw 'Source commit changed during the release build.' }
     $roots = @('functions', 'scripts', 'config', 'xaml')
-    $files = @('Compile.ps1', 'tools/autounattend.xml', 'LICENSE')
+    $files = @('Compile.ps1', 'tools/autounattend.xml', 'tools/WinUtilUpstreamBaseline.json', 'LICENSE')
     $tree = @(Invoke-WinUtilBuildGit (@('ls-tree', '-r', $commit, '--') + $roots + $files))
     $expected = @{}
     foreach ($entry in $tree) {
