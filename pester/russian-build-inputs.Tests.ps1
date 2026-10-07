@@ -15,7 +15,9 @@ BeforeAll {
     & $nativeGit -C $fixture -c user.name='WinUtil Test' -c user.email='test@example.invalid' commit --quiet -m 'Prepare isolated build input fixture'
     if ($LASTEXITCODE) { throw 'Unable to commit build fixture.' }
     $fixtureCommit = (& $nativeGit -C $fixture rev-parse HEAD).Trim()
-    $officialCommit = '9419b2803e505b67a71b632205ce59132b52b41b'
+    # Use the fixture's clean tree as the mocked upstream release. CI checkouts
+    # may be shallow; the real official-tag comparison runs in strict-parity.
+    $officialCommit = $fixtureCommit
     function git { param([Parameter(ValueFromRemainingArguments)][string[]]$Arguments) }
 }
 Describe 'Release build input binding' {
@@ -28,7 +30,7 @@ Describe 'Release build input binding' {
                 $global:LASTEXITCODE = 0
                 "$officialCommit`trefs/tags/26.09.29"
             } elseif ($Arguments[0] -eq 'fetch') {
-                & $nativeGit -C $fixture fetch --quiet --no-tags $repoRoot $officialCommit
+                & $nativeGit -C $fixture fetch --quiet --no-tags $fixture $officialCommit
             } else { & $nativeGit @Arguments }
         }
         Mock Invoke-RestMethod { [pscustomobject]@{ tag_name = '26.09.29'; draft = $false; prerelease = $false } }
