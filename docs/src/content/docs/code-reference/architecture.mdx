@@ -666,6 +666,10 @@ Invoke-Pester -Path 'pester/*.Tests.ps1' -Output Detailed -CI
 
 Outputs `winutil.ps1` in the root directory.
 
+### WinUtil RU release validation
+
+The RU release builder requires runtime/config/compiler/license inputs to match committed HEAD. It enumerates actual files, including ignored and untracked files, and checks their Git-filtered blob hashes before compilation. It rechecks files and the source commit after compilation before packaging. Generated `winutil.ps1` and unrelated `dist/` output do not block the check. The strict upstream parity gate compares that exact commit to the official tag. WPF loading and owner Windows QA remain separate requirements.
+
 ### Production Release
 
 1. Tag release in Git

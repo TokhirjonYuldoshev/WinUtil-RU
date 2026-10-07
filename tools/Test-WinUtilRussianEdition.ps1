@@ -78,6 +78,9 @@ try {
         throw "Preflight must run from the WinUtil RU repository. Git root: $gitTopLevel"
     }
 
+    . (Join-Path $repoRoot 'tools/Test-WinUtilBuildInputs.ps1')
+    $candidateCommit = Test-WinUtilBuildInputs -RepositoryRoot $repoRoot
+
     $localePath = Join-Path $repoRoot 'config\localization_ru.json'
     if (-not (Test-Path -LiteralPath $localePath)) {
         throw 'config/localization_ru.json is required.'
@@ -178,8 +181,6 @@ try {
     if ($ExpectedOfficialCommit -and $officialCommit -ne $ExpectedOfficialCommit.ToLowerInvariant()) {
         throw "Official tag '$OfficialTag' resolved to $officialCommit, expected $($ExpectedOfficialCommit.ToLowerInvariant())."
     }
-
-    $candidateCommit = ([string](@(Invoke-WinUtilGit -Arguments @('rev-parse', 'HEAD'))[0])).Trim().ToLowerInvariant()
 
     & git merge-base --is-ancestor $officialCommit $candidateCommit *> $null
     $ancestorExitCode = $LASTEXITCODE
