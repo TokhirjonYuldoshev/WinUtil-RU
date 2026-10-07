@@ -66,7 +66,7 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 
 ## Runtime Model
 
-- WinUtil runs in PowerShell on Windows and uses WPF for the UI.
+- WinUtil runs in PowerShell on Windows and uses WPF for the UI. Startup sets the shared console output encoding to UTF-8 before runspaces start, preserving readable native WinGet output and the existing session transcript.
 - Shared mutable state is stored in `$sync`, including configs, UI element references, runspace state, selections, and progress.
 - Long-running operations use runspaces or existing async patterns so the UI remains responsive.
 - UI updates from background work are dispatched back to the WPF UI thread.
@@ -118,7 +118,7 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 
 ## Release Artifact
 
-For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first runs the strict parity preflight, then compiles repository sources and produces `dist/winutil-RU.ps1`, `dist/release.json`, and `dist/LICENSE`. The stable release workflow is manual-only; publishing additionally requires `publish_stable=true`. A release is not valid merely because it compiles: strict parity must pass and Windows QA plus explicit owner approval remain required before stable publication.
+For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first verifies that every runtime/config/compiler/license input in the working tree matches committed HEAD, including ignored and untracked files. It runs the strict parity preflight, compiles repository sources, rechecks the inputs and source commit and produces `dist/winutil-RU.ps1`, `dist/release.json`, and `dist/LICENSE`. The stable release workflow is manual-only; publishing additionally requires `publish_stable=true`. A release is not valid merely because it compiles: strict parity must pass and Windows QA plus explicit owner approval remain required before stable publication.
 
 `tools/Publish-WinUtilRussianRelease.ps1` verifies manifest/artifact integrity and the remote Git tag independently of GitHub Release metadata. Annotated tags are peeled to their commit. An absent tag is created at the exact source SHA with a non-forced push; publication uses `--verify-tag` and checks the tag again before and after publishing. Existing releases and tags are never automatically replaced. Remote/API errors fail the publication.
 
@@ -126,7 +126,7 @@ For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first runs the strict pa
 
 `bootstrap.ps1` resolves the requested branch once and downloads `run-russian.ps1` by exact commit. The launcher downloads the same commit archive, compiles, parses the generated script and validates actual WPF via Windows PowerShell STA before starting it. ZIP launch does not perform Git ancestry/parity; that remains a CI/release check.
 
-The launcher elevates the application before running its temporary script when needed and waits for the elevated process tree before publishing or removing temporary sources. Restart capability is explicitly passed into the elevated process. Bootstrap uses the same waiting behavior for cached builds. UAC cancellation and failed child exit codes propagate as application launch failures.
+The launcher elevates the application before running its temporary script when needed and waits for the elevated process tree before publishing or removing temporary sources. Restart capability is explicitly passed into the elevated process. Bootstrap uses the same waiting behavior for cached builds. UAC cancellation (Win32 error 1223, including wrapped exceptions) stops bootstrap without falling back to another elevated launch. Other update failures retain the verified-cache fallback. Failed child exit codes propagate as application launch failures.
 
 After successful application exit, the launcher publishes a content-addressed script under `%LocalAppData%/YTY/WindowManager/Stable/versions/<commit>-<hash>/`. `release.json` is an atomically replaced pointer; `release.previous.json` retains only a verified previous pointer. Replacing a corrupt active pointer preserves the existing recovery pointer. Old artifact paths are not overwritten. A cache-only failure after successful application exit produces a warning and does not reopen the old application. Bootstrap verifies script hashes, supports the legacy flat cache and uses only a verified cache when source commit lookup or updating fails.
 

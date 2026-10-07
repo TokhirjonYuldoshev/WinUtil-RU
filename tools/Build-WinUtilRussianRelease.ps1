@@ -12,12 +12,15 @@ $licenseAssetPath = Join-Path $distRoot 'LICENSE'
 
 Push-Location $repoRoot
 try {
+    . (Join-Path $repoRoot 'tools/Test-WinUtilBuildInputs.ps1')
+    $sourceCommit = Test-WinUtilBuildInputs -RepositoryRoot $repoRoot
     & (Join-Path $repoRoot 'tools\Test-WinUtilRussianEdition.ps1') -Quiet
 
     & (Join-Path $repoRoot 'Compile.ps1')
     if (-not $?) {
         throw "Compile.ps1 failed."
     }
+    Test-WinUtilBuildInputs -RepositoryRoot $repoRoot -ExpectedCommit $sourceCommit | Out-Null
 
     New-Item -ItemType Directory -Path $distRoot -Force | Out-Null
 
@@ -52,15 +55,6 @@ $licenseText
 
     $locale = Get-Content -LiteralPath (Join-Path $repoRoot 'config\localization_ru.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $applications = Get-Content -LiteralPath (Join-Path $repoRoot 'config\applications.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-
-    $sourceCommit = $null
-    if (Get-Command git -ErrorAction SilentlyContinue) {
-        try {
-            $sourceCommit = (& git rev-parse HEAD 2>$null).Trim()
-        } catch {
-            $sourceCommit = $null
-        }
-    }
 
     $iconManifest = @(
         $applications.PSObject.Properties | ForEach-Object {
@@ -99,6 +93,7 @@ $licenseText
         IconManifest = $iconManifest
     }
 
+    Test-WinUtilBuildInputs -RepositoryRoot $repoRoot -ExpectedCommit $sourceCommit | Out-Null
     $json = $manifest | ConvertTo-Json -Depth 8
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($manifestPath, $json + [Environment]::NewLine, $utf8NoBom)
