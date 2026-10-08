@@ -149,6 +149,20 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
                             throw "Navigation button exceeds the window: $name ($testLanguage/$theme/$scale/$width)."
                         }
                     }
+                    # At ordinary widths/scales the compact search must share the tab row.
+                    $firstTab = $window.FindName('WPFTab1BT')
+                    $search = $window.FindName('SearchBar')
+                    if ($width -ge 1280 -and $scale -le 1.0) {
+                        $tabPosition = $firstTab.TranslatePoint([Windows.Point]::new(0, 0), $root)
+                        $searchPosition = $search.TranslatePoint([Windows.Point]::new(0, 0), $root)
+                        if ([math]::Abs(($tabPosition.Y + $firstTab.ActualHeight / 2) -
+                                ($searchPosition.Y + $search.ActualHeight / 2)) -gt 1) {
+                            throw "Search must share the navigation row ($testLanguage/$theme/$scale/$width)."
+                        }
+                    }
+                    if ($search.ActualWidth -lt 120 -or $search.ActualWidth -gt 180) {
+                        throw "Compact search width is outside its usable range ($testLanguage/$theme/$scale/$width)."
+                    }
                     foreach ($name in @('SearchBar', 'ThemeButton', 'FontScalingButton', 'SettingsButton',
                             'WPFMinimizeButton', 'WPFMaximizeButton', 'WPFCloseButton')) {
                         $control = $window.FindName($name)

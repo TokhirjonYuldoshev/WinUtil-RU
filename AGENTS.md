@@ -172,7 +172,7 @@ Proceed without asking when:
 
 ## 13. Project Learnings
 
-- Verify dynamic completion/failure/warning text in the bottom status line as well as static captions; prove WPF actually decodes bundled/cache icons, and keep Auto/CacheOnly/Disabled behavior consistent between launcher and renderer. Measure navigation captions with the real theme resources at 75–200% scale and narrow window widths; changing font and fixed button widths together does not resolve clipping.
+- Verify dynamic completion/failure/warning text in the bottom status line as well as static captions; prove WPF actually decodes bundled/cache icons, and keep Auto/CacheOnly/Disabled behavior consistent between launcher and renderer. Measure navigation captions with the real theme resources at 75–200% scale and narrow window widths; changing font and fixed button widths together does not resolve clipping. Keep search compact beside navigation at ordinary widths rather than reserving an unconditional second header row.
 
 When the user corrects an agent approach, add or tighten one concrete rule here before ending the session. Keep this section short and prune rules that no longer matter.
 

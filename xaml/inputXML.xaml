@@ -1048,11 +1048,7 @@
                 HorizontalAlignment="Center" FontSize="13" Background="Transparent"/>
         </Border>
         <Grid Grid.Row="1" Background="{DynamicResource MainBackgroundColor}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
+            <!-- Compact header: wrap only when the controls cannot fit in one row. -->
             <!-- Navigation Buttons Panel -->
             <WrapPanel Name="NavDockPanel" Orientation="Horizontal" Grid.Row="0" VerticalAlignment="Center" Margin="5,5,10,5">
                 <StackPanel Name="NavLogoPanel" Orientation="Horizontal" HorizontalAlignment="Left" Background="{DynamicResource MainBackgroundColor}" SnapsToDevicePixels="True" Margin="10,0,20,0">
@@ -1097,12 +1093,11 @@
                         </TextBlock>
                     </ToggleButton.Content>
                 </ToggleButton>
-            </WrapPanel>
 
             <!-- Search Bar and Action Buttons -->
-            <Grid Name="GridBesideNavDockPanel" Grid.Row="1" Background="{DynamicResource MainBackgroundColor}" ShowGridLines="False" Height="Auto">
+            <Grid Name="GridBesideNavDockPanel" VerticalAlignment="Center" Background="{DynamicResource MainBackgroundColor}" ShowGridLines="False" Height="Auto">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*"/> <!-- Search bar area - priority space -->
+                    <ColumnDefinition Width="180"/> <!-- Compact search leaves room for navigation -->
                     <ColumnDefinition Width="Auto"/><!-- Buttons area -->
                 </Grid.ColumnDefinitions>
 
@@ -1355,6 +1350,7 @@
                         Name="WPFCloseButton" />
                 </StackPanel>
             </Grid>
+            </WrapPanel>
         </Grid>
 
         <TabControl Name="WPFTabNav" Background="Transparent" Width="Auto" Height="Auto" BorderBrush="Transparent" BorderThickness="0" Grid.Row="2" Grid.Column="0" Padding="-1">
