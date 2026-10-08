@@ -83,14 +83,14 @@ Describe '26.09.29 interface-thread localization' {
 Describe 'Dynamic job status localization' {
     BeforeEach { $script:sync.preferences.language = 'ru-RU' }
     It 'translates both English and already localized completion labels' {
-        Convert-WinUtilRussianText 'Detect installed finished' | Should -Be 'Определение установленных приложений — завершено'
+        Convert-WinUtilRussianText 'Detect installed finished' | Should -Be 'Проверка текущего состояния — завершено'
         Convert-WinUtilRussianText 'Выбрать установленные finished' | Should -Be 'Выбрать установленные — завершено'
-        Convert-WinUtilRussianText 'Checking what is already installed...' | Should -Be 'Проверка уже установленных приложений...'
+        Convert-WinUtilRussianText 'Checking what is already installed...' | Should -Be 'Проверка текущего состояния...'
     }
     It 'keeps failure and warning outcomes and their counts distinct from success' {
-        Convert-WinUtilRussianText 'Detect installed failed' | Should -Be 'Определение установленных приложений — ошибка'
-        Convert-WinUtilRussianText 'Detect installed could not start' | Should -Be 'Определение установленных приложений — не удалось запустить'
-        Convert-WinUtilRussianText 'Detect installed finished with 2 error(s)' | Should -Be 'Завершено: Определение установленных приложений. Ошибок: 2. См. журнал.'
+        Convert-WinUtilRussianText 'Detect installed failed' | Should -Be 'Проверка текущего состояния — ошибка'
+        Convert-WinUtilRussianText 'Detect installed could not start' | Should -Be 'Проверка текущего состояния — не удалось запустить'
+        Convert-WinUtilRussianText 'Detect installed finished with 2 error(s)' | Should -Be 'Завершено: Проверка текущего состояния. Ошибок: 2. См. журнал.'
         Convert-WinUtilRussianText 'Выбрать установленные finished with 3 warning(s), see the log' | Should -Be 'Завершено: Выбрать установленные. Предупреждений: 3. См. журнал.'
     }
     It 'preserves English dynamic statuses when English is selected' {
@@ -104,7 +104,7 @@ Describe 'Dynamic job status localization' {
             [void]$worker.AddScript("Convert-WinUtilRussianText 'Detect installed finished'")
             $result = $worker.Invoke()
             $worker.Streams.Error.Count | Should -Be 0
-            $result[0] | Should -Be 'Определение установленных приложений — завершено'
+            $result[0] | Should -Be 'Проверка текущего состояния — завершено'
         } finally { $worker.Dispose() }
     }
 }
