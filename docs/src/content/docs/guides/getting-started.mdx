@@ -272,3 +272,9 @@ If you need assistance:
 | Fix network | Config tab | Fixes → Reset Network |
 | Change DNS | Tweaks tab | DNS section |
 | Open Control Panel | Config tab | Legacy Windows Panels |
+
+## Russian source-launch diagnostics
+
+Use the fork's ASCII `bootstrap.ps1` entrypoint for a remote source launch. Set `WINUTIL_RU_COMMIT` to a full SHA for a pinned QA run and restore it afterwards; an explicit SHA does not fall back to a different cached build. Do not pipe the BOM-prefixed `run-russian.ps1` directly into `Invoke-Expression`.
+
+For unreadable console text, provide both a screenshot and the current session transcript. For missing app icons, `tools/Test-WinUtilRussianIcons.ps1` checks the saved warmup mode, cache file count and three favicon responses without changing settings or installing apps. A successful HTTP image check does not establish that WPF loaded the image.

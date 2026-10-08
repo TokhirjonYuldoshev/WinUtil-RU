@@ -95,3 +95,9 @@ CI и загрузка WPF не доказывают успешность каж
 Оригинальный проект: [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil). Русская локализация: [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev).
 
 Исходная [MIT License](../LICENSE) и **Copyright (c) 2022 CT Tech Group LLC** сохранены.
+
+### Проверка отдельного исходного коммита
+
+Для QA выставьте `WINUTIL_RU_COMMIT` в полный SHA и запустите ASCII-загрузчик `bootstrap.ps1` из того же коммита. Он не подменяет проверяемую сборку старым кэшем при ошибке. После проверки восстановите прежнее значение переменной. Не передавайте `run-russian.ps1` напрямую в `irm | iex`: его UTF-8 BOM предназначен для запуска файла в Windows PowerShell 5.1.
+
+При нечитаемом выводе приложите screenshot и текущий `%LocalAppData%\winutil\logs\winutil_*.log`: правильный текст в transcript не гарантирует правильное декодирование вывода родительским процессом. Для незагрузившихся иконок используйте `tools/Test-WinUtilRussianIcons.ps1`; он читает режим и количество файлов кэша и проверяет три favicon URL без установки программ или изменения настроек. Его результат не подтверждает успешную загрузку картинки самой WPF.
