@@ -126,7 +126,9 @@ For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first verifies that ever
 
 ## Source Launcher and Cache
 
-`bootstrap.ps1` resolves the requested branch once and downloads `run-russian.ps1` by exact commit. The launcher downloads the same commit archive, compiles, parses the generated script and validates actual WPF via Windows PowerShell STA before starting it. ZIP launch does not perform Git ancestry/parity; that remains a CI/release check.
+`bootstrap.ps1` is the ASCII/BOM-free remote entrypoint. An explicit `WINUTIL_RU_COMMIT` launches only that validated full SHA, without falling back to a different cached build; otherwise it resolves the requested branch once and downloads `run-russian.ps1` by exact commit. The launcher downloads the same commit archive, compiles, parses the generated script and validates actual WPF via Windows PowerShell STA before starting it. ZIP launch does not perform Git ancestry/parity; that remains a CI/release check.
+
+The source and cached launchers decode child stdout as UTF-8 and restore the caller console encoding after an already elevated launch. The elevated wrapper also sets UTF-8 before invoking its child.
 
 The launcher elevates the application before running its temporary script when needed and waits for the elevated process tree before publishing or removing temporary sources. Restart capability is explicitly passed into the elevated process. Bootstrap uses the same waiting behavior for cached builds. UAC cancellation (Win32 error 1223, including wrapped exceptions) stops bootstrap without falling back to another elevated launch. Other update failures retain the verified-cache fallback. Failed child exit codes propagate as application launch failures.
 

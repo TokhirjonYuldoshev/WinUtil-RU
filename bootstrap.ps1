@@ -60,15 +60,23 @@ function Test-WinUtilLauncherAdministrator {
 function Invoke-WinUtilLauncherApplication {
     param([Parameter(Mandatory)][string]$Shell, [Parameter(Mandatory)][string]$ScriptPath)
     if (Test-WinUtilLauncherAdministrator) {
-        & $Shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath | Out-Host
-        return [int]$LASTEXITCODE
+        # The child emits UTF-8; the parent must decode its redirected output
+        # with the same encoding before Out-Host displays it.
+        $previousOutputEncoding = [Console]::OutputEncoding
+        try {
+            [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+            & $Shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath | Out-Host
+            return [int]$LASTEXITCODE
+        } finally {
+            [Console]::OutputEncoding = $previousOutputEncoding
+        }
     }
     # Elevate before executing the temporary script, and wait for its process
     # tree. The compiled GUI's detached self-elevation cannot outlive cleanup.
     $literalPath = $ScriptPath.Replace("'", "''")
     $literalShell = [IO.Path]::GetFileName($Shell).Replace("'", "''")
     # Keep -File ownership/exit semantics inside the elevated host.
-    $command = "`$env:WINDOWMANAGER_LAUNCHER_RESTART = '1'; try { & (Join-Path `$PSHOME '$literalShell') -NoProfile -ExecutionPolicy Bypass -File '$literalPath'; exit `$LASTEXITCODE } catch { Write-Error `$_ -ErrorAction Continue; exit 1 }"
+    $command = "`$env:WINDOWMANAGER_LAUNCHER_RESTART = '1'; [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding(`$false); try { & (Join-Path `$PSHOME '$literalShell') -NoProfile -ExecutionPolicy Bypass -File '$literalPath'; exit `$LASTEXITCODE } catch { Write-Error `$_ -ErrorAction Continue; exit 1 }"
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
     $process = Start-Process -FilePath $Shell -Verb RunAs -ArgumentList @('-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded) -Wait -PassThru -ErrorAction Stop
     if ($null -eq $process.ExitCode) { throw 'The elevated application did not return an exit code.' }
@@ -129,6 +137,17 @@ function Test-WinUtilElevationCancelled {
     return $false
 }
 
+function Invoke-WMBootstrap {
+    param([Parameter(Mandatory)][string]$Branch, [string]$Commit)
+    if ([string]::IsNullOrWhiteSpace($Commit)) {
+        Invoke-WMSourceBootstrap -Branch $Branch
+        return
+    }
+    if ($Commit -notmatch '^[0-9a-fA-F]{40}$') { throw 'An explicit source commit must be a full Git SHA.' }
+    # A pinned QA launch must fail rather than silently open another cached build.
+    Invoke-WMUpdate -Commit $Commit.ToLowerInvariant()
+}
+
 function Invoke-WMSourceBootstrap {
     param([Parameter(Mandatory = $true)][string]$Branch)
     $cacheRoot = Join-Path $env:LOCALAPPDATA 'YTY\WindowManager\Stable'
@@ -160,4 +179,4 @@ elseif (-not [string]::IsNullOrWhiteSpace($env:WINDOWMANAGER_BRANCH)) { $env:WIN
 else { 'russian' }
 if ($branch -notin @('russian', 'russian-dev')) { throw 'Unsupported WinUtil RU branch.' }
 $env:WINUTIL_RU_BRANCH = $branch
-Invoke-WMSourceBootstrap -Branch $branch
+Invoke-WMBootstrap -Branch $branch -Commit $env:WINUTIL_RU_COMMIT
