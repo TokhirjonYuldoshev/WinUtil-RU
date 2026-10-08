@@ -118,6 +118,8 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 
 ## Release Artifact
 
+`Meta.Version` uses `YY.MM.DD-RU` for the initial edition and `YY.MM.DD-RU.N` for a positive RU-only revision of the same upstream release. For example, `26.09.29-RU.1` retains upstream tag and manifest `BaseVersion=26.09.29`; it does not adopt a newer upstream version. The compiled UI, cache and manifest all use the revised public version. A revision gets a distinct Git tag; existing releases and tags remain intact.
+
 For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first verifies that every runtime/config/compiler/license input and the pinned upstream baseline in the working tree matches committed HEAD, including ignored and untracked files. It runs the strict parity preflight, compiles repository sources, rechecks the inputs and source commit and produces `dist/winutil-RU.ps1`, `dist/release.json`, and `dist/LICENSE`. The stable release workflow is manual-only; publishing additionally requires `publish_stable=true`. A release is not valid merely because it compiles: strict parity must pass and Windows QA plus explicit owner approval remain required before stable publication.
 
 `tools/Publish-WinUtilRussianRelease.ps1` verifies manifest/artifact integrity and the remote Git tag independently of GitHub Release metadata. Annotated tags are peeled to their commit. An absent tag is created at the exact source SHA with a non-forced push; publication uses `--verify-tag` and checks the tag again before and after publishing. Existing releases and tags are never automatically replaced. Remote/API errors fail the publication.

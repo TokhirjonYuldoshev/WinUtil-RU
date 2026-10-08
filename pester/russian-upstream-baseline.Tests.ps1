@@ -81,6 +81,7 @@ Describe 'Pinned historical upstream release verification' {
         & $verifier -Quiet -ReportPath $reportPath
         $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
         $report.Passed | Should -BeTrue
+        $report.OfficialTag | Should -Be '26.09.29'
         $report.OfficialCommit | Should -Be $officialCommit
         $report.OfficialTree | Should -Be $officialTree
         $report.CandidateCommit | Should -Be $fixtureCommit
@@ -89,6 +90,18 @@ Describe 'Pinned historical upstream release verification' {
         $report.PinnedBaselineVerificationRun | Should -Be $script:baseline.VerifiedStableRun
         $report.ExactBlobMatchCount | Should -BeGreaterThan 0
         $report.ForbiddenModifiedPathCount | Should -Be 0
+    }
+    It 'builds the revised stable manifest while verifying the original upstream tag' {
+        & (Join-Path $fixture 'tools/Build-WinUtilRussianRelease.ps1') -Channel stable
+        $manifest = Get-Content (Join-Path $fixture 'dist/release.json') -Raw | ConvertFrom-Json
+        $manifest.Version | Should -Be '26.09.29-RU.1'
+        $manifest.BaseVersion | Should -Be '26.09.29'
+        $manifest.LocalizationVersion | Should -Be '1.2.1'
+        $manifest.Channel | Should -Be 'stable'
+        $manifest.Prerelease | Should -BeFalse
+        $manifest.SourceCommit | Should -Be $fixtureCommit
+        $manifest.Sha256 | Should -Be (Get-FileHash (Join-Path $fixture 'dist/winutil-RU.ps1')).Hash.ToLowerInvariant()
+        Should -Invoke Invoke-RestMethod -ParameterFilter { $Uri -eq 'https://api.github.com/repos/ChrisTitusTech/winutil/releases/tags/26.09.29' }
     }
     It 'uses live metadata when available and retains the pinned identity' {
         $global:WinUtilBaselineTestState.HttpStatus = 200

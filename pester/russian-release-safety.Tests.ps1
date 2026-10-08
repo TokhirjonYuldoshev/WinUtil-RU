@@ -27,6 +27,7 @@ AfterAll {
 
 Describe 'Stable release tag and source binding' {
     BeforeEach {
+        $script:tag = '26.09.29-RU'
         $dist = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $dist | Out-Null
         [IO.File]::WriteAllText((Join-Path $dist 'winutil-RU.ps1'), 'verified release fixture')
@@ -67,6 +68,35 @@ Describe 'Stable release tag and source binding' {
             }
             throw 'Unexpected GitHub operation in release fixture.'
         }
+    }
+    It 'publishes a distinct RU revision <Revision> without reusing the original tag' -ForEach @(
+        @{ Revision = '1' }; @{ Revision = '12' }
+    ) {
+        $script:tag = "26.09.29-RU.$Revision"
+        $manifest.Version = $script:tag
+        $manifest | ConvertTo-Json | Set-Content (Join-Path $dist 'release.json')
+        Publish-WinUtilRussianRelease $repository $expectedCommit $dist
+        $script:releaseCreated | Should -BeTrue
+        Should -Invoke git -Times 1 -ParameterFilter { $Arguments[0] -eq 'push' -and $Arguments[2] -eq "${expectedCommit}:refs/tags/26.09.29-RU.$Revision" }
+        Should -Invoke gh -Times 1 -ParameterFilter { $Arguments[0] -eq 'release' -and $Arguments[2] -eq "26.09.29-RU.$Revision" -and $Arguments -contains '--verify-tag' }
+    }
+    It 'rejects invalid revision <Version> before reading or writing GitHub' -ForEach @(
+        @{ Version = '26.09.29-RU.0' }; @{ Version = '26.09.29-RU.01' }
+        @{ Version = '26.09.29-RU.-1' }; @{ Version = '26.09.29-RU.1.2' }
+        @{ Version = '26.09.29-RU.beta' }
+    ) {
+        $manifest.Version = $Version
+        $manifest | ConvertTo-Json | Set-Content (Join-Path $dist 'release.json')
+        { Publish-WinUtilRussianRelease $repository $expectedCommit $dist } | Should -Throw '*Invalid stable release tag*'
+        Should -Invoke gh -Times 0
+        Should -Invoke git -Times 0
+    }
+    It 'refuses a revision tag already pointing to a different source' {
+        $manifest.Version = '26.09.29-RU.1'
+        $manifest | ConvertTo-Json | Set-Content (Join-Path $dist 'release.json')
+        Mock git { $global:LASTEXITCODE = 0; "$wrongCommit`trefs/tags/26.09.29-RU.1" }
+        { Publish-WinUtilRussianRelease $repository $expectedCommit $dist } | Should -Throw '*Refusing to reuse or replace*'
+        Should -Invoke gh -Times 0
     }
     It 'rejects an orphan tag at another commit before making any GitHub write' {
         $script:remoteTag = $wrongCommit

@@ -121,8 +121,8 @@ try {
 
     if (-not $OfficialTag) {
         $publicVersion = [string]$locale.Meta.Version
-        if ($publicVersion -notmatch '^(?<BaseVersion>.+)-RU$') {
-            throw "Localization Meta.Version must end in -RU, got '$publicVersion'."
+        if ($publicVersion -notmatch '^(?<BaseVersion>\d{2}\.\d{2}\.\d{2})-RU(?:\.[1-9]\d*)?$') {
+            throw "Localization Meta.Version must be YY.MM.DD-RU with an optional positive revision, got '$publicVersion'."
         }
         $OfficialTag = $Matches.BaseVersion
     }

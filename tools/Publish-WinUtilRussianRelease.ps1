@@ -32,7 +32,7 @@ function Publish-WinUtilRussianRelease {
     $SourceCommit = $SourceCommit.ToLowerInvariant()
     $manifest = Get-Content -LiteralPath (Join-Path $DistRoot 'release.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $tag = [string]$manifest.Version
-    if ($tag -notmatch '^\d{2}\.\d{2}\.\d{2}-RU$') { throw 'Invalid stable release tag.' }
+    if ($tag -notmatch '^\d{2}\.\d{2}\.\d{2}-RU(?:\.[1-9]\d*)?$') { throw 'Invalid stable release tag.' }
     if ([string]$manifest.Channel -ne 'stable' -or [bool]$manifest.Prerelease -or [string]$manifest.SourceCommit -ne $SourceCommit) {
         throw 'The stable manifest does not match the expected source commit.'
     }
