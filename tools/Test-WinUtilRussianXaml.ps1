@@ -113,16 +113,12 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
         [void]$window.FindName('NavLogoPanel').Children.Add((Invoke-WinUtilAssets -Type logo -Size 25))
         # An unshown Window does not consistently arrange its content after resizing.
         # Measure the real header independently, retaining the actual window resources.
-        $root = $window.FindName('NavDockPanel').Parent
-        [void]$window.Content.Children.Remove($root)
+        $header = $window.FindName('NavDockPanel').Parent
+        [void]$window.Content.Children.Remove($header)
+        # Reparenting resumes layout for the subtree removed from the unshown Window.
+        $root = New-Object Windows.Controls.Border
         $root.Resources.MergedDictionaries.Add($window.Resources)
-        $root.Visibility = [Windows.Visibility]::Visible
-        foreach ($child in $root.Children) { $child.Visibility = [Windows.Visibility]::Visible }
-        foreach ($name in @('WPFTab1BT', 'WPFTab2BT', 'WPFTab3BT', 'WPFTab4BT', 'WPFTab5BT',
-                'SearchBar', 'ThemeButton', 'FontScalingButton', 'SettingsButton',
-                'WPFMinimizeButton', 'WPFMaximizeButton', 'WPFCloseButton')) {
-            [void]$window.FindName($name).ApplyTemplate()
-        }
+        $root.Child = $header
         foreach ($theme in @('Dark', 'Light')) {
             Invoke-WinutilThemeChange -theme $theme
             foreach ($scale in @(0.75, 1.0, 1.5, 2.0)) {
