@@ -5,6 +5,12 @@ BeforeAll {
     $fixture = Join-Path $TestDrive 'build-input-fixture'
     & $nativeGit clone --quiet --no-hardlinks $repoRoot $fixture
     if ($LASTEXITCODE) { throw 'Unable to create isolated build fixture.' }
+    $officialCommit = (& $nativeGit -C $fixture rev-parse HEAD).Trim()
+    $baselinePath = Join-Path $fixture 'tools/WinUtilUpstreamBaseline.json'
+    $baseline = Get-Content -LiteralPath $baselinePath -Raw | ConvertFrom-Json
+    $baseline.Commit = $officialCommit
+    $baseline.Tree = (& $nativeGit -C $fixture rev-parse 'HEAD^{tree}').Trim()
+    $baseline | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $baselinePath
     foreach ($file in @('Test-WinUtilBuildInputs.ps1', 'Test-WinUtilRussianEdition.ps1', 'Build-WinUtilRussianRelease.ps1')) {
         Copy-Item -LiteralPath (Join-Path $repoRoot "tools/$file") -Destination (Join-Path $fixture "tools/$file") -Force
     }
@@ -17,7 +23,6 @@ BeforeAll {
     $fixtureCommit = (& $nativeGit -C $fixture rev-parse HEAD).Trim()
     # Use the fixture's clean tree as the mocked upstream release. CI checkouts
     # may be shallow; the real official-tag comparison runs in strict-parity.
-    $officialCommit = $fixtureCommit
     function git { param([Parameter(ValueFromRemainingArguments)][string[]]$Arguments) }
 }
 AfterAll {
@@ -61,6 +66,7 @@ Describe 'Release build input binding' {
         @{ Path = 'tools/autounattend.xml' }
         @{ Path = 'LICENSE' }
         @{ Path = 'Compile.ps1' }
+        @{ Path = 'tools/WinUtilUpstreamBaseline.json' }
     ) {
         [IO.File]::AppendAllText((Join-Path $fixture $Path), "`nUNCOMMITTED_TEST_MARKER`n")
         { & (Join-Path $fixture 'tools/Build-WinUtilRussianRelease.ps1') } | Should -Throw '*Build inputs must match committed HEAD*'

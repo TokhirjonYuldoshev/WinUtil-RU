@@ -668,7 +668,9 @@ Outputs `winutil.ps1` in the root directory.
 
 ### WinUtil RU release validation
 
-The RU release builder requires runtime/config/compiler/license inputs to match committed HEAD. It enumerates actual files, including ignored and untracked files, and checks their Git-filtered blob hashes before compilation. It rechecks files and the source commit after compilation before packaging. Generated `winutil.ps1` and unrelated `dist/` output do not block the check. The strict upstream parity gate compares that exact commit to the official tag. WPF loading and owner Windows QA remain separate requirements.
+The RU release builder requires runtime/config/compiler/license inputs and `tools/WinUtilUpstreamBaseline.json` to match committed HEAD. It enumerates actual files, including ignored and untracked files, and checks their Git-filtered blob hashes before compilation. It rechecks files and the source commit after compilation before packaging. Generated `winutil.ps1` and unrelated `dist/` output do not block the check. The strict upstream parity gate compares that exact commit to the official tag. WPF loading and owner Windows QA remain separate requirements.
+
+The baseline records the previously verified stable 26.09.29 commit and tree, with a link to its successful verification run. The verifier reads this policy from the checked source commit. It permits historical Release metadata only when GitHub returns HTTP 404 for that exact official repository/tag. Other API errors, unknown tags and available draft/prerelease metadata remain failures. The pinned commit/tree, fetched tag, ancestry and protected-file comparisons remain mandatory. Reports explicitly identify historical verification; this does not automatically approve a new baseline, merge or publication.
 
 ### Production Release
 

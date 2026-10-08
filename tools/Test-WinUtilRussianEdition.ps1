@@ -67,6 +67,31 @@ function Get-WinUtilGitTreeMap {
     return $map
 }
 
+function Get-WinUtilPinnedOfficialBaseline {
+    param([Parameter(Mandatory)][string]$CandidateCommit)
+
+    # Read the reviewed policy from the verified source commit, not a mutable
+    # working-tree file. Build-input verification also checks its actual bytes.
+    try {
+        $json = @(Invoke-WinUtilGit -Arguments @('show', "$CandidateCommit`:tools/WinUtilUpstreamBaseline.json")) -join "`n"
+        $baseline = $json | ConvertFrom-Json
+    }
+    catch {
+        throw "Unable to read committed upstream baseline: $($_.Exception.Message)"
+    }
+    if ($baseline.SchemaVersion -ne 1 -or $baseline.Repository -cne 'ChrisTitusTech/winutil' -or
+        [string]$baseline.Tag -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$' -or
+        [string]$baseline.Commit -notmatch '^[0-9a-f]{40}$' -or
+        [string]$baseline.Tree -notmatch '^[0-9a-f]{40}$' -or
+        $baseline.Release.tag_name -cne $baseline.Tag -or
+        $baseline.Release.draft -isnot [bool] -or $baseline.Release.draft -or
+        $baseline.Release.prerelease -isnot [bool] -or $baseline.Release.prerelease -or
+        [string]$baseline.VerifiedStableRun -notmatch '^https://github\.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/[0-9]+$') {
+        throw 'Committed upstream baseline is not a valid previously verified stable release.'
+    }
+    return $baseline
+}
+
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     throw 'git is required for WinUtil RU parity verification.'
 }
@@ -121,11 +146,40 @@ try {
 
     $encodedTag = [Uri]::EscapeDataString($OfficialTag)
     $releaseUri = "https://api.github.com/repos/$UpstreamApiRepository/releases/tags/$encodedTag"
+    $baseline = Get-WinUtilPinnedOfficialBaseline -CandidateCommit $candidateCommit
+    $usePinnedIdentity = $OfficialTag -ceq $baseline.Tag -and
+        $UpstreamApiRepository -ceq $baseline.Repository -and
+        $UpstreamRepositoryUrl -ceq 'https://github.com/ChrisTitusTech/winutil.git'
+    if ($usePinnedIdentity) {
+        if ($ExpectedOfficialCommit -and $ExpectedOfficialCommit.ToLowerInvariant() -ne $baseline.Commit) {
+            throw 'Expected official commit conflicts with the committed upstream baseline.'
+        }
+        $ExpectedOfficialCommit = [string]$baseline.Commit
+    }
+    $releaseVerification = 'live-github-release'
     try {
         $release = Invoke-RestMethod -Uri $releaseUri -Headers $headers -Method Get
     }
     catch {
-        throw "Unable to verify official GitHub release '$OfficialTag': $($_.Exception.Message)"
+        $releaseError = $_
+        $statusCode = $null
+        $exception = $_.Exception
+        while ($exception -and $null -eq $statusCode) {
+            $response = $exception.PSObject.Properties['Response']
+            if ($response -and $null -ne $response.Value) {
+                $status = $response.Value.PSObject.Properties['StatusCode']
+                if ($status) { $statusCode = [int]$status.Value }
+            }
+            $exception = $exception.InnerException
+        }
+        # Only a missing Release page for this recorded stable baseline may
+        # use historical metadata. All other API failures remain blockers.
+        if ($statusCode -ne 404 -or -not $usePinnedIdentity) {
+            throw "Unable to verify official GitHub release '$OfficialTag': $($releaseError.Exception.Message)"
+        }
+        $release = $baseline.Release
+        $releaseVerification = 'pinned-historical-stable'
+        Write-Warning "Official release '$OfficialTag' returned HTTP 404. Verifying the pinned historical stable commit $ExpectedOfficialCommit."
     }
 
     if ([string]$release.tag_name -ne $OfficialTag) {
@@ -180,6 +234,11 @@ try {
 
     if ($ExpectedOfficialCommit -and $officialCommit -ne $ExpectedOfficialCommit.ToLowerInvariant()) {
         throw "Official tag '$OfficialTag' resolved to $officialCommit, expected $($ExpectedOfficialCommit.ToLowerInvariant())."
+    }
+
+    $officialTreeSha = ([string](@(Invoke-WinUtilGit -Arguments @('rev-parse', "$officialCommit^{tree}"))[0])).Trim()
+    if ($usePinnedIdentity -and $officialTreeSha -ne $baseline.Tree) {
+        throw "Official tree $officialTreeSha does not match the committed upstream baseline $($baseline.Tree)."
     }
 
     & git merge-base --is-ancestor $officialCommit $candidateCommit *> $null
@@ -293,7 +352,12 @@ try {
         UpstreamRepository = $UpstreamApiRepository
         OfficialTag = $OfficialTag
         OfficialCommit = $officialCommit
+        OfficialTree = $officialTreeSha
         CandidateCommit = $candidateCommit
+        ReleaseVerification = $releaseVerification
+        ReleaseMetadataAvailable = $releaseVerification -eq 'live-github-release'
+        PinnedBaselineCommit = if ($usePinnedIdentity) { $baseline.Commit } else { $null }
+        PinnedBaselineVerificationRun = if ($usePinnedIdentity) { $baseline.VerifiedStableRun } else { $null }
         ReleaseDraft = [bool]$release.draft
         ReleasePrerelease = [bool]$release.prerelease
         ProtectedUpstreamPathCount = $officialTree.Count
@@ -328,6 +392,7 @@ try {
     if (-not $Quiet) {
         Write-Host 'WinUtil RU strict parity PASSED.' -ForegroundColor Green
         Write-Host "Official release : $OfficialTag"
+        Write-Host "Release check    : $releaseVerification"
         Write-Host "Official commit  : $officialCommit"
         Write-Host "Candidate commit : $candidateCommit"
         Write-Host "Protected paths  : $($officialTree.Count)"
