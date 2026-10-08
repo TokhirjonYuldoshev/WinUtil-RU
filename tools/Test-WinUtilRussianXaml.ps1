@@ -111,17 +111,20 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
         $sync.Form = $window
         . ([scriptblock]::Create($themeAssignment[0].Extent.Text))
         [void]$window.FindName('NavLogoPanel').Children.Add((Invoke-WinUtilAssets -Type logo -Size 25))
-        $root = $window.Content
+        # An unshown Window does not consistently arrange its content after resizing.
+        # Measure the real header independently, retaining the actual window resources.
+        $root = $window.FindName('NavDockPanel').Parent
+        [void]$window.Content.Children.Remove($root)
+        $root.Resources.MergedDictionaries.Add($window.Resources)
         foreach ($theme in @('Dark', 'Light')) {
             Invoke-WinutilThemeChange -theme $theme
             foreach ($scale in @(0.75, 1.0, 1.5, 2.0)) {
                 Invoke-WinUtilFontScaling -ScaleFactor $scale
                 foreach ($width in @(800, 1280, 1920)) {
-                    $window.Width = $width
-                    $window.Height = 900
-                    $window.Measure([Windows.Size]::new($width, 900))
-                    $window.Arrange([Windows.Rect]::new(0, 0, $width, 900))
-                    $window.UpdateLayout()
+                    $root.Width = $width
+                    $root.Measure([Windows.Size]::new($width, [double]::PositiveInfinity))
+                    $root.Arrange([Windows.Rect]::new(0, 0, $width, $root.DesiredSize.Height))
+                    $root.UpdateLayout()
                     foreach ($name in @('WPFTab1BT', 'WPFTab2BT', 'WPFTab3BT', 'WPFTab4BT', 'WPFTab5BT')) {
                         $button = $window.FindName($name)
                         $caption = $button.Content
@@ -134,7 +137,7 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
                         if ($caption.ActualWidth + 1 -lt $text.WidthIncludingTrailingWhitespace -or
                             $origin.X -lt -1 -or $origin.X + $text.WidthIncludingTrailingWhitespace -gt $button.ActualWidth + 1 -or
                             $caption.ActualHeight + 1 -lt $text.Height) {
-                            throw "Clipped navigation caption: $name ($testLanguage/$theme/$scale/$width)."
+                            throw "Clipped navigation caption: $name ($testLanguage/$theme/$scale/$width); text=$($text.WidthIncludingTrailingWhitespace)x$($text.Height), actual=$($caption.ActualWidth)x$($caption.ActualHeight), button=$($button.ActualWidth), origin=$($origin.X)."
                         }
                         $position = $button.TranslatePoint([Windows.Point]::new(0, 0), $root)
                         if ($position.X -lt -1 -or $position.X + $button.ActualWidth -gt $width + 1) {
