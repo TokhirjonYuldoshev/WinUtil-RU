@@ -117,9 +117,11 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
             foreach ($scale in @(0.75, 1.0, 1.5, 2.0)) {
                 Invoke-WinUtilFontScaling -ScaleFactor $scale
                 foreach ($width in @(800, 1280, 1920)) {
-                    $root.Measure([Windows.Size]::new($width, 900))
-                    $root.Arrange([Windows.Rect]::new(0, 0, $width, 900))
-                    $root.UpdateLayout()
+                    $window.Width = $width
+                    $window.Height = 900
+                    $window.Measure([Windows.Size]::new($width, 900))
+                    $window.Arrange([Windows.Rect]::new(0, 0, $width, 900))
+                    $window.UpdateLayout()
                     foreach ($name in @('WPFTab1BT', 'WPFTab2BT', 'WPFTab3BT', 'WPFTab4BT', 'WPFTab5BT')) {
                         $button = $window.FindName($name)
                         $caption = $button.Content
@@ -145,7 +147,7 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
                         $position = $control.TranslatePoint([Windows.Point]::new(0, 0), $root)
                         if ($control.ActualWidth -le 0 -or $position.X -lt -1 -or
                             $position.X + $control.ActualWidth -gt $width + 1) {
-                            throw "Top bar control exceeds the window: $name ($testLanguage/$theme/$scale/$width)."
+                            throw "Top bar control exceeds the window: $name ($testLanguage/$theme/$scale/$width); x=$($position.X), control=$($control.ActualWidth), root=$($root.ActualWidth)."
                         }
                     }
                 }
