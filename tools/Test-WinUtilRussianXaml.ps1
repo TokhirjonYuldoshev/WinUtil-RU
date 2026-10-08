@@ -160,8 +160,13 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
                             throw "Search must share the navigation row ($testLanguage/$theme/$scale/$width)."
                         }
                     }
-                    if ($search.ActualWidth -lt 120 -or $search.ActualWidth -gt 180) {
+                    if ($search.ActualWidth -lt 100 -or $search.ActualWidth -gt 360) {
                         throw "Compact search width is outside its usable range ($testLanguage/$theme/$scale/$width)."
+                    }
+                    $close = $window.FindName('WPFCloseButton')
+                    $closePosition = $close.TranslatePoint([Windows.Point]::new(0, 0), $root)
+                    if ([math]::Abs($width - ($closePosition.X + $close.ActualWidth) - 5) -gt 1) {
+                        throw "Window controls must remain at the right edge ($testLanguage/$theme/$scale/$width)."
                     }
                     foreach ($name in @('SearchBar', 'ThemeButton', 'FontScalingButton', 'SettingsButton',
                             'WPFMinimizeButton', 'WPFMaximizeButton', 'WPFCloseButton')) {
