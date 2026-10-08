@@ -16,12 +16,13 @@ Describe 'Russian app icon display sources' {
     }
     It 'contains the reported missing apps, original application keys and PNG data' {
         foreach ($key in @('ungoogled', 'ZenBrowser', 'qtox', 'thunderbird', 'okular', 'onlyoffice',
-                'cemu', 'ubisoft', 'glazewm', 'peazip', 'protonauth', 'protondrive', 'Zed')) {
+                'cemu', 'ubisoft', 'glazewm', 'peazip', 'protonauth', 'protondrive', 'Zed',
+                'terminal', 'eartrumpet', 'gimp', 'klite', 'totalcommander', 'vlc', 'blurautoclicker')) {
             $applications.PSObject.Properties[$key] | Should -Not -BeNullOrEmpty
             $entry = $catalog.Icons.PSObject.Properties[$key].Value
             $bytes = [Convert]::FromBase64String($entry.PngBase64)
             [BitConverter]::ToString($bytes, 0, 8) | Should -Be '89-50-4E-47-0D-0A-1A-0A'
-            $entry.Source | Should -Match '^https://github.com/'
+            $entry.Source | Should -Match '^https://(github\.com/|www\.ghisler\.com/favicon\.ico$|codecguide\.com/mpc_logo\.png$)'
         }
     }
     It 'uses the original native asynchronous URL for an uncached app in Auto mode' {

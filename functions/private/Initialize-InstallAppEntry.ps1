@@ -68,6 +68,8 @@ function Initialize-InstallAppEntry {
                 if (($appKey -replace '^WPFInstall', '') -in @('qtox', 'OPAutoClicker')) {
                     # These original dark logos need a light tile in the dark theme.
                     $icon.Background = [Windows.Media.Brushes]::WhiteSmoke
+                } elseif (($appKey -replace '^WPFInstall', '') -eq 'eartrumpet') {
+                    $icon.Background = [Windows.Media.Brushes]::Black
                 }
             } catch {
                 $logo.Visibility = "Collapsed"
