@@ -76,7 +76,7 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 
 The install display uses `config/application_icons.json` for the reported unreliable icons and decodes local cache images with WPF OnLoad before using native asynchronous favicon URLs. Auto allows remote loading; CacheOnly never requests remote icons, and Disabled shows the original letter placeholders. The image catalog includes source artwork and upstream license notices; it does not alter application package identifiers or operations. Russian job status endings are translated in the existing display converter, with failure/warning counts preserved. Upstream console logging remains unchanged.
 
-- UI layout lives in `xaml/inputXML.xaml`.
+- UI layout lives in `xaml/inputXML.xaml`. Navigation buttons size to their text and wrap at narrow widths; search and window controls occupy a separate row.
 - Named WPF controls are discovered and stored in `$sync`.
 - Button/action wiring follows a naming convention: an element named like `WPFThingButton` maps to a function named like `Invoke-WPFThingButton`.
 
