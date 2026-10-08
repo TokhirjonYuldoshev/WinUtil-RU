@@ -123,6 +123,8 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
             Invoke-WinutilThemeChange -theme $theme
             foreach ($scale in @(0.75, 1.0, 1.5, 2.0)) {
                 Invoke-WinUtilFontScaling -ScaleFactor $scale
+                # Process deferred resource invalidations as a running WPF dispatcher would.
+                [void]$root.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Background)
                 foreach ($width in @(800, 1280, 1920)) {
                     $root.Width = $width
                     $root.Measure([Windows.Size]::new($width, [double]::PositiveInfinity))
@@ -153,7 +155,7 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
                         $position = $control.TranslatePoint([Windows.Point]::new(0, 0), $root)
                         if ($control.ActualWidth -le 0 -or $position.X -lt -1 -or
                             $position.X + $control.ActualWidth -gt $width + 1) {
-                            throw "Top bar control exceeds the window: $name ($testLanguage/$theme/$scale/$width); x=$($position.X), control=$($control.ActualWidth), root=$($root.ActualWidth)."
+                            throw "Top bar control exceeds the window: $name ($testLanguage/$theme/$scale/$width); x=$($position.X), control=$($control.ActualWidth), root=$($root.ActualWidth), row=$($control.Parent.Parent.ActualWidth), buttons=$($control.Parent.ActualWidth)/$($control.Parent.DesiredSize.Width)."
                         }
                     }
                 }
