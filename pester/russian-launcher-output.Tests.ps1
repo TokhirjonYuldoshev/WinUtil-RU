@@ -53,7 +53,14 @@ Describe 'Launcher stdout decoding' {
             $errorText = $process.StandardError.ReadToEnd()
             $process.WaitForExit()
             $output | Should -Be $message
-            $errorText | Should -BeNullOrEmpty
+            if (-not [string]::IsNullOrWhiteSpace($errorText)) {
+                # Windows PowerShell 5.1 serializes module autoload progress to
+                # stderr. Accept only progress records, never error/warning text.
+                $errorText | Should -Match '^#< CLIXML'
+                $streamXml = [xml]($errorText -replace '^#< CLIXML\r?\n', '')
+                @($streamXml.DocumentElement.ChildNodes | Where-Object { $_.GetAttribute('S') -ne 'progress' }).Count | Should -Be 0
+                $streamXml.DocumentElement.ChildNodes.Count | Should -BeGreaterThan 0
+            }
             $process.ExitCode | Should -Be 7
         } finally { $process.Dispose() }
     }
