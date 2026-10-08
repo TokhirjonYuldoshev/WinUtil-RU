@@ -9,6 +9,16 @@
         translated. The chosen language is persisted per user and applied at startup.
     #>
 
+    $sync.WinUtilAppIconMode = 'Auto'
+    try {
+        $savedIconMode = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name AppIconMode -ErrorAction Stop).AppIconMode
+        if ($savedIconMode -in @('Auto', 'CacheOnly', 'Disabled')) {
+            $sync.WinUtilAppIconMode = [string]$savedIconMode
+        }
+    } catch {
+        # Reading an absent icon preference changes nothing.
+    }
+
     $sync.preferences.language = 'ru-RU'
     try {
         $savedLanguage = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name Language -ErrorAction Stop).Language
@@ -116,6 +126,16 @@
         }
         if ($trimmed -match '^Uninstalled\s+(.+)\s+\((\d+)/(\d+)\)$') {
             return "Удалено: $($Matches[1]) ($($Matches[2])/$($Matches[3]))"
+        }
+
+        if ($trimmed -match '^(.+?) finished with (\d+) (error|warning)\(s\)(, see the log)?$') {
+            $jobLabel = Convert-WinUtilRussianText $Matches[1]
+            $count = $Matches[2]
+            $kind = if ($Matches[3] -eq 'error') { 'Ошибок' } else { 'Предупреждений' }
+            return "Завершено: $jobLabel. ${kind}: $count. См. журнал."
+        }
+        if ($trimmed -match '^(.+?)\.\.\.$') {
+            return (Convert-WinUtilRussianText $Matches[1]) + '...'
         }
 
         foreach ($entry in $sync.WinUtilRussianPhraseTranslations.GetEnumerator()) {

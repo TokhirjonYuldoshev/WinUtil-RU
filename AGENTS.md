@@ -172,6 +172,8 @@ Proceed without asking when:
 
 ## 13. Project Learnings
 
+- Verify dynamic completion/failure/warning text in the bottom status line as well as static captions; prove WPF actually decodes bundled/cache icons, and keep Auto/CacheOnly/Disabled behavior consistent between launcher and renderer.
+
 When the user corrects an agent approach, add or tighten one concrete rule here before ending the session. Keep this section short and prune rules that no longer matter.
 
 - Test the real launcher parent/child stdout boundary under Windows PowerShell 5.1 with an OEM parent and UTF-8 child; a readable transcript does not prove readable console output. Use the BOM-safe public bootstrap for remote source launches.
