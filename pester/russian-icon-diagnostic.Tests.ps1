@@ -22,7 +22,7 @@ Describe 'Read-only favicon diagnostics' {
         $beforeTls = [Net.ServicePointManager]::SecurityProtocol
         $result = Get-WinUtilRussianIconDiagnostic -Links $links -CacheRoot $cache
         $result.SavedWarmupMode | Should -Be 'CacheOnly'
-        $result.WpfUsesWarmupCache | Should -BeFalse
+        $result.WpfUsesWarmupCache | Should -BeTrue
         $result.Checks[0].HttpStatus | Should -Be 200
         $result.Checks[0].ImageSignature | Should -Be 'PNG'
         $result.Checks[0].CachedFileExists | Should -BeFalse

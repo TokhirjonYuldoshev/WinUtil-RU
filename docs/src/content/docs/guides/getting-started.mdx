@@ -278,3 +278,10 @@ If you need assistance:
 Use the fork's ASCII `bootstrap.ps1` entrypoint for a remote source launch. Set `WINUTIL_RU_COMMIT` to a full SHA for a pinned QA run and restore it afterwards; an explicit SHA does not fall back to a different cached build. Do not pipe the BOM-prefixed `run-russian.ps1` directly into `Invoke-Expression`.
 
 For unreadable console text, provide both a screenshot and the current session transcript. For missing app icons, `tools/Test-WinUtilRussianIcons.ps1` checks the saved warmup mode, cache file count and three favicon responses without changing settings or installing apps. A successful HTTP image check does not establish that WPF loaded the image.
+
+
+### App icons and completion status
+
+WinUtil RU bundles 13 icons for applications whose favicons were missing or difficult to see. Other entries read valid local cache images before starting the original asynchronous network load. **Auto** permits network loading; **Cache only** uses bundled/cache images; **Disabled** uses letter placeholders. Cache corruption falls back to the native URL only in Auto. Restart after changing the icon mode. Bundled artwork sources and license notices are included in `config/application_icons.json`.
+
+With Russian selected, the bottom progress line translates completion, failure and warning endings, including their counts. Selecting English retains the original status text. Technical console logs keep upstream wording.

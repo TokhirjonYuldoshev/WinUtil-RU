@@ -40,6 +40,18 @@ if ($initializer.Count -ne 1 -or $localeAssignment.Count -ne 1 -or $xamlAssignme
     throw 'The compiled script must contain exactly one localization function, locale and XAML input.'
 }
 . ([scriptblock]::Create($initializer[0].Extent.Text))
+$iconResolver = @($ast.EndBlock.Statements | Where-Object {
+    $_ -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+    $_.Name -eq 'Get-WinUtilAppIconSource'
+})
+$iconAssignment = @($ast.EndBlock.Statements | Where-Object {
+    $_ -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+    $_.Left.Extent.Text -eq '$sync.configs.application_icons'
+})
+if ($iconResolver.Count -ne 1 -or $iconAssignment.Count -ne 1) {
+    throw 'The compiled script must contain the offline app icon resolver and catalog.'
+}
+. ([scriptblock]::Create($iconResolver[0].Extent.Text))
 
 # Supply a saved-language result locally without reading or writing user settings.
 function Get-ItemProperty {
@@ -53,6 +65,16 @@ foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {
     . ([scriptblock]::Create($xamlAssignment[0].Extent.Text))
     $script:inputXML = $inputXML
     Initialize-WinUtilRussianLocalization
+    . ([scriptblock]::Create($iconAssignment[0].Extent.Text))
+    $sync.WinUtilAppIconMode = 'CacheOnly'
+    foreach ($entry in $sync.configs.application_icons.Icons.PSObject.Properties) {
+        $bitmap = Get-WinUtilAppIconSource -AppKey ('WPFInstall' + $entry.Name) -Link 'https://example.invalid/'
+        if ($bitmap -isnot [Windows.Media.Imaging.BitmapImage] -or -not $bitmap.IsFrozen -or
+            $bitmap.PixelWidth -le 0 -or $bitmap.PixelHeight -le 0) {
+            throw "Bundled icon failed to decode: $($entry.Name) ($testLanguage)."
+        }
+    }
+    Write-Host "WPF bundled icons PASSED: $testLanguage (13 images, no network)"
     if ($sync.preferences.language -ne $testLanguage) {
         throw "Language setup failed for $testLanguage."
     }

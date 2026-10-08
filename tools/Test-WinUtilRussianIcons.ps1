@@ -57,8 +57,8 @@ function Get-WinUtilRussianIconDiagnostic {
         SavedWarmupMode = $mode
         ModeSource = $modeSource
         CachedPngCount = $cachedCount
-        # The current app-entry renderer loads Google URLs directly, not this cache.
-        WpfUsesWarmupCache = $false
+        # The app-entry renderer now reads validated local images before native WPF URLs.
+        WpfUsesWarmupCache = $true
         Note = 'HTTP image success does not prove WPF Image.Source loaded successfully. Explicit diagnostics check the network even in CacheOnly/Disabled mode.'
         Checks = @($checks)
     }

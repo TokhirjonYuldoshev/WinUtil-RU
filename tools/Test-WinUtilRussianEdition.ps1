@@ -284,6 +284,9 @@ try {
     # Russian-only additions are allowed only in this explicit set inside protected roots.
     $allowedAddedPaths = @(
         'config/applications_ru.json',
+        # Offline images and their resolver are presentation-only; application IDs stay upstream.
+        'config/application_icons.json',
+        'functions/private/Get-WinUtilAppIconSource.ps1',
         'config/localization_ru.json',
         'functions/private/Initialize-WinUtilRussianLocalization.ps1',
         'functions/private/Set-WinUtilLanguagePreference.ps1'
