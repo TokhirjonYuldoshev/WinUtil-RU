@@ -486,6 +486,7 @@ Describe "XAML and sync wiring" {
             "Win11ISOContentsDir",
             "Win11ISOExistingWorkRetryPending",
             "Win11ISOUSBDisks",
+            "WinUtilAppIconMode"
             "WinUtilRussianExactTranslations"
             "WinUtilRussianNormalizedTranslations"
             "WinUtilRussianPhraseTranslations"
