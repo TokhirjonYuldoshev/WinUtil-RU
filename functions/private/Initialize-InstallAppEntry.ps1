@@ -56,14 +56,25 @@ function Initialize-InstallAppEntry {
         $fallback.SetResourceReference([Windows.Controls.TextBlock]::FontSizeProperty, "AppEntryFontSize")
         $fallback.SetResourceReference([Windows.Controls.TextBlock]::ForegroundProperty, "ToggleButtonOnColor")
         [void]$icon.Children.Add($fallback)
-        if ($app.link) {
-            $fallback.Visibility = "Collapsed"
+        $iconSource = Get-WinUtilAppIconSource -AppKey $appKey -Link $app.link
+        if ($null -ne $iconSource) {
             $logo = New-Object Windows.Controls.Image
             $logo.Stretch = [Windows.Media.Stretch]::Uniform
-            $logo.Source = "https://www.google.com/s2/favicons?sz=64&domain_url=$([uri]::EscapeDataString($app.link))"
             $logo.Add_ImageFailed($handlers.ImageFailed)
-
             [void]$icon.Children.Add($logo)
+            try {
+                $fallback.Visibility = "Collapsed"
+                $logo.Source = $iconSource
+                if (($appKey -replace '^WPFInstall', '') -in @('qtox', 'OPAutoClicker')) {
+                    # These original dark logos need a light tile in the dark theme.
+                    $icon.Background = [Windows.Media.Brushes]::WhiteSmoke
+                } elseif (($appKey -replace '^WPFInstall', '') -eq 'eartrumpet') {
+                    $icon.Background = [Windows.Media.Brushes]::Black
+                }
+            } catch {
+                $logo.Visibility = "Collapsed"
+                $fallback.Visibility = "Visible"
+            }
         }
         [void]$contentPanel.Children.Add($icon)
 

@@ -71,7 +71,10 @@ $licenseText
     $artifactSize = (Get-Item -LiteralPath $artifactPath).Length
 
     $publicVersion = [string]$locale.Meta.Version
-    $baseVersion = $publicVersion -replace '-RU$', ''
+    if ($publicVersion -notmatch '^(?<BaseVersion>\d{2}\.\d{2}\.\d{2})-RU(?:\.[1-9]\d*)?$') {
+        throw 'Invalid WinUtil RU release version.'
+    }
+    $baseVersion = $Matches.BaseVersion
 
     $isPrerelease = $Channel -eq 'beta'
 

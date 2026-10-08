@@ -84,15 +84,23 @@ function Test-WinUtilLauncherAdministrator {
 function Invoke-WinUtilLauncherApplication {
     param([Parameter(Mandatory)][string]$Shell, [Parameter(Mandatory)][string]$ScriptPath)
     if (Test-WinUtilLauncherAdministrator) {
-        & $Shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath | Out-Host
-        return [int]$LASTEXITCODE
+        # The child emits UTF-8; the parent must decode its redirected output
+        # with the same encoding before Out-Host displays it.
+        $previousOutputEncoding = [Console]::OutputEncoding
+        try {
+            [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+            & $Shell -NoProfile -ExecutionPolicy Bypass -File $ScriptPath | Out-Host
+            return [int]$LASTEXITCODE
+        } finally {
+            [Console]::OutputEncoding = $previousOutputEncoding
+        }
     }
     # Elevate before executing the temporary script, and wait for its process
     # tree. The compiled GUI's detached self-elevation cannot outlive cleanup.
     $literalPath = $ScriptPath.Replace("'", "''")
     $literalShell = [IO.Path]::GetFileName($Shell).Replace("'", "''")
     # Keep -File ownership/exit semantics inside the elevated host.
-    $command = "`$env:WINDOWMANAGER_LAUNCHER_RESTART = '1'; try { & (Join-Path `$PSHOME '$literalShell') -NoProfile -ExecutionPolicy Bypass -File '$literalPath'; exit `$LASTEXITCODE } catch { Write-Error `$_ -ErrorAction Continue; exit 1 }"
+    $command = "`$env:WINDOWMANAGER_LAUNCHER_RESTART = '1'; [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding(`$false); try { & (Join-Path `$PSHOME '$literalShell') -NoProfile -ExecutionPolicy Bypass -File '$literalPath'; exit `$LASTEXITCODE } catch { Write-Error `$_ -ErrorAction Continue; exit 1 }"
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
     $process = Start-Process -FilePath $Shell -Verb RunAs -ArgumentList @('-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded) -Wait -PassThru -ErrorAction Stop
     if ($null -eq $process.ExitCode) { throw 'The elevated application did not return an exit code.' }

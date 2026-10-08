@@ -2,13 +2,13 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "26.09.29-RU",
+    "Version": "26.09.29-RU.1",
     "Fallback": "en-US",
     "Note": "Presentation-only Russian localization for WinUtil RU. Internal control names, config keys, commands and package IDs remain unchanged.",
-    "LocalizationVersion": "1.2.0"
+    "LocalizationVersion": "1.2.1"
   },
   "Exact": {
-    "Select Installed Tweaks": "Выбрать применённые настройки",
+    "Select Installed Tweaks": "Выбрать применённые",
     "- Notifies when downloaded updates are ready to install": "- Уведомляет, когда загруженные обновления готовы к установке",
     "You must use an official Microsoft ISO": "Используйте официальный ISO-образ Microsoft",
     "Injects boot-storage drivers for Setup and adds exported drivers to the selected install.wim edition individually, skipping incompatible packages.": "Добавляет драйверы накопителей для установки Windows в boot.wim и по отдельности добавляет экспортированные драйверы в выбранную редакцию install.wim, пропуская несовместимые пакеты.",
@@ -106,7 +106,7 @@
     "Get Installed Tweaks": "Найти применённые настройки",
     "AppX Removal": "Удаление AppX",
     "Run Tweaks": "Применить настройки",
-    "Undo Selected Tweaks": "Отменить выбранные настройки",
+    "Undo Selected Tweaks": "Отменить выбранное",
     "Note: Hover over items to get a better description. Please be careful as many of these tweaks will heavily modify your system.": "Примечание: наведите указатель на пункт, чтобы увидеть подробное описание. Будьте внимательны: многие настройки существенно изменяют систему.",
     "Recommended selections are for normal users and if you are unsure do NOT check anything else!": "Рекомендуемые варианты подходят большинству пользователей. Если вы не уверены, не выбирайте дополнительные настройки.",
     "Essential Tweaks": "Основные настройки",
@@ -182,7 +182,7 @@
     "- Excludes drivers from quality updates": "- Исключает драйверы из качественных обновлений",
     "- Prevents automatic restarts while a user is signed in": "- Запрещает автоматическую перезагрузку, пока пользователь вошёл в систему",
     "Available on Windows Pro, Enterprise, and Education editions.": "Доступно в редакциях Windows Pro, Enterprise и Education.",
-    "Apply Recommended": "Применить рекомендуемый",
+    "Apply Recommended": "Применить профиль",
     "Windows Default": "По умолчанию Windows",
     "Return control to Windows": "Вернуть управление Windows",
     "- Removes Windows Update policies applied by WinUtil": "- Удаляет политики обновления Windows, применённые WinUtil",
@@ -196,7 +196,7 @@
     "- Stops update services and scheduled tasks": "- Останавливает службы обновления и задания планировщика",
     "- Clears downloaded update files": "- Удаляет загруженные файлы обновлений",
     "Security updates will not be installed while this profile is active.": "Пока этот профиль активен, обновления безопасности устанавливаться не будут.",
-    "Changes apply system-wide. Restart Windows after switching profiles. Use Restore Defaults to undo WinUtil update policies.": "Изменения применяются ко всей системе. После смены профиля перезагрузите Windows. Для отмены политик WinUtil используйте «Восстановить значения по умолчанию».",
+    "Changes apply system-wide. Restart Windows after switching profiles. Use Restore Defaults to undo WinUtil update policies.": "Изменения применяются ко всей системе. После смены профиля перезагрузите Windows. Для отмены политик WinUtil используйте «Восстановить настройки».",
     "Back to the previous step": "Вернуться к предыдущему шагу",
     "Forward to the next step": "Перейти к следующему шагу",
     "1   Select ISO": "1   Выбор ISO",
@@ -413,7 +413,7 @@
     "Stock settings loaded.\n Please reboot your computer": "Стандартные настройки восстановлены.\n Перезагрузите компьютер.",
     "Reset Windows Update": "Сброс Центра обновления Windows",
     "Repairing WinGet": "Восстановление WinGet",
-    "Checking what is already installed": "Проверка уже установленных приложений",
+    "Checking what is already installed": "Проверка текущего состояния",
     "No settings are selected to export. Please select at least one app, tweak, toggle, feature, or AppX package before exporting.": "Для экспорта ничего не выбрано. Выберите хотя бы одно приложение, настройку, переключатель, компонент или пакет AppX.",
     "Nothing to Export": "Нечего экспортировать",
     "The selected file contains no settings to import. No changes have been made.": "Выбранный файл не содержит настроек для импорта. Изменения не внесены.",
@@ -501,7 +501,7 @@
     "USB drive created successfully!\n\nYou can now boot from this drive to install Windows 11.": "USB-накопитель успешно создан!\n\nТеперь с него можно загрузиться и установить Windows 11.",
     "Uninstall": "Удаление",
     "EnvironmentReport": "Отчёт о системе",
-    "Detect installed": "Определение установленных приложений",
+    "Detect installed": "Проверка текущего состояния",
     "ISO mount": "Подключение ISO",
     "ISO modify": "Изменение ISO",
     "ISO cleanup": "Очистка ISO",
@@ -622,6 +622,18 @@
     "Bundles built-in card game modes including Klondike, Spider, FreeCell, Pyramid, and TriPeaks alongside daily challenges.": "Карточные игры «Косынка», «Паук», «Свободная ячейка», «Пирамида» и ежедневные задания."
   },
   "Phrases": [
+    {
+      "Source": " finished",
+      "Target": " — завершено"
+    },
+    {
+      "Source": " failed",
+      "Target": " — ошибка"
+    },
+    {
+      "Source": " could not start",
+      "Target": " — не удалось запустить"
+    },
     {
       "Source": " - Set Time to UTC",
       "Target": " — установить время UTC"

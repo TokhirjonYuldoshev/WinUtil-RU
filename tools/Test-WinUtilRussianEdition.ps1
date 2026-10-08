@@ -121,8 +121,8 @@ try {
 
     if (-not $OfficialTag) {
         $publicVersion = [string]$locale.Meta.Version
-        if ($publicVersion -notmatch '^(?<BaseVersion>.+)-RU$') {
-            throw "Localization Meta.Version must end in -RU, got '$publicVersion'."
+        if ($publicVersion -notmatch '^(?<BaseVersion>\d{2}\.\d{2}\.\d{2})-RU(?:\.[1-9]\d*)?$') {
+            throw "Localization Meta.Version must be YY.MM.DD-RU with an optional positive revision, got '$publicVersion'."
         }
         $OfficialTag = $Matches.BaseVersion
     }
@@ -284,6 +284,9 @@ try {
     # Russian-only additions are allowed only in this explicit set inside protected roots.
     $allowedAddedPaths = @(
         'config/applications_ru.json',
+        # Offline images and their resolver are presentation-only; application IDs stay upstream.
+        'config/application_icons.json',
+        'functions/private/Get-WinUtilAppIconSource.ps1',
         'config/localization_ru.json',
         'functions/private/Initialize-WinUtilRussianLocalization.ps1',
         'functions/private/Set-WinUtilLanguagePreference.ps1'

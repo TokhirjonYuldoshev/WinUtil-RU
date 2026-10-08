@@ -172,8 +172,11 @@ Proceed without asking when:
 
 ## 13. Project Learnings
 
+- Verify dynamic completion/failure/warning text in the bottom status line as well as static captions; prove WPF actually decodes bundled/cache icons, and keep Auto/CacheOnly/Disabled behavior consistent between launcher and renderer. Measure navigation captions with the real theme resources at 75–200% scale and narrow window widths; changing font and fixed button widths together does not resolve clipping. Keep search compact beside navigation at ordinary widths rather than reserving an unconditional second header row.
+
 When the user corrects an agent approach, add or tighten one concrete rule here before ending the session. Keep this section short and prune rules that no longer matter.
 
+- Test the real launcher parent/child stdout boundary under Windows PowerShell 5.1 with an OEM parent and UTF-8 child; a readable transcript does not prove readable console output. Use the BOM-safe public bootstrap for remote source launches.
 - Bind source launcher and archive downloads to one exact commit. Keep cached scripts immutable, publish the manifest atomically only after successful validation/run, and test failed updates against the previous verified cache.
 - After a stable RU release is published, update the README, RU guide and audit to that released version; remove superseded update-candidate notices and keep detailed release evidence out of the landing README.
 - A passing XML/syntax check does not prove WPF can load localized XAML. Validate the generated RU/EN markup with `tools/Test-WinUtilRussianXaml.ps1` on Windows; a `Border` must retain only one visual child.

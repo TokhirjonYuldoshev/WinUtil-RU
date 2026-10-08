@@ -300,7 +300,7 @@ Describe "XAML document" {
 
 
     It "centers top bar controls vertically" {
-        $navPanel = $script:xaml.SelectSingleNode('//*[local-name()="StackPanel"][@Name="NavDockPanel"]')
+        $navPanel = $script:xaml.SelectSingleNode('//*[local-name()="WrapPanel"][@Name="NavDockPanel"]')
         $minimizeButton = $script:xaml.SelectSingleNode('//*[local-name()="Button"][@Name="WPFMinimizeButton"]')
         $actionPanel = $minimizeButton.ParentNode
         $topBarButtonNames = @(
@@ -333,7 +333,7 @@ Describe "XAML document" {
         $comboStyle = $resources.SelectSingleNode('./*[local-name()="Style"][@TargetType="ComboBox"]')
         $comboToggle = $comboStyle.SelectSingleNode('.//*[local-name()="ToggleButton"][@Name="ToggleButton"]')
         $comboItemStyle = $resources.SelectSingleNode('./*[local-name()="Style"][@TargetType="ComboBoxItem"]')
-        $navButtons = @($script:xaml.SelectNodes('//*[local-name()="StackPanel"][@Name="NavDockPanel"]/*[local-name()="ToggleButton"]'))
+        $navButtons = @($script:xaml.SelectNodes('//*[local-name()="WrapPanel"][@Name="NavDockPanel"]/*[local-name()="ToggleButton"]'))
 
         $implicitToggleStyles | Should -BeNullOrEmpty
         $tabStyle | Should -Not -BeNullOrEmpty
@@ -486,6 +486,7 @@ Describe "XAML and sync wiring" {
             "Win11ISOContentsDir",
             "Win11ISOExistingWorkRetryPending",
             "Win11ISOUSBDisks",
+            "WinUtilAppIconMode"
             "WinUtilRussianExactTranslations"
             "WinUtilRussianNormalizedTranslations"
             "WinUtilRussianPhraseTranslations"

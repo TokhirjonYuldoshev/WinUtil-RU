@@ -74,7 +74,9 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 
 ## UI And Event Contract
 
-- UI layout lives in `xaml/inputXML.xaml`.
+The install display uses `config/application_icons.json` for the reported unreliable icons and decodes local cache images with WPF OnLoad before using native asynchronous favicon URLs. Auto allows remote loading; CacheOnly never requests remote icons, and Disabled shows the original letter placeholders. The image catalog includes source artwork and upstream license notices; it does not alter application package identifiers or operations. Russian job status endings are translated in the existing display converter, with failure/warning counts preserved. Upstream console logging remains unchanged.
+
+- UI layout lives in `xaml/inputXML.xaml`. Navigation buttons size to their text; compact search and window controls share the header row. The header wraps only when its controls cannot fit at the current width and scale.
 - Named WPF controls are discovered and stored in `$sync`.
 - Button/action wiring follows a naming convention: an element named like `WPFThingButton` maps to a function named like `Invoke-WPFThingButton`.
 
@@ -118,13 +120,17 @@ Because the final script is concatenated, code cannot rely on runtime module imp
 
 ## Release Artifact
 
+`Meta.Version` uses `YY.MM.DD-RU` for the initial edition and `YY.MM.DD-RU.N` for a positive RU-only revision of the same upstream release. For example, `26.09.29-RU.1` retains upstream tag and manifest `BaseVersion=26.09.29`; it does not adopt a newer upstream version. The compiled UI, cache and manifest all use the revised public version. A revision gets a distinct Git tag; existing releases and tags remain intact.
+
 For WinUtil RU, `tools/Build-WinUtilRussianRelease.ps1` first verifies that every runtime/config/compiler/license input and the pinned upstream baseline in the working tree matches committed HEAD, including ignored and untracked files. It runs the strict parity preflight, compiles repository sources, rechecks the inputs and source commit and produces `dist/winutil-RU.ps1`, `dist/release.json`, and `dist/LICENSE`. The stable release workflow is manual-only; publishing additionally requires `publish_stable=true`. A release is not valid merely because it compiles: strict parity must pass and Windows QA plus explicit owner approval remain required before stable publication.
 
 `tools/Publish-WinUtilRussianRelease.ps1` verifies manifest/artifact integrity and the remote Git tag independently of GitHub Release metadata. Annotated tags are peeled to their commit. An absent tag is created at the exact source SHA with a non-forced push; publication uses `--verify-tag` and checks the tag again before and after publishing. Existing releases and tags are never automatically replaced. Remote/API errors fail the publication.
 
 ## Source Launcher and Cache
 
-`bootstrap.ps1` resolves the requested branch once and downloads `run-russian.ps1` by exact commit. The launcher downloads the same commit archive, compiles, parses the generated script and validates actual WPF via Windows PowerShell STA before starting it. ZIP launch does not perform Git ancestry/parity; that remains a CI/release check.
+`bootstrap.ps1` is the ASCII/BOM-free remote entrypoint. An explicit `WINUTIL_RU_COMMIT` launches only that validated full SHA, without falling back to a different cached build; otherwise it resolves the requested branch once and downloads `run-russian.ps1` by exact commit. The launcher downloads the same commit archive, compiles, parses the generated script and validates actual WPF via Windows PowerShell STA before starting it. ZIP launch does not perform Git ancestry/parity; that remains a CI/release check.
+
+The source and cached launchers decode child stdout as UTF-8 and restore the caller console encoding after an already elevated launch. The elevated wrapper also sets UTF-8 before invoking its child.
 
 The launcher elevates the application before running its temporary script when needed and waits for the elevated process tree before publishing or removing temporary sources. Restart capability is explicitly passed into the elevated process. Bootstrap uses the same waiting behavior for cached builds. UAC cancellation (Win32 error 1223, including wrapped exceptions) stops bootstrap without falling back to another elevated launch. Other update failures retain the verified-cache fallback. Failed child exit codes propagate as application launch failures.
 
