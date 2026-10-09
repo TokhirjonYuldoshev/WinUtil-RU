@@ -29,6 +29,23 @@ function Get-Gh {
     if ($LASTEXITCODE -ne 0 -or $result.Count -eq 0) { throw "GitHub query failed: $ApiPath" }
     ($result -join [Environment]::NewLine) | ConvertFrom-Json
 }
+function Ensure-RequiredCandidateChecks {
+    param([string]$CandidateBranch)
+    $encoded = [Uri]::EscapeDataString($CandidateBranch)
+    # GITHUB_TOKEN-created PR checks might wait for approval. workflow_dispatch runs do not.
+    foreach ($workflow in @('unittests.yaml','compile-check.yaml','russian-parity-check.yaml')) {
+        $runInfo = Get-Gh "repos/$repo/actions/workflows/$workflow/runs?branch=$encoded&event=workflow_dispatch&per_page=1"
+        if ([int]$runInfo.total_count -gt 0) {
+            Write-Host "Required workflow was already dispatched for candidate: $workflow"
+            continue
+        }
+        & gh workflow run $workflow --repo $repo --ref $CandidateBranch
+        if ($LASTEXITCODE -ne 0) {
+            throw "Unable to trigger required status check $workflow on immutable candidate $CandidateBranch"
+        }
+        Write-Host "Dispatched required branch-protection check: $workflow on $CandidateBranch"
+    }
+}
 function Set-WorkflowOutput {
     param([string]$Key,[string]$Value)
     if ($env:GITHUB_OUTPUT) { "$Key=$Value" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding utf8 }
@@ -114,6 +131,7 @@ if ($existing.Count -gt 0) {
     } elseif ($existingPR.Count -ne 1 -or [string]$existingPR[0] -ne $candidateSha) {
         throw 'Candidate branch / PR SHA mismatch.'
     }
+    Ensure-RequiredCandidateChecks -CandidateBranch $candidateBranch
     Set-WorkflowOutput candidate true
     Set-WorkflowOutput sha $candidateSha
     Set-WorkflowOutput tag $tag
@@ -163,6 +181,7 @@ $existingPR = @(& gh pr list --repo $repo --state all --head $candidateBranch --
 if ($LASTEXITCODE -ne 0 -or $existingPR.Count) { throw 'Candidate PR already exists or cannot be verified.' }
 & gh pr create --repo $repo --base russian --head $candidateBranch --draft --title "RC: WinUtil $version ($tag)" --body "Automated candidate at $sha from verified upstream $latest. Only test builds may be published automatically; stable merge and release require owner approval."
 if ($LASTEXITCODE -ne 0) { throw 'Candidate pushed but PR creation failed.' }
+Ensure-RequiredCandidateChecks -CandidateBranch $candidateBranch
 Set-WorkflowOutput candidate true
 Set-WorkflowOutput sha $sha
 Set-WorkflowOutput tag $tag
