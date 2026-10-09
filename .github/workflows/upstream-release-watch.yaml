@@ -1,0 +1,120 @@
+name: Upstream Release Watch
+
+# Read-only: no branch updates, merge, issues or release publication.
+on:
+  schedule:
+    # UTC 00:13, 06:13, 12:13, 18:13; Moscow 03:13, 09:13, 15:13, 21:13.
+    - cron: "13 */6 * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: ["russian"]
+    paths:
+      - ".github/workflows/upstream-release-watch.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-release-watch
+  cancel-in-progress: false
+
+jobs:
+  check-upstream:
+    if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Compare upstream stable and main commits
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $headers = @{
+              Accept = 'application/vnd.github+json'
+              Authorization = "Bearer $env:GH_TOKEN"
+              'User-Agent' = 'WinUtil-RU-Upstream-Release-Watch'
+              'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          function Get-GitHubJson {
+              param([Parameter(Mandatory)][string]$Path)
+              Invoke-RestMethod -Uri ("https://api.github.com" + $Path) -Headers $headers -TimeoutSec 30
+          }
+          function Assert-CommitSha {
+              param([Parameter(Mandatory)][string]$Sha, [Parameter(Mandatory)][string]$Context)
+              if ($Sha -notmatch '^[0-9a-fA-F]{40}$') { throw "Invalid SHA from GitHub for $Context" }
+              $Sha.ToLowerInvariant()
+          }
+
+          # GitHub releases/latest only returns a published, non-prerelease release.
+          $release = Get-GitHubJson -Path '/repos/ChrisTitusTech/winutil/releases/latest'
+          if ($release.draft -or $release.prerelease -or [string]::IsNullOrWhiteSpace([string]$release.tag_name)) {
+              throw 'GitHub did not return a published stable release.'
+          }
+          $tag = [string]$release.tag_name
+          $tagCommit = Get-GitHubJson -Path ('/repos/ChrisTitusTech/winutil/commits/' + [Uri]::EscapeDataString($tag))
+          $officialMain = Get-GitHubJson -Path '/repos/ChrisTitusTech/winutil/commits/main'
+          $forkMain = Get-GitHubJson -Path '/repos/TokhirjonYuldoshev/WinUtil-RU/commits/main'
+
+          $stableSha = Assert-CommitSha -Sha ([string]$tagCommit.sha) -Context 'latest stable tag'
+          $upstreamSha = Assert-CommitSha -Sha ([string]$officialMain.sha) -Context 'official main'
+          $forkSha = Assert-CommitSha -Sha ([string]$forkMain.sha) -Context 'fork main'
+
+          # Comparing refs does not fetch or execute code.
+          $compare = Get-GitHubJson -Path (('/repos/ChrisTitusTech/winutil/compare/{0}...{1}' -f $forkSha, $stableSha))
+          $stableReview = ($forkSha -ne $stableSha)
+          $mainReview = ($forkSha -ne $upstreamSha)
+
+          $report = [ordered]@{
+              CheckedAtUtc = [DateTime]::UtcNow.ToString('o')
+              LatestStableTag = $tag
+              LatestStableUrl = [string]$release.html_url
+              LatestStableCommit = $stableSha
+              OfficialMainCommit = $upstreamSha
+              ForkMainCommit = $forkSha
+              StableNeedsManualReview = $stableReview
+              MainNeedsManualReview = $mainReview
+              Compare = [ordered]@{
+                  Status = [string]$compare.status
+                  AheadBy = [int]$compare.ahead_by
+                  BehindBy = [int]$compare.behind_by
+              }
+              AppliedChanges = $false
+          }
+          $report | ConvertTo-Json -Depth 5 |
+              Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'upstream-release-report.json') -Encoding utf8
+
+          $stableState = if ($stableReview) { 'MANUAL REVIEW REQUIRED' } else { 'Current' }
+          $mainState = if ($mainReview) { 'MANUAL REVIEW REQUIRED' } else { 'Current' }
+          @(
+              '# WinUtil official release check'
+              ''
+              '| Check | Result |'
+              '| --- | --- |'
+              "| [Latest stable]($($release.html_url)) | $tag |"
+              "| Stable commit | $stableSha |"
+              "| [Official main](https://github.com/ChrisTitusTech/winutil/tree/main) | $upstreamSha |"
+              "| [Fork main](https://github.com/TokhirjonYuldoshev/WinUtil-RU/tree/main) | $forkSha |"
+              "| Stable comparison | $stableState |"
+              "| Main comparison | $mainState |"
+              "| Stable ancestry | $($compare.status), ahead=$($compare.ahead_by), behind=$($compare.behind_by) |"
+              ''
+              '**No repository changes:** review the new upstream tag and obtain owner approval before changing main or russian.'
+          ) | Out-File -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
+          if ($stableReview) {
+              Write-Host "::warning title=New stable version requires review::Official stable $tag ($stableSha) differs from fork main ($forkSha). No changes applied."
+          } elseif ($mainReview) {
+              Write-Host "::notice title=Official main moved::Official main ($upstreamSha) differs from fork main ($forkSha). No changes applied."
+          } else {
+              Write-Host 'Fork main matches latest stable and official main. No changes applied.'
+          }
+
+      - name: Save JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: winutil-upstream-release-watch-${{ github.run_id }}
+          path: ${{ runner.temp }}/upstream-release-report.json
+          if-no-files-found: warn
+          retention-days: 30
