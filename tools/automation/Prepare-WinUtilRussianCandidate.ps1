@@ -60,7 +60,7 @@ $release = Get-Gh "repos/$upstream/releases/latest"
 $tag = [string]$release.tag_name
 if ($release.draft -or $release.prerelease -or $tag -notmatch '^\d{2}\.\d{2}\.\d{2}$') { throw 'Invalid stable upstream tag.' }
 Invoke-Git -ArgsList @('fetch','--no-tags','https://github.com/ChrisTitusTech/winutil.git',"refs/tags/$tag")
-$latest = Get-Sha -ArgsList @('rev-parse','FETCH_HEAD')
+$latest = Get-Sha -ArgsList @('rev-parse','FETCH_HEAD^{commit}')
 $remoteCommit = Get-Gh "repos/$upstream/commits/$tag"
 if ([string]$remoteCommit.sha -ne $latest) { throw 'Official GitHub tag mismatch.' }
 $baseline = Get-Content 'tools/WinUtilUpstreamBaseline.json' -Raw -Encoding utf8 | ConvertFrom-Json
