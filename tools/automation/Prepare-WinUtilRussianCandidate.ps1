@@ -35,15 +35,15 @@ function Set-WorkflowOutput {
     Write-Host "$Key=$Value"
 }
 
-$checkout = Get-Sha @('rev-parse','HEAD')
-Invoke-Git @('fetch','--no-tags','origin','+refs/heads/russian:refs/remotes/origin/russian','+refs/heads/main:refs/remotes/origin/main')
-$russian = Get-Sha @('rev-parse','refs/remotes/origin/russian')
+$checkout = Get-Sha -ArgsList @('rev-parse','HEAD')
+Invoke-Git -ArgsList @('fetch','--no-tags','origin','+refs/heads/russian:refs/remotes/origin/russian','+refs/heads/main:refs/remotes/origin/main')
+$russian = Get-Sha -ArgsList @('rev-parse','refs/remotes/origin/russian')
 if ($checkout -ne $russian) { throw 'russian advanced after checkout; rerun.' }
 $release = Get-Gh "repos/$upstream/releases/latest"
 $tag = [string]$release.tag_name
 if ($release.draft -or $release.prerelease -or $tag -notmatch '^\d{2}\.\d{2}\.\d{2}$') { throw 'Invalid stable upstream tag.' }
-Invoke-Git @('fetch','--no-tags','https://github.com/ChrisTitusTech/winutil.git',"refs/tags/$tag")
-$latest = Get-Sha @('rev-parse','FETCH_HEAD')
+Invoke-Git -ArgsList @('fetch','--no-tags','https://github.com/ChrisTitusTech/winutil.git',"refs/tags/$tag")
+$latest = Get-Sha -ArgsList @('rev-parse','FETCH_HEAD')
 $remoteCommit = Get-Gh "repos/$upstream/commits/$tag"
 if ([string]$remoteCommit.sha -ne $latest) { throw 'Official GitHub tag mismatch.' }
 $baseline = Get-Content 'tools/WinUtilUpstreamBaseline.json' -Raw -Encoding utf8 | ConvertFrom-Json
@@ -51,7 +51,7 @@ if ($baseline.Repository -cne $upstream -or [string]$baseline.Commit -notmatch '
 $previous = ([string]$baseline.Commit).ToLowerInvariant()
 Assert-Ancestor $previous $latest 'official stable history'
 Assert-Ancestor $previous $russian 'russian upstream ancestry'
-$forkMain = Get-Sha @('rev-parse','refs/remotes/origin/main')
+$forkMain = Get-Sha -ArgsList @('rev-parse','refs/remotes/origin/main')
 Assert-Ancestor $previous $forkMain 'fork main baseline'
 Assert-Ancestor $forkMain $latest 'fork main fast-forward'
 $version = "$tag-RU.1"
@@ -85,13 +85,13 @@ if ($DryRun) {
     exit 0
 }
 if ($forkMain -ne $latest) {
-    Invoke-Git @('push','origin',"$($latest):refs/heads/main")
+    Invoke-Git -ArgsList @('push','origin',"$($latest):refs/heads/main")
 }
-Invoke-Git @('config','user.name','github-actions[bot]')
-Invoke-Git @('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
-Invoke-Git @('switch','-c',$candidateBranch,$russian)
+Invoke-Git -ArgsList @('config','user.name','github-actions[bot]')
+Invoke-Git -ArgsList @('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+Invoke-Git -ArgsList @('switch','-c',$candidateBranch,$russian)
 # "ours" applies only to unrelated doc conflicts; every code overlap was prohibited.
-Invoke-Git @('merge','--no-ff','--no-commit','-X','ours',$latest)
+Invoke-Git -ArgsList @('merge','--no-ff','--no-commit','-X','ours',$latest)
 $unmerged = @(& git ls-files -u)
 if ($LASTEXITCODE -ne 0 -or $unmerged.Count) { throw 'Merge conflicts remain.' }
 
@@ -104,7 +104,7 @@ $jsonText = $regex.Replace($jsonText, [System.Text.RegularExpressions.MatchEvalu
     return $m.Groups[1].Value + $version + $m.Groups[2].Value
 })
 [System.IO.File]::WriteAllText((Join-Path (Get-Location) $localeFile),$jsonText,[Text.UTF8Encoding]::new($false))
-$treeSha = Get-Sha @('rev-parse',"$latest^{tree}")
+$treeSha = Get-Sha -ArgsList @('rev-parse',"$latest^{tree}")
 $newBaseline = [ordered]@{
     SchemaVersion = 1
     Repository = $upstream
@@ -115,10 +115,10 @@ $newBaseline = [ordered]@{
     VerifiedStableRun = [string]$baseline.VerifiedStableRun
 }
 $newBaseline | ConvertTo-Json -Depth 6 | Set-Content 'tools/WinUtilUpstreamBaseline.json' -Encoding utf8
-Invoke-Git @('add','config/localization_ru.json','tools/WinUtilUpstreamBaseline.json')
-Invoke-Git @('commit','-m',"chore(ru): prepare $version from official stable $latest")
-$sha = Get-Sha @('rev-parse','HEAD')
-Invoke-Git @('push','origin',"$($sha):refs/heads/$candidateBranch")
+Invoke-Git -ArgsList @('add','config/localization_ru.json','tools/WinUtilUpstreamBaseline.json')
+Invoke-Git -ArgsList @('commit','-m',"chore(ru): prepare $version from official stable $latest")
+$sha = Get-Sha -ArgsList @('rev-parse','HEAD')
+Invoke-Git -ArgsList @('push','origin',"$($sha):refs/heads/$candidateBranch")
 $existingPR = @(& gh pr list --repo $repo --state all --head $candidateBranch --json number --jq '.[].number')
 if ($LASTEXITCODE -ne 0 -or $existingPR.Count) { throw 'Candidate PR already exists or cannot be verified.' }
 & gh pr create --repo $repo --base russian --head $candidateBranch --draft --title "RC: WinUtil $version ($tag)" --body "Automated candidate at $sha from verified upstream $latest. Only test builds may be published automatically; stable merge and release require owner approval."
