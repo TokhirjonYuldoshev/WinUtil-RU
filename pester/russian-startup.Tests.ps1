@@ -94,3 +94,23 @@ Describe 'Optional first-run icon preferences' {
         $sync.preferences.language | Should -Be 'en-US'
     }
 }
+
+Describe 'Display validation uses isolated preference fixtures' {
+    It 'sets up both languages with the real optional-key reader and no registry access' {
+        $fixtureAst = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repoRoot 'tools/Test-WinUtilRussianXaml.ps1'), [ref]$null, [ref]$null)
+        $definitions = $fixtureAst.EndBlock.Statements | Where-Object {
+            $_ -is [Management.Automation.Language.FunctionDefinitionAst] -and $_.Name -in @('Test-Path', 'Get-ItemProperty')
+        }
+        # Use a separate runspace so fixture command shadows do not affect Pester.
+        $worker = [powershell]::Create()
+        try {
+            $fixtureCode = ($definitions.Extent.Text -join "`n")
+            [void]$worker.AddScript("param(`$fixture, `$reader) . ([scriptblock]::Create(`$fixture)); `$preferencePath = 'HKCU:\Software\YTY\WindowManager'; foreach (`$testLanguage in @('ru-RU','en-US')) { `$sync = @{ preferences = @{ language = 'ru-RU' } }; . ([scriptblock]::Create(`$reader)); `$sync.preferences.language }").AddArgument($fixtureCode).AddArgument($languagePreferenceBlock.ToString())
+            $result = $worker.Invoke()
+            $worker.HadErrors | Should -BeFalse
+            @($result).Count | Should -Be 2
+            $result[0] | Should -Be 'ru-RU'
+            $result[1] | Should -Be 'en-US'
+        } finally { $worker.Dispose() }
+    }
+}
