@@ -75,8 +75,45 @@ $candidateBranch = "automation/rc-$($tag.Replace('.','-'))-ru-1"
 $existing = @(& git ls-remote --heads origin "refs/heads/$candidateBranch")
 if ($LASTEXITCODE -ne 0) { throw 'Failed to check existing candidate branch.' }
 if ($existing.Count -gt 0) {
-    Write-Host "Existing candidate $candidateBranch; refusing overwrite."
-    Set-WorkflowOutput candidate false
+    Invoke-Git -ArgsList @('fetch','--no-tags','origin',"refs/heads/$candidateBranch")
+    $candidateSha = Get-Sha -ArgsList @('rev-parse','FETCH_HEAD')
+    Assert-Ancestor $latest $candidateSha 'candidate must contain official stable release'
+    Assert-Ancestor $russian $candidateSha 'candidate must descend from exact current russian'
+    $candidateLocaleRaw = @(& git show ('{0}:config/localization_ru.json' -f $candidateSha))
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot verify existing candidate locale.' }
+    $candidateLocale = ($candidateLocaleRaw -join [Environment]::NewLine) | ConvertFrom-Json
+    $candidateBaselineRaw = @(& git show ('{0}:tools/WinUtilUpstreamBaseline.json' -f $candidateSha))
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot verify existing candidate baseline.' }
+    $candidateBaseline = ($candidateBaselineRaw -join [Environment]::NewLine) | ConvertFrom-Json
+    if ([string]$candidateLocale.Meta.Version -ne $version -or [string]$candidateBaseline.Commit -ne $latest -or [string]$candidateBaseline.Tag -ne $tag) {
+        throw 'Existing candidate does not match target stable release; manual review required.'
+    }
+    $rcTag = "$version-rc.1"
+    $rcCheck = @(& gh release view $rcTag --repo $repo --json tagName 2>$null)
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "RC prerelease $rcTag already exists; refusing to rebuild or replace it."
+        Set-WorkflowOutput candidate false
+        exit 0
+    }
+    if ($DryRun) {
+        Write-Host "DRY RUN: existing checked candidate $candidateBranch"
+        Set-WorkflowOutput candidate false
+        exit 0
+    }
+    # If a previous workflow failed after the push, resume safely using exact SHA.
+    $existingPR = @(& gh pr list --repo $repo --state open --head $candidateBranch --json headRefOid --jq '.[].headRefOid')
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot verify existing candidate PR.' }
+    if ($existingPR.Count -eq 0) {
+        & gh pr create --repo $repo --base russian --head $candidateBranch --draft --title "RC: WinUtil $version ($tag)" --body "Resumed release candidate $candidateSha after interrupted automation. Test in Windows before owner approval."
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot resume RC PR.' }
+    } elseif ($existingPR.Count -ne 1 -or [string]$existingPR[0] -ne $candidateSha) {
+        throw 'Candidate branch / PR SHA mismatch.'
+    }
+    Set-WorkflowOutput candidate true
+    Set-WorkflowOutput sha $candidateSha
+    Set-WorkflowOutput tag $tag
+    Set-WorkflowOutput rc_tag $rcTag
+    Set-WorkflowOutput branch $candidateBranch
     exit 0
 }
 if ($DryRun) {
