@@ -105,6 +105,12 @@ Workflow [Upstream Release Watch](../.github/workflows/upstream-release-watch.ya
 Сценарий читает [последний опубликованный стабильный релиз](https://github.com/ChrisTitusTech/winutil/releases/latest) (без draft/prerelease), SHA его тега, SHA официальной `main` и SHA нашей `main`. Сравнение отображается в [GitHub Actions](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions) как **Job Summary**, аннотация `warning`, если найдено расхождение со стабильным релизом, и JSON-отчёт с хранением 30 дней. **Это не автоматическая отправка сообщения по email или Telegram**.
 
 Безопасность: `contents: read`; нет checkout и выполнения чужого кода, нет автоматических push/merge, изменений `main` или `russian`, Issues, тегов, релизов либо включения отключённых upstream-only workflows. Синхронизация `main`, перенос обновления в `russian`, parity/CI/Windows QA и публикация требуют отдельного согласования с владельцем.
+### Полный конвейер: официальная версия → RC → stable по разрешению
+
+[Описание автоматизации, ограничений, проверок и безопасного восстановления](AUTOMATION-RU.md). [Upstream RU Release Pipeline](../.github/workflows/upstream-ru-release-pipeline.yaml) запланирован каждые **15 минут** для проверки нового официального stable; при изменении официального тега выполняет только fast-forward нашей `main`, создаёт отдельную кандидатную ветку и Draft PR, запускает Windows QA/CI и после успешной проверки публикует **тестовый** GitHub prerelease. При конфликте файлов, расхождении истории или провале проверок **останавливается**, не меняя `russian` и не публикуя stable.
+
+Продвижение проверенного RC в `russian` и стабильный выпуск выполняются **только** по отдельному ручному запуску [Promote Tested RU RC to Stable](../.github/workflows/ru-stable-promotion.yaml) с проверенным SHA256 и явным подтверждением владельца. Рекомендована дополнительная защита GitHub Environment required reviewers. Двухконтурная схема (монитор 6 часов + pipeline 15 минут) начинает действовать после отдельно согласованного merge этого PR в default `russian`; GitHub расписание может задерживаться.
+
 ## Документация оригинала
 
 [Сайт WinUtil](https://winutil.christitus.com/) и унаследованный каталог `docs/src/content/docs/` описывают оригинальную утилиту. Их команды запуска относятся к upstream.
