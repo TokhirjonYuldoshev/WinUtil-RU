@@ -48,6 +48,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     outputs:
       candidate: ${{ steps.prepare.outputs.candidate }}
       sha: ${{ steps.prepare.outputs.sha }}
