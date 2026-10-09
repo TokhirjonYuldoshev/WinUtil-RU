@@ -1,4 +1,45 @@
-# WinUtil RU — технический аудит 26.09.29-RU
+# WinUtil RU — технический аудит 26.09.29-RU.1
+
+**Дата проверки:** 9 октября 2026 года. Предыдущий аудит сохранён ниже.
+
+## Текущий стабильный выпуск
+
+| Параметр | Значение |
+| --- | --- |
+| Выпуск | [26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1), latest stable, не draft и не prerelease |
+| Официальная основа | 26.09.29, commit `9419b2803e505b67a71b632205ce59132b52b41b` |
+| Локализация | 1.2.1 |
+| SourceCommit и Git tag | `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef` |
+| Дерево исходников | `8858c123a72dda7bb5d3394d8d8e19aa47d921ae` |
+| Merge | [PR №9](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/9), отдельный merge commit с сохранённой ancestry |
+| Публикация | 09.10.2026, 13:06:30 MSK |
+| Windows release build | [Russian Release №40](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37915419210), success |
+
+Выпуск включает исправленный UTF-8 вывод загрузчика, 20 встроенных иконок, русские окончания динамических статусов и компактный поиск рядом с вкладками. Вкладки автоматически подбирают размер по тексту и переносятся при недостаточной ширине. Операционные установки, tweaks, DNS, AppX, Updates и ISO сохранены; отдельная ветка Battle.net не включена.
+
+## Проверки текущего выпуска
+
+- [Unit Tests после merge](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37850934062): **1021 passed PowerShell 7 + 153 passed Windows PowerShell 5.1**, 0 failed/skipped/inconclusive/notrun; PS Script Analyzer success с сохранёнными convention warnings.
+- [Compile & Check](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37850934033): настоящий WPF RU→EN→RU, все 20 встроенных изображений декодируются без сети. Dark/Light × масштабы75/100/150/200% × ширины800/1280/1920 WPF units; полные подписи, границы header controls, ограниченная ширина поиска и Close у правого края проверены.
+- [Backend parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37850934158) и release preflight: **117 exact blobs /13 reviewed UI-launcher modifications /6 allowed additions /0 forbidden differences**. При404 live metadata официального26.09.29 использована уже закреплённая historical stable запись с неизменными exact commit/tree. Ошибки авторизации/сети/сервера не разрешают fallback.
+- Release №40 повторно проверил committed build inputs, WPF, stable manifest (`Channel=stable`, `Prerelease=false`, точный `SourceCommit`) и SHA256. Actual Git tag проверен независимо от mutable `target_commitish` metadata; non-forced creation и `--verify-tag` сохраняют прежние теги.
+- Владелец сообщил, что предыдущая сборка работает хорошо, и явно разрешил merge/публикацию. Для final compact header отдельная ручная QA точного commit на устройстве/DPI не зафиксирована. Автоматизированное непоказанное WPF-окно не доказывает работу всех сетевых favicon и системных операций.
+
+## Опубликованные файлы
+
+Все три опубликованных файла независимо скачаны; рассчитанные размеры и SHA256 совпадают с GitHub Release API. Manifest подтверждает stable, версию, SourceCommit и хеш/размер скрипта. Хеш скрипта совпадает с Windows build и проверенным PR артефактом; UTF-8 BOM и исходное MIT notice сохранены.
+
+| Файл | Размер, байт | SHA256 |
+| --- | ---: | --- |
+| `LICENSE` | 1095 | `61512a5ea110165ce800d00d2d85bbf1af0dc3ccc5d453ae8b5fe9ae20e6c5b5` |
+| `release.json` | 42843 | `0e595c6d530a0b8807c2fbc398a1616f6414805c8324c7df2f8c19dcbae3a408` |
+| `winutil-RU.ps1` | 1526879 | `aefb32c91f49dee365730229de4dbbb3c1afe3b6c59f703b81183298d13d1e78` |
+
+Предыдущий stable26.09.29-RU и его tag/assets сохранены. Загрузчик следует текущей ветке `russian`; конкретный выпуск определяется tag, manifest и assets. [Руководство](README-RU.md).
+
+---
+
+## Архив: технический аудит 26.09.29-RU
 
 **Дата проверки:** 6 октября 2026 года.
 

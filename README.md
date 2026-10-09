@@ -17,7 +17,7 @@
 
 **WinUtil RU** — независимая русская локализация [Chris Titus Tech's Windows Utility](https://github.com/ChrisTitusTech/winutil). Установка программ, настройки Windows и системные инструменты сохраняют логику официального выпуска; перевод и выбор языка относятся к интерфейсу.
 
-Текущий стабильный выпуск: **[26.09.29-RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU)**. Основа — официальный **WinUtil 26.09.29**. Версия локализации — **1.2.0**.
+Текущий стабильный выпуск: **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)**. Основа — официальный **WinUtil 26.09.29**. Версия локализации — **1.2.1**.
 
 ## Быстрый запуск
 
@@ -29,7 +29,7 @@ irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/boot
 
 Загрузчик проверяет локальную сборку и обновляет её из ветки `russian`, когда это требуется. Его исходный код доступен в [bootstrap.ps1](bootstrap.ps1).
 
-Для запуска конкретного стабильного выпуска скачайте [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.09.29-RU/winutil-RU.ps1), откройте PowerShell в папке с файлом от имени администратора и выполните:
+Для запуска конкретного стабильного выпуска скачайте [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.09.29-RU.1/winutil-RU.ps1), откройте PowerShell в папке с файлом от имени администратора и выполните:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
@@ -52,7 +52,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 
 Операционные файлы сравниваются с **точным официальным тегом**. Все отличия интерфейса и загрузчика проходят отдельную проверку. Перед стабильным выпуском обязательны CI, проверка на Windows и подтверждение владельца.
 
-Для `26.09.29-RU` прошли **871 тест**, строгая проверка backend parity и загрузка WPF-интерфейса **RU → EN → RU**. Подробности и границы проверки: [технический аудит](docs/AUDIT-RU.md).
+Для `26.09.29-RU.1` прошли **1021 тест PowerShell 7 и 153 теста Windows PowerShell 5.1**, строгая проверка backend parity и загрузка WPF-интерфейса **RU → EN → RU**. Подробности и границы проверки: [технический аудит](docs/AUDIT-RU.md).
 
 ## Документация и участие
 
