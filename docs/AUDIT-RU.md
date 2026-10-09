@@ -2,11 +2,21 @@
 
 **Дата проверки:** 9 октября 2026 года. Предыдущий аудит сохранён ниже.
 
+## После публикации: состояние `russian` и PR #11
+
+- **Источник опубликованного `26.09.29-RU.1`:** `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef`; три исходных release asset и их SHA256 зафиксированы ниже. Новый asset для последующего исправления не публиковался.
+- **Ветка `russian`:** `9f85c63d8c23ba707a120f060dfba5b957176981` по live-проверке 09.10.2026. [PR #10](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/10) (документация) слит 09.10 в 13:51:58 МСК; [PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11) (startup) слит 09.10 в 17:21:17 МСК. Merge commit PR #11 совпадает с SHA ветки.
+- **Изменение PR #11:** условный пропуск `Clear-Host` при redirected output; необязательное чтение `AppIconMode` и `Language` без ошибки при отсутствии значения. Операционные функции установки, tweaks, DNS, AppX, Windows Update и ISO не изменялись этим PR.
+- **Device QA:** владелец запускал exact head `8de8c001ca5646cd10d6b7db3ec882792d201eeb`; в полученном логе нет прежних startup ошибок. Проверка относится к PR head до merge; все системные операции отдельно не проверялись.
+- **Post-merge [Unit Tests](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543891):** 1031 passed PowerShell 7 + 163 passed Windows PowerShell 5.1; 0 failed, skipped, notrun, inconclusive; PS Script Analyzer success.
+- **Post-merge [Compile & Check](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543781), [Russian Backend Parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543870), [Fork Automation Safety](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543808), [generated-file guard](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543831):** jobs completed/success. WPF RU → EN → RU, bundled images, navigation layout проверены в Windows CI.
+
+Числа **1021 + 153** ниже относятся **только к опубликованному исходному commit**; **1031 + 163** — к более позднему merge commit `russian`. CI для ветки не превращает её автоматически в новый стабильный release.
 ## Текущий стабильный выпуск
 
 | Параметр | Значение |
 | --- | --- |
-| Выпуск | [26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1), latest stable, не draft и не prerelease |
+| Выпуск | [26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1), опубликованный stable, не draft и не prerelease |
 | Официальная основа | 26.09.29, commit `9419b2803e505b67a71b632205ce59132b52b41b` |
 | Локализация | 1.2.1 |
 | SourceCommit и Git tag | `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef` |
