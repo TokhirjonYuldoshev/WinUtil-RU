@@ -9,7 +9,7 @@ BeforeAll {
 Describe 'WinUtil RU upstream automation safety contract' {
     It 'polls for official stable releases without trusting upstream main HEAD as a release' {
         $script:prepare | Should -Match 'repos/\$upstream/releases/latest'
-        $script:prepare | Should -Match "refs/tags/\$tag"
+        $script:prepare | Should -Match 'refs/tags/\$tag'
         $script:prepare | Should -Match 'Official GitHub tag mismatch'
         $script:prepare | Should -Match 'Assert-Ancestor'
         $script:pipeline | Should -Match '7,22,37,52 \* \* \* \*'
