@@ -272,4 +272,8 @@ $sync.transcriptPath = $sync.logPath
 Start-Transcript -Path $sync.transcriptPath -Append -NoClobber | Out-Null
 
 $Host.UI.RawUI.WindowTitle = "WinUtil"
-Clear-Host
+# A launcher pipes child stdout to Out-Host. Clear-Host cannot manipulate that
+# redirected handle and can emit errors/blank screen rows before the banner.
+if (-not [Console]::IsOutputRedirected) {
+    Clear-Host
+}

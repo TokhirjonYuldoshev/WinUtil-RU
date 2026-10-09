@@ -67,10 +67,19 @@ $themeAssignment = @($ast.EndBlock.Statements | Where-Object {
 })
 if ($themeAssignment.Count -ne 1) { throw 'Missing compiled theme inputs.' }
 
-# Supply a saved-language result locally without reading or writing user settings.
+# Supply a complete existing preference key locally without reading or writing
+# user settings. Optional-value reads check key existence and use LiteralPath.
+function Test-Path {
+    param([Alias('Path')][string]$LiteralPath)
+    if ($LiteralPath -eq 'HKCU:\Software\YTY\WindowManager') { return $true }
+    Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath
+}
 function Get-ItemProperty {
-    param($Path, $Name, $ErrorAction)
-    [pscustomobject]@{ Language = $testLanguage }
+    param([Alias('Path')][string]$LiteralPath, $Name, $ErrorAction)
+    if ($LiteralPath -ne 'HKCU:\Software\YTY\WindowManager') {
+        throw 'Unexpected registry read in display-only validation.'
+    }
+    [pscustomobject]@{ Language = $testLanguage; AppIconMode = 'CacheOnly' }
 }
 
 foreach ($testLanguage in @('ru-RU', 'en-US', 'ru-RU')) {

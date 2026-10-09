@@ -11,7 +11,14 @@
 
     $sync.WinUtilAppIconMode = 'Auto'
     try {
-        $savedIconMode = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name AppIconMode -ErrorAction Stop).AppIconMode
+        $savedIconMode = $null
+        $preferencePath = 'HKCU:\Software\YTY\WindowManager'
+        if (Test-Path -LiteralPath $preferencePath) {
+            # Read the key, not a required named value: a first run may have no AppIconMode.
+            $properties = Get-ItemProperty -LiteralPath $preferencePath -ErrorAction Stop
+            $iconPreference = $properties.PSObject.Properties['AppIconMode']
+            if ($null -ne $iconPreference) { $savedIconMode = $iconPreference.Value }
+        }
         if ($savedIconMode -in @('Auto', 'CacheOnly', 'Disabled')) {
             $sync.WinUtilAppIconMode = [string]$savedIconMode
         }
@@ -21,7 +28,12 @@
 
     $sync.preferences.language = 'ru-RU'
     try {
-        $savedLanguage = (Get-ItemProperty -Path 'HKCU:\Software\YTY\WindowManager' -Name Language -ErrorAction Stop).Language
+        $savedLanguage = $null
+        if (Test-Path -LiteralPath $preferencePath) {
+            $properties = Get-ItemProperty -LiteralPath $preferencePath -ErrorAction Stop
+            $languagePreference = $properties.PSObject.Properties['Language']
+            if ($null -ne $languagePreference) { $savedLanguage = $languagePreference.Value }
+        }
         if ($savedLanguage -in @('ru-RU', 'en-US')) {
             $sync.preferences.language = $savedLanguage
         }
