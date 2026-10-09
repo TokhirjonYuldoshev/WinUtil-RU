@@ -189,6 +189,7 @@ $existingPR = @(& gh pr list --repo $repo --state all --head $candidateBranch --
 if ($LASTEXITCODE -ne 0 -or $existingPR.Count) { throw 'Candidate PR already exists or cannot be verified.' }
 & gh pr create --repo $repo --base russian --head $candidateBranch --draft --title "RC: WinUtil $version ($tag)" --body "Automated candidate at $sha from verified upstream $latest. Only test builds may be published automatically; stable merge and release require owner approval."
 if ($LASTEXITCODE -ne 0) { throw 'Candidate pushed but PR creation failed.' }
+Ensure-RequiredCandidateChecks -CandidateBranch $candidateBranch
 Set-WorkflowOutput candidate true
 Set-WorkflowOutput sha $sha
 Set-WorkflowOutput tag $tag
