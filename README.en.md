@@ -17,7 +17,9 @@
 
 **WinUtil RU** is an independent Russian localization of [Chris Titus Tech's Windows Utility](https://github.com/ChrisTitusTech/winutil). Application management, Windows settings and system tools retain the behavior of the selected official release. Translation and language selection apply to the interface.
 
-Current stable release: **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)**. Based on official **WinUtil 26.09.29**. Localization version: **1.2.1**.
+Published stable release: **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)**. Based on official **WinUtil 26.09.29**. Localization version: **1.2.1**.
+
+**Published release versus source branch:** the downloadable `26.09.29-RU.1` `winutil-RU.ps1` was built from commit `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef`. The bootstrap below follows `russian` (as of 2026-10-09: `9f85c63d8c23ba707a120f060dfba5b957176981`), which already includes [PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11) fixing startup errors. **That fix has not been republished in a release asset.**
 
 ## Quick start
 
@@ -53,6 +55,8 @@ Choose **Русский / English** in the gear menu, then restart the utility.
 Operational files are compared against the **exact official release tag**. Interface and launcher differences are reviewed separately. Stable publication requires CI, Windows QA and owner approval.
 
 For `26.09.29-RU.1`, **1021 PowerShell 7 tests and 153 Windows PowerShell 5.1 tests**, strict backend parity and WPF interface loading in **RU → EN → RU** passed. Evidence and verification limits are recorded in the [technical audit in Russian](docs/AUDIT-RU.md).
+
+Separately, the newer `russian` merge commit (`9f85c63d`) passed [1031 PowerShell 7 tests and 163 Windows PowerShell 5.1 tests](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543891) with zero failed/skipped, [Compile & Check](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543781), and [strict backend parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543870). **These results validate the branch, not the previously published release asset.**
 
 ## Documentation and contributions
 

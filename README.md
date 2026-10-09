@@ -17,7 +17,9 @@
 
 **WinUtil RU** — независимая русская локализация [Chris Titus Tech's Windows Utility](https://github.com/ChrisTitusTech/winutil). Установка программ, настройки Windows и системные инструменты сохраняют логику официального выпуска; перевод и выбор языка относятся к интерфейсу.
 
-Текущий стабильный выпуск: **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)**. Основа — официальный **WinUtil 26.09.29**. Версия локализации — **1.2.1**.
+Опубликованный стабильный выпуск: **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)**. Основа — официальный **WinUtil 26.09.29**. Версия локализации — **1.2.1**.
+
+**Важно различать релиз и исходники:** скачиваемый `winutil-RU.ps1` версии `26.09.29-RU.1` собран из commit `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef`. Загрузчик ниже использует ветку `russian` (на 09.10.2026 — `9f85c63d8c23ba707a120f060dfba5b957176981`), куда уже вошёл [PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11) с исправлением запуска. **Это исправление пока не опубликовано как новый release asset**.
 
 ## Быстрый запуск
 
@@ -53,6 +55,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 Операционные файлы сравниваются с **точным официальным тегом**. Все отличия интерфейса и загрузчика проходят отдельную проверку. Перед стабильным выпуском обязательны CI, проверка на Windows и подтверждение владельца.
 
 Для `26.09.29-RU.1` прошли **1021 тест PowerShell 7 и 153 теста Windows PowerShell 5.1**, строгая проверка backend parity и загрузка WPF-интерфейса **RU → EN → RU**. Подробности и границы проверки: [технический аудит](docs/AUDIT-RU.md).
+
+Для более нового merge commit ветки `russian` (`9f85c63d`) после PR #11 отдельно подтверждены [1031 тест PowerShell 7 и 163 теста Windows PowerShell 5.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543891), 0 ошибок/пропусков, а также [Compile & Check](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543781) и [строгая проверка parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543870). Это **проверки ветки, а не опубликованного файла релиза**.
 
 ## Документация и участие
 
