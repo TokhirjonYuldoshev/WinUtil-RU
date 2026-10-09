@@ -176,6 +176,8 @@ Proceed without asking when:
 
 When the user corrects an agent approach, add or tighten one concrete rule here before ending the session. Keep this section short and prune rules that no longer matter.
 
+- Skip RawUI screen clearing when launcher child stdout is redirected; read optional first-run registry preferences without requiring a missing named value. Keep startup errors visible and diagnosable.
+
 - Test the real launcher parent/child stdout boundary under Windows PowerShell 5.1 with an OEM parent and UTF-8 child; a readable transcript does not prove readable console output. Use the BOM-safe public bootstrap for remote source launches.
 - Bind source launcher and archive downloads to one exact commit. Keep cached scripts immutable, publish the manifest atomically only after successful validation/run, and test failed updates against the previous verified cache.
 - After a stable RU release is published, update the README, RU guide and audit to that released version; remove superseded update-candidate notices and keep detailed release evidence out of the landing README.

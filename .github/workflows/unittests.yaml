@@ -63,4 +63,4 @@ jobs:
       run: |
         Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
         Import-Module -Name $env:WINUTIL_RU_PESTER_PATH -Force
-        Invoke-Pester -Path 'pester/russian-launcher.Tests.ps1', 'pester/russian-launcher-output.Tests.ps1', 'pester/russian-icon-diagnostic.Tests.ps1', 'pester/russian-app-icons.Tests.ps1', 'pester/russian-localization.Tests.ps1', 'pester/russian-release-safety.Tests.ps1', 'pester/russian-console-encoding.Tests.ps1', 'pester/russian-build-inputs.Tests.ps1', 'pester/russian-upstream-baseline.Tests.ps1' -Output Detailed -CI
+        Invoke-Pester -Path 'pester/russian-launcher.Tests.ps1', 'pester/russian-launcher-output.Tests.ps1', 'pester/russian-icon-diagnostic.Tests.ps1', 'pester/russian-app-icons.Tests.ps1', 'pester/russian-localization.Tests.ps1', 'pester/russian-release-safety.Tests.ps1', 'pester/russian-console-encoding.Tests.ps1', 'pester/russian-startup.Tests.ps1', 'pester/russian-build-inputs.Tests.ps1', 'pester/russian-upstream-baseline.Tests.ps1' -Output Detailed -CI
