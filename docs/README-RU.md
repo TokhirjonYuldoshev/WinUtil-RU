@@ -6,6 +6,8 @@
 
 **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)** — стабильная русская редакция официального WinUtil **26.09.29**, локализация **1.2.1**.
 
+**Разница между выпуском и `russian`:** опубликованный файл собран из `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef`. Ветка `russian` на 09.10.2026 содержит commit `9f85c63d8c23ba707a120f060dfba5b957176981` с исправлением запуска из [PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11). Обычная команда загрузчика запускает ветку; скачанный файл релиза **не содержит** этого более позднего исправления.
+
 [WinUtil RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU) сохраняет операционные функции оригинала и добавляет русский интерфейс, выбор языка и окно «О программе» с исходными авторами.
 
 | Состав выпуска | Назначение |
@@ -38,7 +40,7 @@ irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/boot
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 ```
 
-Так запускается конкретный скачанный выпуск. Загрузчик из предыдущего раздела следует текущим исходникам `russian`, в том числе более поздним изменениям документации.
+Так запускается конкретный скачанный выпуск. Загрузчик из предыдущего раздела следует текущим исходникам `russian`, включая исправление ошибок запуска после публикации `26.09.29-RU.1`. Если раньше задавали `WINUTIL_RU_COMMIT` для точного QA, уберите временную переменную в текущем PowerShell или используйте новое окно, чтобы не закрепить старый commit.
 
 ## Язык и «О программе»
 
@@ -73,6 +75,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 
 CI и загрузка WPF не доказывают успешность каждой системной операции. Подробная область проверки: [AUDIT-RU.md](AUDIT-RU.md).
 
+## Проверка ветки `russian` после PR #11
+
+[PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11) слит в `russian` 09.10.2026 (merge commit `9f85c63d8c23ba707a120f060dfba5b957176981`). Исправлены ошибки консоли при перенаправленном выводе и чтение необязательных настроек `AppIconMode`/`Language` при первом запуске; backend операций не изменён.
+
+- [Unit Tests, post-merge](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543891): **1031 PowerShell 7 + 163 Windows PowerShell 5.1**, 0 failed/skipped/notrun/inconclusive; PS Script Analyzer success.
+- [Compile & Check](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543781) и [Russian Backend Parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543870): success.
+- [Fork Automation Safety](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543808) и [generated-file guard](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543831): success.
+- До merge владелец проверил точный PR head `8de8c001ca5646cd10d6b7db3ec882792d201eeb` в Windows: ошибки `CursorPosition` и отсутствующего `AppIconMode` не воспроизвелись. Это не является полной проверкой всех системных операций.
+
+**Важно:** post-merge CI относится к коду ветки `russian`, а не к ранее опубликованному `winutil-RU.ps1`. Новый стабильный релиз не публиковался.
 ## Ветки и обновления
 
 Основные линии:
