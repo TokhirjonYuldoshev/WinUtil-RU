@@ -89,6 +89,7 @@ jobs:
           if ($hash -ne $env:APPROVED_SHA.ToLowerInvariant() -or $manifest.Sha256 -ne $hash -or $manifest.SourceCommit -ne $candidateSha -or $manifest.Version -ne $stableTag -or $manifest.Channel -ne 'beta' -or -not $manifest.Prerelease) {
               throw 'Owner-approved RC artifact identity does not match GitHub prerelease.'
           }
+          "CANDIDATE_BRANCH=$($pr.head.ref)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "CANDIDATE_SHA=$candidateSha" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "STABLE_TAG=$stableTag" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
           "RC_SHA256=$hash" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
@@ -101,7 +102,10 @@ jobs:
         run: |
           Set-ExecutionPolicy Bypass -Scope Process
           git fetch origin "refs/heads/russian"
-          git fetch origin "refs/heads/$((git branch --remotes --contains $env:CANDIDATE_SHA | Select-Object -First 1) -replace '.*origin/', '')"
+          git fetch origin "refs/heads/$($env:CANDIDATE_BRANCH)"
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to fetch approved PR candidate branch.' }
+          $fetched = (git rev-parse FETCH_HEAD).Trim()
+          if ($fetched -ne $env:CANDIDATE_SHA) { throw 'PR candidate changed while publishing; refusing release.' }
           git checkout --detach $env:CANDIDATE_SHA
           if ($LASTEXITCODE -ne 0) { throw 'Cannot check out exact reviewed candidate.' }
           .\tools\Build-WinUtilRussianRelease.ps1 -Channel stable
