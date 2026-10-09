@@ -17,7 +17,7 @@
 
 **WinUtil RU** is an independent Russian localization of [Chris Titus Tech's Windows Utility](https://github.com/ChrisTitusTech/winutil). Application management, Windows settings and system tools retain the behavior of the selected official release. Translation and language selection apply to the interface.
 
-Current stable release: **[26.09.29-RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU)**. Based on official **WinUtil 26.09.29**. Localization version: **1.2.0**.
+Current stable release: **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)**. Based on official **WinUtil 26.09.29**. Localization version: **1.2.1**.
 
 ## Quick start
 
@@ -29,7 +29,7 @@ irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/boot
 
 The bootstrap checks the local build and refreshes it from the `russian` branch when needed. Its source is available in [bootstrap.ps1](bootstrap.ps1).
 
-To run the published stable version, download [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.09.29-RU/winutil-RU.ps1), open an administrator PowerShell in that folder and run:
+To run the published stable version, download [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.09.29-RU.1/winutil-RU.ps1), open an administrator PowerShell in that folder and run:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
@@ -52,7 +52,7 @@ Choose **Русский / English** in the gear menu, then restart the utility.
 
 Operational files are compared against the **exact official release tag**. Interface and launcher differences are reviewed separately. Stable publication requires CI, Windows QA and owner approval.
 
-For `26.09.29-RU`, **871 tests**, strict backend parity and WPF interface loading in **RU → EN → RU** passed. Evidence and verification limits are recorded in the [technical audit in Russian](docs/AUDIT-RU.md).
+For `26.09.29-RU.1`, **1021 PowerShell 7 tests and 153 Windows PowerShell 5.1 tests**, strict backend parity and WPF interface loading in **RU → EN → RU** passed. Evidence and verification limits are recorded in the [technical audit in Russian](docs/AUDIT-RU.md).
 
 ## Documentation and contributions
 
