@@ -142,52 +142,7 @@ if ($existing.Count -gt 0) {
 # Only one open RU release candidate at a time. New upstream main can still fast-forward.
 $openCandidateBranches = @(& gh pr list --repo $repo --base russian --state open --limit 100 --json headRefName --jq '.[].headRefName')
 if ($LASTEXITCODE -ne 0) { throw 'Cannot examine existing release candidate PRs.' }
-$pending = @($openCandidateBranches | Where-Object { $_ -match '^automation/rc-\d{2}-\d{2}-\d{2}-ru-1    Set-WorkflowOutput candidate false
-    exit 0
-}
-Invoke-Git -ArgsList @('config','user.name','github-actions[bot]')
-Invoke-Git -ArgsList @('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
-Invoke-Git -ArgsList @('switch','-c',$candidateBranch,$russian)
-# "ours" applies only to unrelated doc conflicts; every code overlap was prohibited.
-Invoke-Git -ArgsList @('merge','--no-ff','--no-commit','-X','ours',$latest)
-$unmerged = @(& git ls-files -u)
-if ($LASTEXITCODE -ne 0 -or $unmerged.Count) { throw 'Merge conflicts remain.' }
-
-$localeFile = 'config/localization_ru.json'
-$jsonText = Get-Content $localeFile -Raw -Encoding utf8
-$regex = [regex]::new('("Version"\s*:\s*")'+[regex]::Escape([string]$locale.Meta.Version)+'(")')
-if ($regex.Matches($jsonText).Count -ne 1) { throw 'Unsafe locale version substitution.' }
-$jsonText = $regex.Replace($jsonText, [System.Text.RegularExpressions.MatchEvaluator]{
-    param($m)
-    return $m.Groups[1].Value + $version + $m.Groups[2].Value
-})
-[System.IO.File]::WriteAllText((Join-Path (Get-Location) $localeFile),$jsonText,[Text.UTF8Encoding]::new($false))
-$treeSha = Get-Sha -ArgsList @('rev-parse',"$latest^{tree}")
-$newBaseline = [ordered]@{
-    SchemaVersion = 1
-    Repository = $upstream
-    Tag = $tag
-    Commit = $latest
-    Tree = $treeSha
-    Release = [ordered]@{ tag_name = $tag; draft = $false; prerelease = $false }
-    VerifiedStableRun = [string]$baseline.VerifiedStableRun
-}
-$newBaseline | ConvertTo-Json -Depth 6 | Set-Content 'tools/WinUtilUpstreamBaseline.json' -Encoding utf8
-Invoke-Git -ArgsList @('add','config/localization_ru.json','tools/WinUtilUpstreamBaseline.json')
-Invoke-Git -ArgsList @('commit','-m',"chore(ru): prepare $version from official stable $latest")
-$sha = Get-Sha -ArgsList @('rev-parse','HEAD')
-Invoke-Git -ArgsList @('push','origin',"$($sha):refs/heads/$candidateBranch")
-$existingPR = @(& gh pr list --repo $repo --state all --head $candidateBranch --json number --jq '.[].number')
-if ($LASTEXITCODE -ne 0 -or $existingPR.Count) { throw 'Candidate PR already exists or cannot be verified.' }
-& gh pr create --repo $repo --base russian --head $candidateBranch --draft --title "RC: WinUtil $version ($tag)" --body "Automated candidate at $sha from verified upstream $latest. Only test builds may be published automatically; stable merge and release require owner approval."
-if ($LASTEXITCODE -ne 0) { throw 'Candidate pushed but PR creation failed.' }
-Ensure-RequiredCandidateChecks -CandidateBranch $candidateBranch
-Set-WorkflowOutput candidate true
-Set-WorkflowOutput sha $sha
-Set-WorkflowOutput tag $tag
-Set-WorkflowOutput rc_tag "$version-rc.1"
-Set-WorkflowOutput branch $candidateBranch
- })
+$pending = @($openCandidateBranches | Where-Object { $_ -match '^automation/rc-\d{2}-\d{2}-\d{2}-ru-1$' })
 if ($pending.Count -gt 0) {
     Write-Host "::warning title=RC queue paused::Another RU RC is awaiting QA: $($pending -join ', '). Fork main is independently synchronized."
     Set-WorkflowOutput candidate false
