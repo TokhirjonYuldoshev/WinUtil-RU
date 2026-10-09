@@ -1,0 +1,188 @@
+name: Upstream RU Release Pipeline
+
+# Full automation of upstream detection and candidate testing, NEVER stable release.
+# Stable promotion is a separate owner-initiated workflow.
+on:
+  schedule:
+    # Every 15 minutes (UTC), off the busy top of the hour.
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: ["russian"]
+    paths:
+      - ".github/workflows/upstream-ru-release-pipeline.yaml"
+      - "tools/automation/**"
+      - ".github/workflows/ru-stable-promotion.yaml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: winutil-ru-upstream-rc
+  cancel-in-progress: false
+
+jobs:
+  validate-automation:
+    if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate automation PowerShell syntax without executing it
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem tools/automation -Filter '*.ps1' -Recurse
+          foreach ($file in $files) {
+              $tokens = $null
+              $errors = $null
+              [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+              if ($errors) { throw "Syntax errors in $($file.Name): $($errors | Out-String)" }
+          }
+          Write-Host "All $($files.Count) automation scripts parse successfully."
+
+  prepare:
+    needs: validate-automation
+    if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      candidate: ${{ steps.prepare.outputs.candidate }}
+      sha: ${{ steps.prepare.outputs.sha }}
+      tag: ${{ steps.prepare.outputs.tag }}
+      rc_tag: ${{ steps.prepare.outputs.rc_tag }}
+      branch: ${{ steps.prepare.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: russian
+          fetch-depth: 0
+      - name: Verify stable, fast-forward main, create isolated RC PR
+        id: prepare
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ./tools/automation/Prepare-WinUtilRussianCandidate.ps1
+
+  validate-candidate:
+    needs: prepare
+    if: needs.prepare.outputs.candidate == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 55
+    permissions:
+      contents: read
+    outputs:
+      sha256: ${{ steps.artifact.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install pinned Pester and ScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module Pester -RequiredVersion 5.8.0 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.20.0 -Scope CurrentUser -Force
+          Import-Module Pester -RequiredVersion 5.8.0
+          Import-Module PSScriptAnalyzer -RequiredVersion 1.20.0
+
+      - name: PS Script Analyzer
+        shell: pwsh
+        run: |
+          $results = Invoke-ScriptAnalyzer -Path . -Settings ./lint/PSScriptAnalyser.ps1 -Recurse
+          if (@($results | Where-Object Severity -eq 'Error').Count -gt 0) {
+              $results | Format-Table | Out-String | Write-Host
+              throw 'PSScriptAnalyzer Error diagnostics'
+          }
+
+      - name: All Pester tests (PowerShell 7)
+        shell: pwsh
+        env:
+          TEMP: ${{ runner.temp }}
+        run: |
+          Import-Module Pester -RequiredVersion 5.8.0
+          Invoke-Pester -Path 'pester/*.Tests.ps1' -Output Detailed -CI
+
+      - name: Pester release/startup checks (Windows PowerShell 5.1)
+        shell: powershell
+        env:
+          TEMP: ${{ runner.temp }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process
+          $pester = (Get-Module -ListAvailable Pester | Where-Object Version -eq '5.8.0' | Select-Object -First 1).Path
+          if (-not $pester) { throw 'Pester 5.8.0 is unavailable in Windows PowerShell 5.1' }
+          Import-Module -Name $pester -Force
+          Invoke-Pester -Path 'pester/russian-launcher.Tests.ps1', 'pester/russian-launcher-output.Tests.ps1', 'pester/russian-icon-diagnostic.Tests.ps1', 'pester/russian-app-icons.Tests.ps1', 'pester/russian-localization.Tests.ps1', 'pester/russian-release-safety.Tests.ps1', 'pester/russian-console-encoding.Tests.ps1', 'pester/russian-startup.Tests.ps1', 'pester/russian-build-inputs.Tests.ps1', 'pester/russian-upstream-baseline.Tests.ps1' -Output Detailed -CI
+
+      - name: Strict backend parity, compile, and WPF validation
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process
+          .\tools\Build-WinUtilRussianRelease.ps1 -Channel beta
+          if (-not $?) { throw 'Beta compilation did not succeed.' }
+
+      - name: Verify RC manifest and source hash
+        id: artifact
+        shell: pwsh
+        env:
+          EXPECTED_SHA: ${{ needs.prepare.outputs.sha }}
+          EXPECTED_RC_TAG: ${{ needs.prepare.outputs.rc_tag }}
+        run: |
+          $m = Get-Content dist/release.json -Raw -Encoding utf8 | ConvertFrom-Json
+          $actual = (Get-FileHash dist/winutil-RU.ps1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($m.Channel -ne 'beta' -or -not $m.Prerelease -or $m.SourceCommit -ne $env:EXPECTED_SHA -or $m.Version + '-rc.1' -ne $env:EXPECTED_RC_TAG -or $m.Sha256 -ne $actual) {
+              throw 'RC manifest identity/channel/hash does not match immutable candidate.'
+          }
+          "sha256=$actual" | Out-File $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ru-rc-build-${{ github.run_id }}
+          path: |
+            dist/winutil-RU.ps1
+            dist/release.json
+            dist/LICENSE
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-rc:
+    needs: [prepare, validate-candidate]
+    if: needs.prepare.outputs.candidate == 'true' && needs.validate-candidate.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ru-rc-build-${{ github.run_id }}
+          path: dist
+      - name: Publish immutable GitHub prerelease, never latest/stable
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RC_TAG: ${{ needs.prepare.outputs.rc_tag }}
+          CANDIDATE_SHA: ${{ needs.prepare.outputs.sha }}
+          EXPECTED_SHA256: ${{ needs.validate-candidate.outputs.sha256 }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $m = Get-Content dist/release.json -Raw -Encoding utf8 | ConvertFrom-Json
+          $actual = (Get-FileHash dist/winutil-RU.ps1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($m.Channel -ne 'beta' -or -not $m.Prerelease -or $m.SourceCommit -ne $env:CANDIDATE_SHA -or $m.Version + '-rc.1' -ne $env:RC_TAG -or $actual -ne $env:EXPECTED_SHA256 -or $actual -ne $m.Sha256) {
+              throw 'Refusing to publish an unverified RC.'
+          }
+          & gh release view $env:RC_TAG --repo 'TokhirjonYuldoshev/WinUtil-RU' --json tagName
+          if ($LASTEXITCODE -eq 0) {
+              throw 'RC tag/release already exists; refusing to replace immutable QA artifact.'
+          }
+          & gh release create $env:RC_TAG dist/winutil-RU.ps1 dist/release.json dist/LICENSE --repo 'TokhirjonYuldoshev/WinUtil-RU' --target $env:CANDIDATE_SHA --title "WinUtil RU $env:RC_TAG (test only)" --notes "Automated RC from verified official stable. Test in Windows before any stable promotion. Candidate commit: $env:CANDIDATE_SHA. SHA256: $actual. No stable release or merge is automatic." --prerelease --latest=false
+          if ($LASTEXITCODE -ne 0) { throw 'RC publication failed.' }
+          Write-Host "Published immutable RC for owner testing: $env:RC_TAG"
