@@ -38,7 +38,7 @@ function Set-WorkflowOutput {
 $checkout = Get-Sha -ArgsList @('rev-parse','HEAD')
 Invoke-Git -ArgsList @('fetch','--no-tags','origin','+refs/heads/russian:refs/remotes/origin/russian','+refs/heads/main:refs/remotes/origin/main')
 $russian = Get-Sha -ArgsList @('rev-parse','refs/remotes/origin/russian')
-if ($checkout -ne $russian) { throw 'russian advanced after checkout; rerun.' }
+if (-not $DryRun -and $checkout -ne $russian) { throw 'russian advanced after checkout; rerun.' }
 $release = Get-Gh "repos/$upstream/releases/latest"
 $tag = [string]$release.tag_name
 if ($release.draft -or $release.prerelease -or $tag -notmatch '^\d{2}\.\d{2}\.\d{2}$') { throw 'Invalid stable upstream tag.' }
