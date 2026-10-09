@@ -180,10 +180,22 @@ jobs:
           if ($m.Channel -ne 'beta' -or -not $m.Prerelease -or $m.SourceCommit -ne $env:CANDIDATE_SHA -or $m.Version + '-rc.1' -ne $env:RC_TAG -or $actual -ne $env:EXPECTED_SHA256 -or $actual -ne $m.Sha256) {
               throw 'Refusing to publish an unverified RC.'
           }
-          & gh release view $env:RC_TAG --repo 'TokhirjonYuldoshev/WinUtil-RU' --json tagName
+          # Create the exact remote tag atomically; never reuse a pre-existing tag.
+          $path = 'repos/TokhirjonYuldoshev/WinUtil-RU'
+          $existing = @(& gh api "$path/releases/tags/$env:RC_TAG" 2>$null)
           if ($LASTEXITCODE -eq 0) {
-              throw 'RC tag/release already exists; refusing to replace immutable QA artifact.'
+              throw 'RC release already exists; refusing overwrite.'
           }
-          & gh release create $env:RC_TAG dist/winutil-RU.ps1 dist/release.json dist/LICENSE --repo 'TokhirjonYuldoshev/WinUtil-RU' --target $env:CANDIDATE_SHA --title "WinUtil RU $env:RC_TAG (test only)" --notes "Automated RC from verified official stable. Test in Windows before any stable promotion. Candidate commit: $env:CANDIDATE_SHA. SHA256: $actual. No stable release or merge is automatic." --prerelease --latest=false
+          $existingTag = @(& gh api "$path/git/ref/tags/$env:RC_TAG" 2>$null)
+          if ($LASTEXITCODE -eq 0) {
+              throw 'RC git tag already exists; do not trust or overwrite its target.'
+          }
+          & gh api --method POST "$path/git/refs" -f "ref=refs/tags/$env:RC_TAG" -f "sha=$env:CANDIDATE_SHA" | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to atomically create exact RC git tag.' }
+          $commitJSON = @(& gh api "$path/commits/$env:RC_TAG")
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify created RC tag commit.' }
+          $tagged = ($commitJSON -join [Environment]::NewLine) | ConvertFrom-Json
+          if ([string]$tagged.sha -ne $env:CANDIDATE_SHA) { throw 'Created RC tag points to a different candidate SHA; stop.' }
+          & gh release create $env:RC_TAG dist/winutil-RU.ps1 dist/release.json dist/LICENSE --repo 'TokhirjonYuldoshev/WinUtil-RU' --verify-tag --target $env:CANDIDATE_SHA --title "WinUtil RU $env:RC_TAG (test only)" --notes "Automated RC from verified official stable. Test in Windows before any stable promotion. Candidate commit: $env:CANDIDATE_SHA. SHA256: $actual. No stable release or merge is automatic." --prerelease --latest=false
           if ($LASTEXITCODE -ne 0) { throw 'RC publication failed.' }
           Write-Host "Published immutable RC for owner testing: $env:RC_TAG"
