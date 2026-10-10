@@ -11,6 +11,7 @@
 | Дерево `russian` | `533136d39d3b4c30463a2d6d616ba3cd3d1d01a3` до этого docs PR; GitHub tree API: 456 объектов, без усечения |
 | Официальный upstream | [latest stable `26.10.07`](https://github.com/ChrisTitusTech/winutil/releases/tag/26.10.07); `main` форка → `07ccd8e2e755a706f31569808b31f5b77acad6a9` |
 | Ветки | Ровно три: защищённая `russian`, официальная `main`, независимая `fix/battlenet-install-location`. Последняя сохранена по распоряжению владельца |
+| GitHub Issues / Discussions | В этом форке оба механизма отключены (`has_issues=false`, `has_discussions=false`). В `SECURITY.md` исправлены недействующие рекомендации «создать Issue»; для безопасного исправления возможен PR, для уязвимости — только реально доступный приватный канал |
 | PR | Открытых PR не было; документация и release-safety от [#16](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/16)/[#17](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/17) уже слиты |
 | Защита `russian` | Активный ruleset `Protect russian stable`: запрет удаления / non-fast-forward, PR-only; required contexts: `strict-parity`, `Compile-and-Check`, `test`, `PS Script Analyzer` |
 | Workflows | 18 YAML; семь upstream-only workflows отключены для форка через подтверждённый `disabled_manually`. RC schedule и read-only watch проверены фактическими запусками |
@@ -26,6 +27,8 @@
 - В документации выпуска SHA `1be881...` местами был назван одновременно тегом и текущей веткой `russian`, хотя позднейшие docs/security PR уже сдвинули ветку.
 - Состояние автоматизации упоминало лишь исходный запуск RC, не учитывая наблюдаемые `schedule`-успехи. Это исправляется в актуальном слое, прежние доказательства остаются в архиве.
 - Вторая инструкция о PR в `main` относится только к **upstream**, не к форку; документ сайта помечен соответствующим пояснением.
+
+- `.github/SECURITY.md` раньше отправлял владельцев багов и уязвимостей в отключённый GitHub Issues; исправлены EN/RU инструкции и предупреждение **не публиковать секреты в открытом PR**, если GitHub private vulnerability reporting недоступен. `.github/CONTRIBUTING.md` также согласован с фактическими настройками форка.
 
 ### Не проверено / исключения
 
