@@ -115,7 +115,8 @@ def block(path, info):
 
 
 def update(root, info, check=False):
-    changed = []
+    # Validate all five sections before writing any file: all-or-nothing updates.
+    pending = []
     for name in ALLOWED:
         file = root / name
         original = file.read_text(encoding="utf-8")
@@ -129,10 +130,11 @@ def update(root, info, check=False):
             continue  # Do not rewrite approved prose without new release metadata.
         replacement = original[:match.start()] + block(name, info) + original[match.end():]
         if replacement != original:
-            changed.append(name)
-            if not check:
-                file.write_text(replacement, encoding="utf-8", newline="")
-    return changed
+            pending.append((name, file, replacement))
+    if not check:
+        for _, file, replacement in pending:
+            file.write_text(replacement, encoding="utf-8", newline="")
+    return [name for name, _, _ in pending]
 
 
 def main():
