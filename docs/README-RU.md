@@ -95,17 +95,13 @@ Read-only монитор работает с `contents: read`, не делает
 
 [Описание автоматизации, ограничений, проверок и безопасного восстановления](AUTOMATION-RU.md). [Upstream RU Release Pipeline](../.github/workflows/upstream-ru-release-pipeline.yaml) запланирован каждые **15 минут** для проверки нового официального stable; при изменении официального тега выполняет только fast-forward нашей `main`, создаёт отдельную кандидатную ветку и Draft PR, запускает Windows QA/CI и после успешной проверки публикует **тестовый** GitHub prerelease. При конфликте файлов, расхождении истории или провале проверок **останавливается**, не меняя `russian` и не публикуя stable.
 
-Продвижение проверенного RC в `russian` и стабильный выпуск выполняются **только** по отдельному ручному запуску [Promote Tested RU RC to Stable](../.github/workflows/ru-stable-promotion.yaml) с проверенным SHA256 и явным подтверждением владельца. Рекомендована дополнительная защита GitHub Environment required reviewers. Двухконтурная схема (read-only монитор каждые 6 часов + RC pipeline каждые 15 минут) находится в default `russian`; последний подтверждённый успешный полный RC workflow — [№ 38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471). Плановые запуски могут задерживаться либо пропускаться.
+Продвижение проверенного RC в `russian` и стабильный выпуск выполняются **только** по отдельному ручному запуску [Promote Tested RU RC to Stable](../.github/workflows/ru-stable-promotion.yaml) с проверенным SHA256 и явным подтверждением владельца. Рекомендована дополнительная защита GitHub Environment required reviewers. Двухконтурная схема (read-only монитор каждые 6 часов + RC pipeline каждые 15 минут) находится в default `russian`; последний подтверждённый успешный полный RC workflow — [№ 38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471). Плановые запуски могут задерживаться либо пропускаться. Фактическое выполнение обеих линий подтверждено GitHub: [RC pipeline по расписанию № 38056142597](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38056142597) и [read-only watch № 38051805241](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38051805241) — success на 10.10.2026.
 
 ## Документация оригинала
 
 [Сайт WinUtil](https://winutil.christitus.com/) и унаследованный каталог `docs/src/content/docs/` описывают оригинальную утилиту. Их команды запуска относятся к upstream.
 
-## Авторы и лицензия
-
-Оригинальный проект: [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil). Русская локализация: [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev).
-
-Исходная [MIT License](../LICENSE) и **Copyright (c) 2022 CT Tech Group LLC** сохранены.
+## Диагностика и историческая справка
 
 ### Проверка отдельного исходного коммита
 
@@ -113,6 +109,14 @@ Read-only монитор работает с `contents: read`, не делает
 
 При нечитаемом выводе приложите screenshot и текущий `%LocalAppData%\winutil\logs\winutil_*.log`: правильный текст в transcript не гарантирует правильное декодирование вывода родительским процессом. Для незагрузившихся иконок используйте `tools/Test-WinUtilRussianIcons.ps1`; он читает режим и количество файлов кэша и проверяет три favicon URL без установки программ или изменения настроек. Его результат не подтверждает успешную загрузку картинки самой WPF.
 
-### Изменения интерфейса в 26.09.29-RU.1
+### Архивная справка: интерфейс 26.09.29-RU.1
 
 В опубликованной версии верхние вкладки подбирают ширину по тексту; компактный поиск и служебные кнопки находятся рядом с ними. При узком окне или большом масштабе панель переносится, сохраняя полные подписи. Это устраняет обрезание «Инструменты» при масштабе 75–200%. Добавлены встроенные изображения для Windows Terminal, EarTrumpet, GIMP, K-Lite, Total Commander, VLC и BlurAutoClicker. Для K-Lite используется логотип входящего в него MPC-HC с сайта Codec Guide. В режиме Disabled сохраняются буквенные заглушки; Auto и CacheOnly используют встроенный набор. В выпуске 20 встроенных иконок. Остальные favicon зависят от сети и кэша. Нижняя строка показывает русские завершения действий; она сохраняет последний результат при переключении вкладок.
+
+**Для текущего выпуска:** `config/application_icons.json` содержит **20 встроенных изображений** (проверено по GitHub-исходникам); режимы Auto / CacheOnly / Disabled описывают использование этих ресурсов и кэша. Приведённое выше описание изменений `26.09.29-RU.1` относится к историческому выпуску и не заменяет проверку актуального release asset.
+
+## Авторы и лицензия
+
+Оригинальный проект: [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil). Русская локализация: [Tokhirjon Yuldoshev](https://github.com/TokhirjonYuldoshev).
+
+Исходная [MIT License](../LICENSE) и **Copyright (c) 2022 CT Tech Group LLC** сохранены.
