@@ -125,6 +125,8 @@ class AllowlistTests(TestCase):
         self.assertEqual(path.read_bytes(), content)
 
     def test_missing_marker_blocks_everything(self):
+        original = (self.root / "README.md").read_bytes()
         (self.root / "README.en.md").write_text("No markers")
         with self.assertRaises(ValueError):
             docs.update(self.root, self.info)
+        self.assertEqual((self.root / "README.md").read_bytes(), original)
