@@ -2,6 +2,39 @@
 
 **Срез GitHub: 10 октября 2026 года.** Данные получены из live GitHub Release API, refs, PR, Actions и исходных файлов. Предыдущие аудиты ниже сохранены как **исторические**, их проверки не приписываются новой версии.
 
+## Итог повторного аудита репозитория (срез 10.10.2026)
+
+**Границы проверки:** факты ниже подтверждены GitHub REST API, деревом `russian`, правилами ветки и журналами Actions. Это аудит **репозитория и release-процесса**, а не испытание каждой системной операции на пользовательской Windows-машине. Текущий `russian` может измениться после слияния очередного PR; указанный SHA — контрольная точка до документационных изменений.
+
+| Область | Результат / контроль |
+| --- | --- |
+| Дерево `russian` | `533136d39d3b4c30463a2d6d616ba3cd3d1d01a3` до этого docs PR; GitHub tree API: 456 объектов, без усечения |
+| Официальный upstream | [latest stable `26.10.07`](https://github.com/ChrisTitusTech/winutil/releases/tag/26.10.07); `main` форка → `07ccd8e2e755a706f31569808b31f5b77acad6a9` |
+| Ветки | Ровно три: защищённая `russian`, официальная `main`, независимая `fix/battlenet-install-location`. Последняя сохранена по распоряжению владельца |
+| PR | Открытых PR не было; документация и release-safety от [#16](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/16)/[#17](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/17) уже слиты |
+| Защита `russian` | Активный ruleset `Protect russian stable`: запрет удаления / non-fast-forward, PR-only; required contexts: `strict-parity`, `Compile-and-Check`, `test`, `PS Script Analyzer` |
+| Workflows | 18 YAML; семь upstream-only workflows отключены для форка через подтверждённый `disabled_manually`. RC schedule и read-only watch проверены фактическими запусками |
+| Публикация | [stable `26.10.07-RU.1`](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1) и prerelease имеют одинаковый SHA256 `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`; stable tag остаётся на `1be881f8690aed8e9e4c230d4a0818fd8f311a95` |
+| CI | После PR #17: [Unit Tests](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38029039477), [Compile](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38029039480), [Parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38029039471), [Fork Safety](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38029039469) — success |
+| Унаследованный сайт | `docs/src/content/docs/` в основном описывает **оригинальный** WinUtil; её команды `christitus.com/win` **не запускают WinUtil-RU**. Исходные генерируемые разделы не менялись |
+| Документация форка | `README.md`, `README.en.md`, `docs/README-RU.md`, `docs/AUTOMATION-RU.md`, `docs/AUDIT-RU.md`, `SPEC.md`, `.github/CONTRIBUTING.md`, `.github/SECURITY.md`, `AGENTS.md`, `.github/PULL_REQUEST_TEMPLATE.md`: проверены на версию, безопасность инструкций, атрибуцию и ссылки |
+
+### Выявленные и исправляемые недостатки документации
+
+- `.github/PULL_REQUEST_TEMPLATE.md` до аудита содержал только устаревшие инструкции оригинала, не объяснял parity и owner-only stable.
+- `docs/src/content/docs/guides/getting-started.mdx` смешивал оригинальные команды с диагностикой форка и ошибочно указывал **13** встроенных иконок; `config/application_icons.json` фактически имеет **20** в `Icons`.
+- В документации выпуска SHA `1be881...` местами был назван одновременно тегом и текущей веткой `russian`, хотя позднейшие docs/security PR уже сдвинули ветку.
+- Состояние автоматизации упоминало лишь исходный запуск RC, не учитывая наблюдаемые `schedule`-успехи. Это исправляется в актуальном слое, прежние доказательства остаются в архиве.
+- Вторая инструкция о PR в `main` относится только к **upstream**, не к форку; документ сайта помечен соответствующим пояснением.
+
+### Не проверено / исключения
+
+- Отдельный Astro build сайта и фактическая публикация `winutil.christitus.com` от имени форка **не выполнялись**: upstream-only `docs.yaml` отключён в форке; сайт наследуется от официального проекта.
+- Нельзя утверждать, что все сетевые URL третьих сторон и поведение всех пакетов WinGet проверены вручную или что выполнена полноценная live Windows QA каждой системной операции.
+- `fix/battlenet-install-location` содержит пять отдельных изменённых backend/config/test файлов и сознательно **не сливается, не удаляется и не отправляется в upstream**.
+
+---
+
 ## Подтверждённый выпуск
 
 | Предмет | Факт и доказательство |
@@ -13,8 +46,8 @@
 | RC workflow | [№ 38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471), все четыре job — success |
 | Владелец проверил RC на Windows | [QA checkpoint в PR #14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281) |
 | Stable promotion | [№ 38022376836](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836), все этапы, включая reproducible build, merge и публикацию — success |
-| `russian`, stable Git tag | `1be881f8690aed8e9e4c230d4a0818fd8f311a95`, тег на exact merged SHA |
-| PR состояния | [#13](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/13) pipeline, [#15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15) PS5.1 CI, [#14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14) stable candidate: merged; открытых PR нет |
+| Immutable stable Git tag (не текущая ветка) | `1be881f8690aed8e9e4c230d4a0818fd8f311a95`, тег на exact merged SHA |
+| PR состояния на контрольной точке | [#13](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/13), [#14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14), [#15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15), [#16](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/16), [#17](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/17) merged; на срезе 10.10.2026 открытых PR не было |
 | Ветка `russian` | Protected, ruleset **Protect russian stable** — active |
 
 ## Доказательство целостности опубликованных файлов
@@ -41,9 +74,9 @@ Live перечень веток после PR #14/#15: **3** — `russian`, `ma
 
 ## Автоматизация и документация
 
-`Upstream RU Release Pipeline` имеет cron каждые 15 минут с `workflow_dispatch`; `Upstream Release Watch` раз в 6 часов в read-only режиме. Факт успешной обработки вручную запущенного workflow **подтверждён**, но наличие cron не доказывает, что GitHub выполнил каждый запланированный запуск (форк GitHub Actions может задерживать/пропускать). Новые RC автоматически создаются после нового upstream stable, а stable требует отдельного QA и ручного owner-only promotion в `winutil-ru-stable`.
+`Upstream RU Release Pipeline` имеет cron каждые 15 минут с `workflow_dispatch`; `Upstream Release Watch` раз в 6 часов в read-only режиме. **Фактические запуски по расписанию подтверждены:** [RC #38056142597](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38056142597) и [Watch #38051805241](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38051805241) — success. При отсутствии нового официального stable публикация RC в первом запуске закономерно пропущена. GitHub может задерживать другие плановые запуски. Новые RC автоматически создаются после нового upstream stable, а stable требует отдельного QA и ручного owner-only promotion в `winutil-ru-stable`.
 
-Основной README RU/EN, русское руководство, этот аудит, документация автоматизации и контракт `SPEC.md` обновляются отдельным docs-only PR. Англоязычная документация Astro/Starlight исходного WinUtil сохранена как upstream-документация; её landing page не следует выдавать за страницу WinUtil-RU. Условия публикации сайта, не подтверждённые этой проверкой, отдельно не заявляются.
+Основной README RU/EN, русское руководство, аудит, автоматизация и `SPEC.md` обновлены и прошли CI в [документационном PR #16](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/16); [PR #17](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/17) окончательно закрыл старый ручной путь публикации stable. Текущий повторный docs-аудит устраняет несоответствия PR-шаблона и разграничивает upstream-сайт Astro/Starlight с инструкциями русского форка. Автоматически генерируемые страницы `docs/src/content/docs/code-reference/{features,tweaks}/` не редактируются вручную. Факт сборки сайта/его публикации отдельно не заявляется.
 
 ---
 
