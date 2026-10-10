@@ -1,9 +1,13 @@
 {
   "SchemaVersion": 1,
   "Repository": "ChrisTitusTech/winutil",
-  "Tag": "26.09.29",
-  "Commit": "9419b2803e505b67a71b632205ce59132b52b41b",
-  "Tree": "a2427efa33896f09d6d50921b39e9c704dc4e75f",
-  "Release": { "tag_name": "26.09.29", "draft": false, "prerelease": false },
-  "VerifiedStableRun": "https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37622753740"
+  "Tag": "26.10.07",
+  "Commit": "07ccd8e2e755a706f31569808b31f5b77acad6a9",
+  "Tree": "2878d798a69a0e3f3e118f345fcaa5a23e748182",
+  "Release": {
+    "tag_name": "26.10.07",
+    "draft": false,
+    "prerelease": false
+  },
+  "VerifiedStableRun": "https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38012370688"
 }
