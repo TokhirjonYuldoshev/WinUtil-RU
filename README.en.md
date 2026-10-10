@@ -58,6 +58,8 @@ The `26.10.07-RU.1` release passed the [RC pipeline and Windows validation](http
 
 Future RC creation is automated as described in the [release pipeline guide](docs/AUTOMATION-RU.md). **Stable releases are never published automatically:** owner Windows QA and a separate protected manual workflow remain mandatory.
 
+A separate [Docs Sync automation](docs/AUTOMATION-RU.md) verifies published official/RU stable release metadata, SHA256 and the pinned upstream baseline daily or on manual dispatch. It proposes changed metadata only via a dedicated documentation PR, never modifies backend, historical audits or releases, and never bypasses required merge checks.
+
 ## Documentation and contributions
 
 - [Russian user guide](docs/README-RU.md) — launch, language, logs and updates.
