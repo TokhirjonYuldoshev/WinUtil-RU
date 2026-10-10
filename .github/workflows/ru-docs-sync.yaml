@@ -3,6 +3,12 @@ name: WinUtil RU Documentation Sync
 # Only releases metadata -> approved Markdown sections -> protected-branch PR.
 # No backend edits, stable publication, force pushes or admin merge.
 on:
+  push:
+    branches: [russian]
+    paths:
+      - ".github/workflows/ru-docs-sync.yaml"
+      - "tools/automation/sync_winutil_docs.py"
+      - "tools/automation/test_sync_winutil_docs.py"
   schedule:
     - cron: "43 4,16 * * *"
   workflow_dispatch:
