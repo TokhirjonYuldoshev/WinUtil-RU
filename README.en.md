@@ -17,9 +17,9 @@
 
 **WinUtil RU** is an independent Russian localization of [Chris Titus Tech's Windows Utility](https://github.com/ChrisTitusTech/winutil). Application management, Windows settings and system tools retain the behavior of the selected official release. Translation and language selection apply to the interface.
 
-Published stable release: **[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)**. Based on official **WinUtil 26.09.29**. Localization version: **1.2.1**.
+Published stable release: **[26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1)**. Based on official **WinUtil 26.10.07**. Localization version: **1.2.1**.
 
-**Published release versus source branch:** the downloadable `26.09.29-RU.1` `winutil-RU.ps1` was built from commit `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef`. The bootstrap below follows `russian` (as of 2026-10-09: `9f85c63d8c23ba707a120f060dfba5b957176981`), which already includes [PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11) fixing startup errors. **That fix has not been republished in a release asset.**
+**Release versus source branch:** stable tag `26.10.07-RU.1` points to merge commit `1be881f8690aed8e9e4c230d4a0818fd8f311a95`. The owner-tested RC was built from `f1f684ab43f75f075a9947fec2552cd0c615af45`. The published stable `winutil-RU.ps1` is **byte-identical** to the tested prerelease (SHA256: `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`). The bootstrap follows the current `russian` branch, which can advance independently; download the release asset for a pinned version.
 
 ## Quick start
 
@@ -31,7 +31,7 @@ irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/boot
 
 The bootstrap checks the local build and refreshes it from the `russian` branch when needed. Its source is available in [bootstrap.ps1](bootstrap.ps1).
 
-To run the published stable version, download [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.09.29-RU.1/winutil-RU.ps1), open an administrator PowerShell in that folder and run:
+To run the published stable version, download [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.10.07-RU.1/winutil-RU.ps1), open an administrator PowerShell in that folder and run:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
@@ -54,9 +54,9 @@ Choose **Русский / English** in the gear menu, then restart the utility.
 
 Operational files are compared against the **exact official release tag**. Interface and launcher differences are reviewed separately. Stable publication requires CI, Windows QA and owner approval.
 
-For `26.09.29-RU.1`, **1021 PowerShell 7 tests and 153 Windows PowerShell 5.1 tests**, strict backend parity and WPF interface loading in **RU → EN → RU** passed. Evidence and verification limits are recorded in the [technical audit in Russian](docs/AUDIT-RU.md).
+The `26.10.07-RU.1` release passed the [RC pipeline and Windows validation](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471), [owner QA](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281), and the [protected stable promotion](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836). PowerShell 7 RC checks reported **1040 passed, 0 failed**; the PowerShell 5.1, WPF RU → EN → RU, compile, and strict backend-parity gates also passed. GitHub confirms the executable SHA256 matches between prerelease and stable. See the [technical audit](docs/AUDIT-RU.md).
 
-Separately, the newer `russian` merge commit (`9f85c63d`) passed [1031 PowerShell 7 tests and 163 Windows PowerShell 5.1 tests](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543891) with zero failed/skipped, [Compile & Check](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543781), and [strict backend parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543870). **These results validate the branch, not the previously published release asset.**
+Future RC creation is automated as described in the [release pipeline guide](docs/AUTOMATION-RU.md). **Stable releases are never published automatically:** owner Windows QA and a separate protected manual workflow remain mandatory.
 
 ## Documentation and contributions
 

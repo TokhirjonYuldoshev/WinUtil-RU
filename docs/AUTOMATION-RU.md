@@ -1,6 +1,6 @@
 # WinUtil-RU — безопасный конвейер обновлений
 
-Статус документа: проект изменений из PR #13. **Расписание и автоматическая публикация RC не активны, пока PR не слит в стандартную ветку `russian`.** Текущий стабильный релиз не изменяется.
+Статус на **10.10.2026**: [PR #13](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/13) слит; CI-исправление [PR #15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15) слито. Полный RC pipeline [№ 38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471) и защищённое stable promotion [№ 38022376836](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836) успешно завершились. Текущий stable — **[26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1)**.
 
 ## Цель и разделение полномочий
 
@@ -52,7 +52,26 @@ Workflow использует точный SHA кандидатного комм
 
 Это **отдельное действие пользователя**, не автоматически последующий job. Перед merge workflow сверяет SHA PR, immutable RC-tag, скачанные assets и подтверждённый SHA256. Затем воспроизводит standalone-сборку кандидата, требует идентичного бинарного SHA256, пытается обычный PR merge по ожидаемому head SHA, подтверждает полное равенство дерева `russian` с проверенным кандидатом, проверяет parity и SHA256 на merge SHA, и лишь после этого создаёт новый неизменяемый stable tag/release. Ошибка любого шага блокирует stable. Важная оговорка: если отказ случится **после** разрешённого merge, ветка `russian` уже изменена, но публикации стабильного релиза не будет; потребуется разбор без force-push.
 
-**Рекомендуемая дополнительная защита:** Settings → Environments → `winutil-ru-stable` → Required reviewers → `TokhirjonYuldoshev`. Для однопользовательского согласования выключить Prevent self-review (иначе владелец, запустивший workflow, не сможет подтвердить собственный запуск). Environment **не защищено автоматически**, пока правило reviewers не включено вручную. Уже есть защита вручную вводимыми полями и точным `github.actor`, но Required reviewers добавляет второй независимый gate.
+**Защищённая среда:** Settings → Environments → `winutil-ru-stable` → Required reviewers → `TokhirjonYuldoshev`. Владелец подтвердил настройку required reviewer и разрешение self-review; текущему подключению GitHub недоступна независимая административная проверка этих параметров. Итоговый [promotion workflow № 38022376836](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836) завершился успешно. Перед будущими выпусками необходимо сохранять проверку owner-only dispatch, точного SHA256 и Environment approval.
+
+## Подтверждённый производственный цикл 26.10.07-RU.1
+
+| Контрольная точка | Подтверждённый результат |
+| --- | --- |
+| Официальный тег | `26.10.07`, commit `07ccd8e2e755a706f31569808b31f5b77acad6a9` |
+| Fork `main` | Fast-forward до того же официального commit |
+| Кандидат | [PR #14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14), commit `f1f684ab43f75f075a9947fec2552cd0c615af45` |
+| Тестовый выпуск | [26.10.07-RU.1-rc.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1-rc.1), [RC CI #38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471) — success |
+| Проверка Windows | [Подтверждение владельца](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281) |
+| Защищённый stable | [26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1), [workflow #38022376836](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836) — success |
+| Итог `russian` и stable tag | `1be881f8690aed8e9e4c230d4a0818fd8f311a95` |
+| SHA256 `winutil-RU.ps1` RC и stable | `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8` |
+
+Проверка Windows PowerShell 5.1 сначала выявила раздельную установку Pester между `pwsh` и `powershell`. Исправление [PR #15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15) добавило установку Pester 5.8.0 в правильной среде и реальный smoke-test; после этого полная сборка RC прошла. PowerShell 7 RC: **1040 tests passed, 0 failed**. Ни стабильный merge, ни тег не создавались до отдельного разрешения владельца.
+
+## Проверка legacy release пути
+
+В репозитории ещё есть ручной `russian-release.yaml` с `publish_stable=true`, использованный в прежних версиях. Он выполняет backend parity, сборку и проверку SHA256, **но не требует RC тег, подтверждённый SHA256 опубликованной RC и Environment**, как `ru-stable-promotion.yaml`. Для выпусков по правилу обязательного Windows QA используйте **только новый защищённый promotion**. Ограничение старого пути требует отдельного CI/security изменения и согласования; этот документационный PR не меняет workflow.
 
 ## Права и эксплуатация
 
@@ -61,4 +80,4 @@ Workflow использует точный SHA кандидатного комм
 - Семь отключённых upstream-only workflows не включаются. `main`, `russian` и release-теги никогда не переписываются принудительно.
 - GitHub Actions хранит build artifact 30 дней. GitHub prerelease остаётся доступным, пока его не удалит владелец.
 - Если необходимо остановить автоматизацию, нужно вручную отключить **Upstream RU Release Pipeline**, а не удалять существующие теги, stable releases или backend. `Upstream Release Watch` может продолжать read-only проверку.
-- **Сначала отдельно проверить и одобрить merge PR #13**. После merge следует выполнить ручной `workflow_dispatch` и просмотреть результат для официального `26.10.07`; публикация стабильного RU по-прежнему требует собственного подтверждения.
+- **Следующие версии:** после появления нового официального stable автоматический конвейер должен подготовить очередной RC; проверка на Windows и отдельное подтверждение владельца обязательны перед стабильным релизом. Ветка `fix/battlenet-install-location` содержит независимую незавершённую работу и не должна сливаться либо удаляться автоматически.
