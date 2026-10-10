@@ -40,12 +40,12 @@ Describe 'Release build input binding' {
         Mock git {
             if ($Arguments[0] -eq 'ls-remote') {
                 $global:LASTEXITCODE = 0
-                "$officialCommit`trefs/tags/26.09.29"
+                "$officialCommit`trefs/tags/$($baseline.Tag)"
             } elseif ($Arguments[0] -eq 'fetch') {
                 & $nativeGit -C $fixture fetch --quiet --no-tags $fixture $officialCommit
             } else { & $nativeGit @Arguments }
         }
-        Mock Invoke-RestMethod { [pscustomobject]@{ tag_name = '26.09.29'; draft = $false; prerelease = $false } }
+        Mock Invoke-RestMethod { [pscustomobject]@{ tag_name = [string]$baseline.Tag; draft = $false; prerelease = $false } }
     }
     It 'builds a clean checkout and permits unrelated dist/generated output' {
         New-Item -ItemType Directory (Join-Path $fixture 'dist') -Force | Out-Null
