@@ -2,7 +2,7 @@
   "Meta": {
     "Language": "ru-RU",
     "Name": "Русский",
-    "Version": "26.09.29-RU.1",
+    "Version": "26.10.07-RU.1",
     "Fallback": "en-US",
     "Note": "Presentation-only Russian localization for WinUtil RU. Internal control names, config keys, commands and package IDs remain unchanged.",
     "LocalizationVersion": "1.2.1"
