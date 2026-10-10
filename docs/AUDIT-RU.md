@@ -33,6 +33,12 @@ Live перечень веток после PR #14/#15: **3** — `russian`, `ma
 
 `fix/battlenet-install-location` по сравнению с `main` расходится по истории (ahead 2, behind 1), содержит **5 уникально изменённых файлов**: `config/applications.json`, `functions/private/Install-WinUtilProgramWinget.ps1`, `functions/public/Invoke-WPFInstall.ps1`, `pester/install-workflow.Tests.ps1`, `pester/package.Tests.ps1`. Это независимое незавершённое исправление — **не удалять без отдельного решения о сохранении/отказе от работы**. Нет открытых PR, все 15 известных PR слиты; исторические Git tags и releases сохранены.
 
+## Дополнительное замечание безопасности — исторический workflow
+
+В репозитории есть **второй ручной путь stable**: `.github/workflows/russian-release.yaml` с `workflow_dispatch` и флагом `publish_stable=true`. В отличие от основного защищённого `ru-stable-promotion.yaml`, этот исторический путь в прочитанном YAML **не требует точный опубликованный RC, владельца `github.actor` или Environment reviewer**. Он проверяет parity, stable manifest и SHA256 сборки, но это **не равно** обязательному процессу «протестированный immutable RC → owner QA → защищённое promotion». Нынешний релиз `26.10.07-RU.1` прошёл именно новый защищённый путь. Рекомендация: отдельным CI/security PR ограничить legacy-выпуск или оставить его в режиме сборки без публикации; **не выключать действующий workflow без согласия владельца**.
+
+Также в `unittests.yaml` есть условный dry-run, привязанный к уже удалённой ветке PR #13 (`automation/upstream-stable-watch-6h`). Это низкоприоритетный устаревший CI-спецслучай, который не влияет на текущие релизы; удалять отдельно от docs-аудита.
+
 ## Автоматизация и документация
 
 `Upstream RU Release Pipeline` имеет cron каждые 15 минут с `workflow_dispatch`; `Upstream Release Watch` раз в 6 часов в read-only режиме. Факт успешной обработки вручную запущенного workflow **подтверждён**, но наличие cron не доказывает, что GitHub выполнил каждый запланированный запуск (форк GitHub Actions может задерживать/пропускать). Новые RC автоматически создаются после нового upstream stable, а stable требует отдельного QA и ручного owner-only promotion в `winutil-ru-stable`.
