@@ -15,6 +15,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -71,3 +72,8 @@ jobs:
           git commit -m 'docs: synchronize verified published release metadata'
           git push origin "HEAD:refs/heads/$branch"
           gh pr create --repo TokhirjonYuldoshev/WinUtil-RU --base russian --head "$branch" --title 'docs: synchronize verified stable metadata' --body 'Generated from verified GitHub published releases and pinned upstream baseline. Restricted to bounded documentation blocks. No backend, runtime, releases or tags changed. Requires normal checks and review; no auto-merge.'
+          # PRs created by GITHUB_TOKEN do not trigger normal pull_request workflows.
+          # Dispatch real status checks for this branch; never synthesize or bypass their outcomes.
+          gh workflow run russian-parity-check.yaml --repo TokhirjonYuldoshev/WinUtil-RU --ref "$branch"
+          gh workflow run compile-check.yaml --repo TokhirjonYuldoshev/WinUtil-RU --ref "$branch"
+          gh workflow run unittests.yaml --repo TokhirjonYuldoshev/WinUtil-RU --ref "$branch"
