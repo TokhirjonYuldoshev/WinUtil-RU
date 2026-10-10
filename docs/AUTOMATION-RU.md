@@ -71,7 +71,7 @@ Workflow использует точный SHA кандидатного комм
 
 ## Проверка legacy release пути
 
-В репозитории ещё есть ручной `russian-release.yaml` с `publish_stable=true`, использованный в прежних версиях. Он выполняет backend parity, сборку и проверку SHA256, **но не требует RC тег, подтверждённый SHA256 опубликованной RC и Environment**, как `ru-stable-promotion.yaml`. Для выпусков по правилу обязательного Windows QA используйте **только новый защищённый promotion**. Ограничение старого пути требует отдельного CI/security изменения и согласования; этот документационный PR не меняет workflow.
+Исторический [`russian-release.yaml`](../.github/workflows/russian-release.yaml) переведён в режим **только ручной сборки и проверок**: `workflow_dispatch` на `russian`, strict backend parity, сборка `winutil-RU.ps1`, upload артефактов и проверка `release.json`/SHA256 сохранены. Удалены вход `publish_stable`, шаг публикации GitHub Release и права `contents: write`; этот workflow **не создаёт ни Git tags, ни stable release**. Регрессионный тест в `pester/ru-automation.Tests.ps1` запрещает возвращать публикацию и права записи. Единственный разрешённый процесс stable — [защищённый `ru-stable-promotion.yaml`](../.github/workflows/ru-stable-promotion.yaml) с проверенным RC, владельцем, SHA256 и Environment approval.
 
 ## Права и эксплуатация
 

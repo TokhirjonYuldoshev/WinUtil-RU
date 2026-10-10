@@ -3,6 +3,7 @@ BeforeAll {
     $script:prepare = Get-Content (Join-Path $root 'tools/automation/Prepare-WinUtilRussianCandidate.ps1') -Raw -Encoding utf8
     $script:pipeline = Get-Content (Join-Path $root '.github/workflows/upstream-ru-release-pipeline.yaml') -Raw -Encoding utf8
     $script:promotion = Get-Content (Join-Path $root '.github/workflows/ru-stable-promotion.yaml') -Raw -Encoding utf8
+    $script:legacyBuild = Get-Content (Join-Path $root '.github/workflows/russian-release.yaml') -Raw -Encoding utf8
     $script:watch = Get-Content (Join-Path $root '.github/workflows/upstream-release-watch.yaml') -Raw -Encoding utf8
 }
 
@@ -50,6 +51,21 @@ Describe 'WinUtil RU upstream automation safety contract' {
         $script:promotion | Should -Match 'RC binary not reproducible'
         $script:promotion | Should -Match 'Merged tree differs from approved candidate'
         $script:promotion | Should -Match '\-\-match-head-commit'
+    }
+
+    It 'keeps the legacy RU build read-only and rejects direct stable publication' {
+        $script:legacyBuild | Should -Match 'Russian Release Build'
+        $script:legacyBuild | Should -Match 'workflow_dispatch:'
+        $script:legacyBuild | Should -Match 'contents: read'
+        $script:legacyBuild | Should -Match 'Strict official-tag and backend parity preflight'
+        $script:legacyBuild | Should -Match 'Build-WinUtilRussianRelease.ps1 -Channel stable'
+        $script:legacyBuild | Should -Match 'Upload build artifact'
+        $script:legacyBuild | Should -Match 'Validate release manifest'
+        $script:legacyBuild | Should -Not -Match 'publish_stable'
+        $script:legacyBuild | Should -Not -Match 'Publish-WinUtilRussianRelease'
+        $script:legacyBuild | Should -Not -Match 'contents: write'
+        $script:legacyBuild | Should -Not -Match 'gh release create'
+        $script:promotion | Should -Match 'winutil-ru-stable'
     }
 
     It 'keeps the independent upstream watcher read-only' {
