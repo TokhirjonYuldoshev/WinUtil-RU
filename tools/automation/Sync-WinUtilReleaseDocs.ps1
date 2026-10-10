@@ -45,39 +45,7 @@ $official = Read-GitHub "repos/$upstream/releases/latest"
 if ($ru.draft -or $ru.prerelease -or $official.draft -or $official.prerelease) { throw 'Not stable releases' }
 $ruTag = [string]$ru.tag_name
 $offTag = [string]$official.tag_name
-if ($ruTag -cmatch '^([0-9]{2}[.][0-9]{2}[.][0-9]{2})-RU[.][1-9][0-9]*
-if ($offTag -cnotmatch '^[0-9]{2}[.][0-9]{2}[.][0-9]{2}$') { throw 'Unrecognized upstream tag' }
-$ruCommit = Assert-Sha ([string](Read-GitHub "repos/$repo/commits/$ruTag").sha)
-$upCommit = Assert-Sha ([string](Read-GitHub "repos/$upstream/commits/$offTag").sha)
-$assets = @($ru.assets | Where-Object { $_.name -ceq 'winutil-RU.ps1' })
-if ($assets.Count -ne 1 -or [string]$assets[0].digest -cnotmatch '^sha256:[a-f0-9]{64}$') { throw 'Missing SHA256 release asset digest' }
-$hash = ([string]$assets[0].digest).Substring(7)
-$baseline = Get-Content 'tools/WinUtilUpstreamBaseline.json' -Raw -Encoding UTF8 | ConvertFrom-Json
-if ($ruBase -cne [string]$baseline.Tag) { throw 'Published RU base differs from verified pinned baseline; manual review needed' }
-$ruUrl = "https://github.com/$repo/releases/tag/$ruTag"
-$upUrl = "https://github.com/$upstream/releases/tag/$offTag"
-$ruText = @(
-  'Автоматически проверенные данные опубликованных релизов GitHub (не заменяют Windows QA):'
-  ''
-  "- WinUtil-RU stable: [$ruTag]($ruUrl); commit $ruCommit."
-  "- SHA256 опубликованного winutil-RU.ps1: $hash."
-  "- Официальный stable WinUtil: [$offTag]($upUrl); commit $upCommit."
-  "- Основа RU: $($baseline.Tag). Новый upstream stable требует отдельного RC и Windows QA."
-) -join [Environment]::NewLine
-$enText = @(
-  'Verified published GitHub release metadata (not a substitute for Windows QA):'
-  ''
-  "- WinUtil-RU stable: [$ruTag]($ruUrl); commit $ruCommit."
-  "- Published winutil-RU.ps1 SHA256: $hash."
-  "- Official WinUtil stable: [$offTag]($upUrl); commit $upCommit."
-  "- RU pinned upstream baseline: $($baseline.Tag). New upstream releases still require an RC and Windows QA."
-) -join [Environment]::NewLine
-Sync-Block 'README.md' '## Быстрый запуск' $ruText
-Sync-Block 'README.en.md' '## Quick start' $enText
-Sync-Block 'docs/README-RU.md' '## Запуск через загрузчик' $ruText
-Sync-Block 'docs/AUTOMATION-RU.md' '## Цель и разделение полномочий' $ruText
-Write-Host "Docs sync verified $ruTag; SHA256 $hash; upstream $offTag"
-) {
+if ($ruTag -cmatch '^([0-9]{2}[.][0-9]{2}[.][0-9]{2})-RU[.][1-9][0-9]*$') {
   $ruBase = $Matches[1]
 } else { throw 'Unrecognized RU release tag' }
 if ($offTag -cnotmatch '^[0-9]{2}[.][0-9]{2}[.][0-9]{2}$') { throw 'Unrecognized upstream tag' }
