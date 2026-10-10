@@ -4,9 +4,11 @@
 
 ## Текущий выпуск
 
+<!-- WINUTIL-RU-DOCSYNC:BEGIN stable=26.10.07-RU.1 upstream=26.10.07 -->
 **[26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1)** — текущий стабильный выпуск на официальном WinUtil **26.10.07**, локализация **1.2.1**.
 
 **Происхождение сборки:** [PR #14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14) слит в `russian`, stable тег указывает на merge commit `1be881f8690aed8e9e4c230d4a0818fd8f311a95`. Исходный кандидат RC `f1f684ab43f75f075a9947fec2552cd0c615af45` прошёл Windows QA. SHA256 `winutil-RU.ps1` у stable и протестированной RC **совпадает**: `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`. Загрузчик следует *текущей* ветке `russian`; для фиксированного выпуска скачайте стабильный asset.
+<!-- WINUTIL-RU-DOCSYNC:END -->
 
 [WinUtil RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU) сохраняет операционные функции оригинала и добавляет русский интерфейс, выбор языка и окно «О программе» с исходными авторами.
 
@@ -62,7 +64,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 
 Строки `INFO` и `DEBUG` показывают ход работы. Для подтверждения операции проверяйте итоговое сообщение, журнал и фактический результат в Windows.
 
-## Проверки актуального stable `26.10.07-RU.1`
+## Архив проверки stable `26.10.07-RU.1` (10.10.2026)
 
 - [RC release `26.10.07-RU.1-rc.1`](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1-rc.1) создан автоматически после [полного CI](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471): `validate-automation`, `prepare`, `validate-candidate`, `publish-rc` — success.
 - Pester в PowerShell 7: **1040 passed, 0 failed** в RC; обязательный этап Windows PowerShell 5.1, Script Analyzer, WPF **RU → EN → RU**, compile и строгая backend parity успешно пройдены.
