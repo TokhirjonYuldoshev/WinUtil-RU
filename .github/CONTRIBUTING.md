@@ -2,6 +2,8 @@
 
 Этот документ относится к **[TokhirjonYuldoshev/WinUtil-RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU)**. Правила работы с оригинальным WinUtil находятся в [upstream](https://github.com/ChrisTitusTech/winutil/blob/main/.github/CONTRIBUTING.md).
 
+**Состояние GitHub на 10.10.2026:** Issues и Discussions у этого форка отключены. Для конкретного безопасного исправления используйте PR по правилам ниже; не публикуйте уязвимости или секретные журналы в открытых PR. Порядок сообщения об уязвимости указан в [SECURITY.md](SECURITY.md).
+
 ## Русская редакция
 
 - Изменения локализации, документации и инфраструктуры форка направляйте через PR в **`russian`**.
@@ -19,6 +21,8 @@
 Стабильный выпуск публикуется вручную после CI, проверки на Windows и отдельного подтверждения владельца. Временные рабочие ветки удаляются после завершения и проверки, что их работа сохранена.
 
 ## English
+
+**Repository setting (2026-10-10):** Issues and Discussions are disabled for this fork. Submit an actionable, non-sensitive fix as a PR under the rules below. Never disclose security exploits or secrets in public PRs; follow [SECURITY.md](SECURITY.md).
 
 - Target **`russian`** for localization, documentation and fork infrastructure. Keep `main` aligned with upstream.
 - Keep each PR focused. Explain the problem, resulting behavior and validation.
