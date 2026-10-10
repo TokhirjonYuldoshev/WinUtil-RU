@@ -4,9 +4,9 @@
 
 ## Текущий выпуск
 
-**[26.09.29-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.09.29-RU.1)** — стабильная русская редакция официального WinUtil **26.09.29**, локализация **1.2.1**.
+**[26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1)** — текущий стабильный выпуск на официальном WinUtil **26.10.07**, локализация **1.2.1**.
 
-**Разница между выпуском и `russian`:** опубликованный файл собран из `0f2739e7d7bc74939a8b196a4cbacd9f045dd7ef`. Ветка `russian` на 09.10.2026 содержит commit `9f85c63d8c23ba707a120f060dfba5b957176981` с исправлением запуска из [PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11). Обычная команда загрузчика запускает ветку; скачанный файл релиза **не содержит** этого более позднего исправления.
+**Происхождение сборки:** [PR #14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14) слит в `russian`, stable тег указывает на merge commit `1be881f8690aed8e9e4c230d4a0818fd8f311a95`. Исходный кандидат RC `f1f684ab43f75f075a9947fec2552cd0c615af45` прошёл Windows QA. SHA256 `winutil-RU.ps1` у stable и протестированной RC **совпадает**: `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`. Загрузчик следует *текущей* ветке `russian`; для фиксированного выпуска скачайте стабильный asset.
 
 [WinUtil RU](https://github.com/TokhirjonYuldoshev/WinUtil-RU) сохраняет операционные функции оригинала и добавляет русский интерфейс, выбор языка и окно «О программе» с исходными авторами.
 
@@ -40,7 +40,7 @@ irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/boot
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 ```
 
-Так запускается конкретный скачанный выпуск. Загрузчик из предыдущего раздела следует текущим исходникам `russian`, включая исправление ошибок запуска после публикации `26.09.29-RU.1`. Если раньше задавали `WINUTIL_RU_COMMIT` для точного QA, уберите временную переменную в текущем PowerShell или используйте новое окно, чтобы не закрепить старый commit.
+Так запускается конкретный скачанный выпуск. Загрузчик из предыдущего раздела следует текущим исходникам `russian`. Если раньше использовались временные `WINUTIL_RU_COMMIT`, `WINUTIL_RU_BRANCH` или `WINDOWMANAGER_BRANCH` для QA, очистите их в текущем PowerShell либо откройте новое окно, чтобы не запустить старую тестовую версию.
 
 ## Язык и «О программе»
 
@@ -62,29 +62,15 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 
 Строки `INFO` и `DEBUG` показывают ход работы. Для подтверждения операции проверяйте итоговое сообщение, журнал и фактический результат в Windows.
 
-## Проверки выпуска
+## Проверки актуального stable `26.10.07-RU.1`
 
-Для опубликованного `26.09.29-RU.1` подтверждены:
+- [RC release `26.10.07-RU.1-rc.1`](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1-rc.1) создан автоматически после [полного CI](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471): `validate-automation`, `prepare`, `validate-candidate`, `publish-rc` — success.
+- Pester в PowerShell 7: **1040 passed, 0 failed** в RC; обязательный этап Windows PowerShell 5.1, Script Analyzer, WPF **RU → EN → RU**, compile и строгая backend parity успешно пройдены.
+- Владелец подтвердил работу опубликованной RC на Windows — [QA checkpoint](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281). Автоматический тест WPF не заменяет ручную проверку системных операций.
+- [Защищённый stable promotion](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836) — success: повторная сборка, сравнение SHA256, точный merge PR #14, равенство Git-дерева кандидата/merge и публикация immutable release.
+- Stable tag `26.10.07-RU.1` → `1be881f8690aed8e9e4c230d4a0818fd8f311a95`; SHA256 `winutil-RU.ps1` → `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`.
+- Старые версии и документы об их тестировании сохранены в [историческом разделе аудита](AUDIT-RU.md); их доказательства нельзя приписывать новому выпуску.
 
-- строгая проверка исходников относительно официального тега;
-- **1021 тест PowerShell 7 и 153 теста Windows PowerShell 5.1, 0 ошибок и пропусков**;
-- успешные Compile & Check и PS Script Analyzer;
-- загрузка готового WPF-интерфейса **RU → EN → RU**;
-- разрешение владельца на merge и публикацию после его проверки предыдущей сборки;
-- совпадение SHA256 файлов с опубликованными assets.
-
-CI и загрузка WPF не доказывают успешность каждой системной операции. Подробная область проверки: [AUDIT-RU.md](AUDIT-RU.md).
-
-## Проверка ветки `russian` после PR #11
-
-[PR #11](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/11) слит в `russian` 09.10.2026 (merge commit `9f85c63d8c23ba707a120f060dfba5b957176981`). Исправлены ошибки консоли при перенаправленном выводе и чтение необязательных настроек `AppIconMode`/`Language` при первом запуске; backend операций не изменён.
-
-- [Unit Tests, post-merge](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543891): **1031 PowerShell 7 + 163 Windows PowerShell 5.1**, 0 failed/skipped/notrun/inconclusive; PS Script Analyzer success.
-- [Compile & Check](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543781) и [Russian Backend Parity](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543870): success.
-- [Fork Automation Safety](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543808) и [generated-file guard](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/37943543831): success.
-- До merge владелец проверил точный PR head `8de8c001ca5646cd10d6b7db3ec882792d201eeb` в Windows: ошибки `CursorPosition` и отсутствующего `AppIconMode` не воспроизвелись. Это не является полной проверкой всех системных операций.
-
-**Важно:** post-merge CI относится к коду ветки `russian`, а не к ранее опубликованному `winutil-RU.ps1`. Новый стабильный релиз не публиковался.
 ## Ветки и обновления
 
 Основные линии:
@@ -100,16 +86,16 @@ CI и загрузка WPF не доказывают успешность каж
 
 ## Автоматическое наблюдение за оригинальным WinUtil
 
-Workflow [Upstream Release Watch](../.github/workflows/upstream-release-watch.yaml) проверяет официальные стабильные релизы **каждые шесть часов** по cron `13 */6 * * *` (UTC: 00:13, 06:13, 12:13, 18:13; Москва: **03:13, 09:13, 15:13, 21:13**) и допускает ручной запуск через `workflow_dispatch`. GitHub Actions может задержать или пропустить запланированный запуск; расписание вступит в силу **только после одобренного merge файла workflow в стандартную ветку `russian`**.
+Read-only workflow [Upstream Release Watch](../.github/workflows/upstream-release-watch.yaml) имеет расписание **каждые шесть часов** по cron `13 */6 * * *` (UTC), также доступен `workflow_dispatch`. PR #13 со всей release-автоматизацией **слит 10.10.2026**. GitHub Actions может задержать или пропустить плановый запуск; наличие cron не гарантирует фактическое выполнение.
 
 Сценарий читает [последний опубликованный стабильный релиз](https://github.com/ChrisTitusTech/winutil/releases/latest) (без draft/prerelease), SHA его тега, SHA официальной `main` и SHA нашей `main`. Сравнение отображается в [GitHub Actions](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions) как **Job Summary**, аннотация `warning`, если найдено расхождение со стабильным релизом, и JSON-отчёт с хранением 30 дней. **Это не автоматическая отправка сообщения по email или Telegram**.
 
-Безопасность: `contents: read`; нет checkout и выполнения чужого кода, нет автоматических push/merge, изменений `main` или `russian`, Issues, тегов, релизов либо включения отключённых upstream-only workflows. Синхронизация `main`, перенос обновления в `russian`, parity/CI/Windows QA и публикация требуют отдельного согласования с владельцем.
+Read-only монитор работает с `contents: read`, не делает push/merge и не запускает чужой код. **Отдельный** конвейер `Upstream RU Release Pipeline` автоматически обновляет `main` fast-forward на официальный stable, подготавливает RC и публикует только prerelease. Изменение `russian` и выпуск stable по-прежнему требуют отдельного Windows QA и запуска owner-only promotion.
 ### Полный конвейер: официальная версия → RC → stable по разрешению
 
 [Описание автоматизации, ограничений, проверок и безопасного восстановления](AUTOMATION-RU.md). [Upstream RU Release Pipeline](../.github/workflows/upstream-ru-release-pipeline.yaml) запланирован каждые **15 минут** для проверки нового официального stable; при изменении официального тега выполняет только fast-forward нашей `main`, создаёт отдельную кандидатную ветку и Draft PR, запускает Windows QA/CI и после успешной проверки публикует **тестовый** GitHub prerelease. При конфликте файлов, расхождении истории или провале проверок **останавливается**, не меняя `russian` и не публикуя stable.
 
-Продвижение проверенного RC в `russian` и стабильный выпуск выполняются **только** по отдельному ручному запуску [Promote Tested RU RC to Stable](../.github/workflows/ru-stable-promotion.yaml) с проверенным SHA256 и явным подтверждением владельца. Рекомендована дополнительная защита GitHub Environment required reviewers. Двухконтурная схема (монитор 6 часов + pipeline 15 минут) начинает действовать после отдельно согласованного merge этого PR в default `russian`; GitHub расписание может задерживаться.
+Продвижение проверенного RC в `russian` и стабильный выпуск выполняются **только** по отдельному ручному запуску [Promote Tested RU RC to Stable](../.github/workflows/ru-stable-promotion.yaml) с проверенным SHA256 и явным подтверждением владельца. Рекомендована дополнительная защита GitHub Environment required reviewers. Двухконтурная схема (read-only монитор каждые 6 часов + RC pipeline каждые 15 минут) находится в default `russian`; последний подтверждённый успешный полный RC workflow — [№ 38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471). Плановые запуски могут задерживаться либо пропускаться.
 
 ## Документация оригинала
 
