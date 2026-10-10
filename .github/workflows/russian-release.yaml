@@ -1,16 +1,12 @@
-name: Russian Release
+name: Russian Release Build (no publish)
 
+# Legacy manual build/validation only. No tag or GitHub Release publication.
+# Stable releases require owner-tested immutable RC and protected ru-stable-promotion.yaml.
 on:
   workflow_dispatch:
-    inputs:
-      publish_stable:
-        description: "Publish the stable GitHub release after strict parity, Windows QA and owner approval"
-        required: true
-        default: false
-        type: boolean
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-release:
@@ -22,11 +18,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Require russian branch
+      - name: Require russian branch for reproducible build
         shell: pwsh
         run: |
           if ($env:GITHUB_REF -ne 'refs/heads/russian') {
-              throw "Stable release workflow must be run from the russian branch."
+              throw "Legacy RU build workflow must be run from the russian branch."
           }
 
       - name: Strict official-tag and backend parity preflight
@@ -81,10 +77,3 @@ jobs:
           }
           Write-Host "Release manifest verified: commit=$env:WINUTIL_RU_SHA sha256=$actualHash"
 
-      - name: Publish WinUtil RU stable release
-        if: ${{ inputs.publish_stable }}
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          .\tools\Publish-WinUtilRussianRelease.ps1 -Repository $env:GITHUB_REPOSITORY -SourceCommit $env:GITHUB_SHA
