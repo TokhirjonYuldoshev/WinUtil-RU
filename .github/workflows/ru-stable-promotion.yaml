@@ -1,0 +1,161 @@
+name: Promote Tested RU RC to Stable
+
+# No schedule. Not triggered by release, PR, push, workflow_run or GITHUB_TOKEN.
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_pr:
+        description: "Open RC pull request number after local Windows QA"
+        type: number
+        required: true
+      rc_tag:
+        description: "Exact tested RC tag (YY.MM.DD-RU.1-rc.1)"
+        type: string
+        required: true
+      approved_sha256:
+        description: "SHA256 of the tested winutil-RU.ps1 downloaded from RC"
+        type: string
+        required: true
+      qa_confirmation:
+        description: "Confirm your Windows QA by entering I_TESTED_THIS_RC"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ru-stable-promotion
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU' && github.actor == 'TokhirjonYuldoshev' && github.ref == 'refs/heads/russian'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    environment: winutil-ru-stable
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: russian
+          fetch-depth: 0
+      - name: Validate manual owner QA and immutable RC before modifying branches
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.candidate_pr }}
+          RC_TAG: ${{ inputs.rc_tag }}
+          APPROVED_SHA: ${{ inputs.approved_sha256 }}
+          QA_CONFIRMATION: ${{ inputs.qa_confirmation }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:QA_CONFIRMATION -cne 'I_TESTED_THIS_RC') { throw 'Windows QA not explicitly confirmed.' }
+          if ($env:PR_NUMBER -notmatch '^[1-9][0-9]*$') { throw 'Invalid PR number.' }
+          if ($env:RC_TAG -notmatch '^(?<Version>[0-9]{2}\.[0-9]{2}\.[0-9]{2}-RU\.1)-rc\.1$') {
+              throw 'Unexpected RC tag format.'
+          }
+          if ($env:APPROVED_SHA -notmatch '^[a-fA-F0-9]{64}$') { throw 'Exact tested asset SHA256 required.' }
+          $stableTag = $Matches.Version
+          if (-not $stableTag) {
+              $stableTag = $env:RC_TAG -replace '-rc\.1$', ''
+          }
+          $prJson = @(& gh api "repos/TokhirjonYuldoshev/WinUtil-RU/pulls/$env:PR_NUMBER")
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot read candidate PR.' }
+          $pr = ($prJson -join [Environment]::NewLine) | ConvertFrom-Json
+          if ($pr.state -ne 'open' -or $pr.merged -or $pr.base.ref -ne 'russian' -or $pr.head.repo.full_name -ne 'TokhirjonYuldoshev/WinUtil-RU' -or $pr.head.ref -ne ('automation/rc-' + $stableTag.Substring(0,8).Replace('.','-') + '-ru-1')) {
+              throw 'PR is not an open, isolated official RU release candidate.'
+          }
+          $candidateSha = [string]$pr.head.sha
+          if ($candidateSha -notmatch '^[a-fA-F0-9]{40}$') { throw 'Invalid candidate SHA.' }
+          $releaseJson = @(& gh api "repos/TokhirjonYuldoshev/WinUtil-RU/releases/tags/$env:RC_TAG")
+          if ($LASTEXITCODE -ne 0) { throw 'Tested RC release does not exist.' }
+          $rc = ($releaseJson -join [Environment]::NewLine) | ConvertFrom-Json
+          if (-not $rc.prerelease -or $rc.draft -or $rc.tag_name -ne $env:RC_TAG) { throw 'RC release is not an immutable published prerelease.' }
+          $tagRefJson = @(& gh api "repos/TokhirjonYuldoshev/WinUtil-RU/commits/$env:RC_TAG")
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify immutable RC tag.' }
+          $tagCommit = ($tagRefJson -join [Environment]::NewLine) | ConvertFrom-Json
+          if ([string]$tagCommit.sha -ne $candidateSha) { throw 'PR candidate changed after RC publication. Refusing stable.' }
+          $stableRef = @(& git ls-remote --tags origin "refs/tags/$stableTag")
+          if ($LASTEXITCODE -ne 0 -or $stableRef.Count -gt 0) { throw 'Stable tag already exists; never overwrite it.' }
+
+          New-Item dist-approved -ItemType Directory -Force | Out-Null
+          & gh release download $env:RC_TAG --repo 'TokhirjonYuldoshev/WinUtil-RU' --dir dist-approved --pattern 'winutil-RU.ps1' --pattern 'release.json' --pattern 'LICENSE'
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to download tested RC assets.' }
+          $manifest = Get-Content dist-approved/release.json -Raw -Encoding utf8 | ConvertFrom-Json
+          $hash = (Get-FileHash dist-approved/winutil-RU.ps1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $env:APPROVED_SHA.ToLowerInvariant() -or $manifest.Sha256 -ne $hash -or $manifest.SourceCommit -ne $candidateSha -or $manifest.Version -ne $stableTag -or $manifest.Channel -ne 'beta' -or -not $manifest.Prerelease) {
+              throw 'Owner-approved RC artifact identity does not match GitHub prerelease.'
+          }
+          "CANDIDATE_BRANCH=$($pr.head.ref)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "CANDIDATE_SHA=$candidateSha" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "STABLE_TAG=$stableTag" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "RC_SHA256=$hash" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Owner-approved exact RC SHA256: $hash"
+
+      - name: Independently rebuild candidate and verify binary identity
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process
+          git fetch origin "refs/heads/russian"
+          git fetch origin "refs/heads/$($env:CANDIDATE_BRANCH)"
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to fetch approved PR candidate branch.' }
+          $fetched = (git rev-parse FETCH_HEAD).Trim()
+          if ($fetched -ne $env:CANDIDATE_SHA) { throw 'PR candidate changed while publishing; refusing release.' }
+          git checkout --detach $env:CANDIDATE_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot check out exact reviewed candidate.' }
+          .\tools\Build-WinUtilRussianRelease.ps1 -Channel stable
+          if (-not $?) { throw 'Strict parity/build failure before merge.' }
+          $built = (Get-FileHash dist/winutil-RU.ps1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($built -ne $env:RC_SHA256) { throw "RC binary not reproducible: built=$built approved=$env:RC_SHA256" }
+
+      - name: Merge ONLY approved RC into russian and prove tree equality
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.candidate_pr }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & gh pr ready $env:PR_NUMBER --repo 'TokhirjonYuldoshev/WinUtil-RU'
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to mark approved RC ready for review.' }
+          & gh pr merge $env:PR_NUMBER --repo 'TokhirjonYuldoshev/WinUtil-RU' --merge --match-head-commit $env:CANDIDATE_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'PR merge not permitted; stable publication stopped.' }
+          & git fetch origin '+refs/heads/russian:refs/remotes/origin/russian'
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to fetch merged russian.' }
+          $head = (& git rev-parse refs/remotes/origin/russian).Trim()
+          $candidateTree = (& git rev-parse "$env:CANDIDATE_SHA^{tree}").Trim()
+          $mergedTree = (& git rev-parse "$head^{tree}").Trim()
+          if ($candidateTree -ne $mergedTree) { throw 'Merged tree differs from approved candidate; STOP.' }
+          "MERGED_SHA=$head" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Verify post-merge candidate binary identity and stable release manifest
+        shell: powershell
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process
+          git checkout --detach $env:MERGED_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot check out merged source SHA.' }
+          .\tools\Build-WinUtilRussianRelease.ps1 -Channel stable
+          if (-not $?) { throw 'Post-merge parity or release build failed.' }
+          $manifest = Get-Content dist/release.json -Raw -Encoding utf8 | ConvertFrom-Json
+          $hash = (Get-FileHash dist/winutil-RU.ps1 -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $env:RC_SHA256 -or $manifest.Sha256 -ne $hash -or $manifest.SourceCommit -ne $env:MERGED_SHA -or $manifest.Version -ne $env:STABLE_TAG -or $manifest.Channel -ne 'stable' -or $manifest.Prerelease) {
+              throw 'Stable output differs from approved tested RC or merged source.'
+          }
+
+      - name: Publish stable (manual owner-initiated workflow only)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & git push origin "$($env:MERGED_SHA):refs/tags/$($env:STABLE_TAG)"
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to create immutable exact stable tag.' }
+          & gh release create $env:STABLE_TAG dist/winutil-RU.ps1 dist/release.json dist/LICENSE --repo 'TokhirjonYuldoshev/WinUtil-RU' --verify-tag --target $env:MERGED_SHA --title "WinUtil RU $env:STABLE_TAG" --notes "Owner-approved QA of prerelease $env:RC_TAG. Identical executable SHA256 $env:RC_SHA256." --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Stable release creation failed; inspect tagged commit.' }
+          Write-Host "Owner-approved stable release published: $env:STABLE_TAG -> $env:MERGED_SHA"

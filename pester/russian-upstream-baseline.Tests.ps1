@@ -58,7 +58,8 @@ Describe 'Pinned historical upstream release verification' {
         $global:WinUtilBaselineTestState.WrappedFailure = $false
         $global:WinUtilBaselineTestState.AdvertisedCommit = $officialCommit
         $global:WinUtilBaselineTestState.FetchedCommit = $officialCommit
-        $global:WinUtilBaselineTestState.LiveRelease = [pscustomobject]@{ tag_name = '26.09.29'; draft = $false; prerelease = $false }
+        $global:WinUtilBaselineTestState.ExpectedTag = [string]$script:baseline.Tag
+        $global:WinUtilBaselineTestState.LiveRelease = [pscustomobject]@{ tag_name = $global:WinUtilBaselineTestState.ExpectedTag; draft = $false; prerelease = $false }
         Mock Invoke-RestMethod {
             if ($global:WinUtilBaselineTestState.TransportFailure) { throw [Exception]::new('404 appears in a transport error message') }
             if ($global:WinUtilBaselineTestState.HttpStatus -ne 200) {
@@ -71,7 +72,7 @@ Describe 'Pinned historical upstream release verification' {
         Mock git {
             if ($Arguments[0] -eq 'ls-remote') {
                 $global:LASTEXITCODE = 0
-                "$($global:WinUtilBaselineTestState.AdvertisedCommit)`trefs/tags/26.09.29"
+                "$($global:WinUtilBaselineTestState.AdvertisedCommit)`trefs/tags/$($global:WinUtilBaselineTestState.ExpectedTag)"
             } elseif ($Arguments[0] -eq 'fetch') {
                 & $nativeGit -C $fixture fetch --quiet --no-tags $fixture $global:WinUtilBaselineTestState.FetchedCommit
             } else { & $nativeGit @Arguments }
@@ -81,7 +82,7 @@ Describe 'Pinned historical upstream release verification' {
         & $verifier -Quiet -ReportPath $reportPath
         $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
         $report.Passed | Should -BeTrue
-        $report.OfficialTag | Should -Be '26.09.29'
+        $report.OfficialTag | Should -Be $script:baseline.Tag
         $report.OfficialCommit | Should -Be $officialCommit
         $report.OfficialTree | Should -Be $officialTree
         $report.CandidateCommit | Should -Be $fixtureCommit
@@ -94,14 +95,15 @@ Describe 'Pinned historical upstream release verification' {
     It 'builds the revised stable manifest while verifying the original upstream tag' {
         & (Join-Path $fixture 'tools/Build-WinUtilRussianRelease.ps1') -Channel stable
         $manifest = Get-Content (Join-Path $fixture 'dist/release.json') -Raw | ConvertFrom-Json
-        $manifest.Version | Should -Be '26.09.29-RU.1'
-        $manifest.BaseVersion | Should -Be '26.09.29'
-        $manifest.LocalizationVersion | Should -Be '1.2.1'
+        $expectedLocale = Get-Content (Join-Path $fixture 'config/localization_ru.json') -Raw | ConvertFrom-Json
+        $manifest.Version | Should -Be $expectedLocale.Meta.Version
+        $manifest.BaseVersion | Should -Be $script:baseline.Tag
+        $manifest.LocalizationVersion | Should -Be $expectedLocale.Meta.LocalizationVersion
         $manifest.Channel | Should -Be 'stable'
         $manifest.Prerelease | Should -BeFalse
         $manifest.SourceCommit | Should -Be $fixtureCommit
         $manifest.Sha256 | Should -Be (Get-FileHash (Join-Path $fixture 'dist/winutil-RU.ps1')).Hash.ToLowerInvariant()
-        Should -Invoke Invoke-RestMethod -ParameterFilter { $Uri -eq 'https://api.github.com/repos/ChrisTitusTech/winutil/releases/tags/26.09.29' }
+        Should -Invoke Invoke-RestMethod -ParameterFilter { $Uri -eq ('https://api.github.com/repos/ChrisTitusTech/winutil/releases/tags/' + $global:WinUtilBaselineTestState.ExpectedTag) }
     }
     It 'uses live metadata when available and retains the pinned identity' {
         $global:WinUtilBaselineTestState.HttpStatus = 200
@@ -140,7 +142,7 @@ Describe 'Pinned historical upstream release verification' {
         { & $verifier -Quiet } | Should -Throw '*release tag mismatch*'
     }
     It 'does not use the historical record for an unpinned missing tag' {
-        { & $verifier -Quiet -OfficialTag '26.10.07' } | Should -Throw '*Unable to verify official GitHub release*'
+        { & $verifier -Quiet -OfficialTag '99.99.99' } | Should -Throw '*Unable to verify official GitHub release*'
     }
     It 'does not use the historical record for a different <Override>' -ForEach @(
         @{ Override = 'api' }; @{ Override = 'git' }

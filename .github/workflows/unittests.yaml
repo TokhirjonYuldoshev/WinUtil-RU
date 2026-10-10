@@ -4,6 +4,7 @@ on:
   push:
   pull_request:
     branches: ["main", "russian"]
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -11,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
     - name: Install PSScriptAnalyzer
       run: |
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
@@ -30,6 +33,13 @@ jobs:
             throw "PSScriptAnalyzer reported severity Error diagnostics."
         }
       shell: pwsh
+    - name: Read-only upstream RC preparation simulation for automation PR
+      if: github.event_name == 'pull_request' && github.head_ref == 'automation/upstream-stable-watch-6h' && github.repository == 'TokhirjonYuldoshev/WinUtil-RU'
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        ./tools/automation/Prepare-WinUtilRussianCandidate.ps1 -DryRun
   test:
     runs-on: windows-latest
 
