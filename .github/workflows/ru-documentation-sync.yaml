@@ -51,6 +51,11 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
+          git fetch --quiet origin russian
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/russian)" ]; then
+            echo 'Protected russian changed during docs audit; retry on a fresh schedule.' >&2
+            exit 1
+          fi
           files=$(git diff --name-only)
           if [ -z "$files" ]; then
             echo 'No documentation changes needed.' >> "$GITHUB_STEP_SUMMARY"
@@ -77,3 +82,4 @@ jobs:
           gh workflow run russian-parity-check.yaml --repo TokhirjonYuldoshev/WinUtil-RU --ref "$branch"
           gh workflow run compile-check.yaml --repo TokhirjonYuldoshev/WinUtil-RU --ref "$branch"
           gh workflow run unittests.yaml --repo TokhirjonYuldoshev/WinUtil-RU --ref "$branch"
+          gh workflow run fork-automation-safety.yaml --repo TokhirjonYuldoshev/WinUtil-RU --ref "$branch"
