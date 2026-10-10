@@ -69,6 +69,10 @@ Workflow использует точный SHA кандидатного комм
 
 Проверка Windows PowerShell 5.1 сначала выявила раздельную установку Pester между `pwsh` и `powershell`. Исправление [PR #15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15) добавило установку Pester 5.8.0 в правильной среде и реальный smoke-test; после этого полная сборка RC прошла. PowerShell 7 RC: **1040 tests passed, 0 failed**. Ни стабильный merge, ни тег не создавались до отдельного разрешения владельца.
 
+## Проверка legacy release пути
+
+В репозитории ещё есть ручной `russian-release.yaml` с `publish_stable=true`, использованный в прежних версиях. Он выполняет backend parity, сборку и проверку SHA256, **но не требует RC тег, подтверждённый SHA256 опубликованной RC и Environment**, как `ru-stable-promotion.yaml`. Для выпусков по правилу обязательного Windows QA используйте **только новый защищённый promotion**. Ограничение старого пути требует отдельного CI/security изменения и согласования; этот документационный PR не меняет workflow.
+
 ## Права и эксплуатация
 
 - Для автоматического обновления `main` и создания RC PR в репозитории должен быть разрешён `GITHUB_TOKEN` с `contents: write` и `pull-requests: write`; в Settings → Actions → General может потребоваться включить **Allow GitHub Actions to create and approve pull requests**. При запрете работа останавливается, настройки самостоятельно не меняются.
