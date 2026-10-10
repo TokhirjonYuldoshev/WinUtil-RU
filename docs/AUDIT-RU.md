@@ -1,4 +1,47 @@
-# WinUtil RU — технический аудит 26.09.29-RU.1
+# WinUtil RU — производственный аудит 26.10.07-RU.1
+
+**Срез GitHub: 10 октября 2026 года.** Данные получены из live GitHub Release API, refs, PR, Actions и исходных файлов. Предыдущие аудиты ниже сохранены как **исторические**, их проверки не приписываются новой версии.
+
+## Подтверждённый выпуск
+
+| Предмет | Факт и доказательство |
+| --- | --- |
+| Latest RU stable | [26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1): `draft=false`, `prerelease=false` |
+| Официальный WinUtil | `26.10.07`, `07ccd8e2e755a706f31569808b31f5b77acad6a9` |
+| Fork `main` | `07ccd8e2e755a706f31569808b31f5b77acad6a9` — тот же upstream stable |
+| RU release candidate | [26.10.07-RU.1-rc.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1-rc.1), `f1f684ab43f75f075a9947fec2552cd0c615af45` |
+| RC workflow | [№ 38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471), все четыре job — success |
+| Владелец проверил RC на Windows | [QA checkpoint в PR #14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281) |
+| Stable promotion | [№ 38022376836](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836), все этапы, включая reproducible build, merge и публикацию — success |
+| `russian`, stable Git tag | `1be881f8690aed8e9e4c230d4a0818fd8f311a95`, тег на exact merged SHA |
+| PR состояния | [#13](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/13) pipeline, [#15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15) PS5.1 CI, [#14](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14) stable candidate: merged; открытых PR нет |
+| Ветка `russian` | Protected, ruleset **Protect russian stable** — active |
+
+## Доказательство целостности опубликованных файлов
+
+| Asset | Размер, байт | GitHub SHA256 |
+| --- | ---: | --- |
+| `winutil-RU.ps1` | 1528042 | `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8` |
+| `release.json` (stable) | 42843 | `b780c83005c9772577b23b0639fc8b8cab65b5ed4a3398391cffe310e98acb60` |
+| `LICENSE` | 1095 | `61512a5ea110165ce800d00d2d85bbf1af0dc3ccc5d453ae8b5fe9ae20e6c5b5` |
+
+**Проверка:** GitHub Release API сообщает тот же SHA256 программы, что и RC; stable/release assets содержат одинаковый `winutil-RU.ps1`, а `release.json` **не обязан совпадать с RC** (различаются канал и source commit). Финальный stable workflow подтвердил равенство хеша пересобранного скрипта, неизменённого дерева кода после merge и опубликованных assets. Это не утверждение, что каждая системная операция установки, ISO или tweaking проверена владельцем вручную.
+
+## Ветки и очистка
+
+Live перечень веток после PR #14/#15: **3** — `russian`, `main`, `fix/battlenet-install-location`. Ветки PR #13, #14, #15 уже удалены; их история сохранена merge-коммитами, PR и тегами. **Удалять основную `main` или стабильную `russian` нельзя.**
+
+`fix/battlenet-install-location` по сравнению с `main` расходится по истории (ahead 2, behind 1), содержит **5 уникально изменённых файлов**: `config/applications.json`, `functions/private/Install-WinUtilProgramWinget.ps1`, `functions/public/Invoke-WPFInstall.ps1`, `pester/install-workflow.Tests.ps1`, `pester/package.Tests.ps1`. Это независимое незавершённое исправление — **не удалять без отдельного решения о сохранении/отказе от работы**. Нет открытых PR, все 15 известных PR слиты; исторические Git tags и releases сохранены.
+
+## Автоматизация и документация
+
+`Upstream RU Release Pipeline` имеет cron каждые 15 минут с `workflow_dispatch`; `Upstream Release Watch` раз в 6 часов в read-only режиме. Факт успешной обработки вручную запущенного workflow **подтверждён**, но наличие cron не доказывает, что GitHub выполнил каждый запланированный запуск (форк GitHub Actions может задерживать/пропускать). Новые RC автоматически создаются после нового upstream stable, а stable требует отдельного QA и ручного owner-only promotion в `winutil-ru-stable`.
+
+Основной README RU/EN, русское руководство, этот аудит, документация автоматизации и контракт `SPEC.md` обновляются отдельным docs-only PR. Англоязычная документация Astro/Starlight исходного WinUtil сохранена как upstream-документация; её landing page не следует выдавать за страницу WinUtil-RU. Условия публикации сайта, не подтверждённые этой проверкой, отдельно не заявляются.
+
+---
+
+# Архив: технический аудит 26.09.29-RU.1
 
 **Дата проверки:** 9 октября 2026 года. Предыдущий аудит сохранён ниже.
 
