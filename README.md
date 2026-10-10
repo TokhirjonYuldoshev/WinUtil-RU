@@ -21,6 +21,15 @@
 
 **Релиз и исходники:** стабильный тег `26.10.07-RU.1` соответствует merge commit `1be881f8690aed8e9e4c230d4a0818fd8f311a95`. Протестированный RC построен из `f1f684ab43f75f075a9947fec2552cd0c615af45`; SHA256 `winutil-RU.ps1` в RC и stable побитно совпадает (`7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`). Загрузчик ниже следует текущей ветке `russian`, которая может продвигаться после публикации; для воспроизводимой версии используйте файл из релиза.
 
+<!-- WINUTIL-RU-DOCSYNC:START -->
+Автоматически проверенные данные опубликованных релизов GitHub (не заменяют Windows QA):
+
+- WinUtil-RU stable: [26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1); commit 1be881f8690aed8e9e4c230d4a0818fd8f311a95.
+- SHA256 опубликованного winutil-RU.ps1: 7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8.
+- Официальный stable WinUtil: [26.10.07](https://github.com/ChrisTitusTech/winutil/releases/tag/26.10.07); commit 07ccd8e2e755a706f31569808b31f5b77acad6a9.
+- Основа RU: 26.10.07. Новый upstream stable требует отдельного RC и Windows QA.
+<!-- WINUTIL-RU-DOCSYNC:END -->
+
 ## Быстрый запуск
 
 Откройте **PowerShell от имени администратора** и выполните:

@@ -21,6 +21,15 @@ Published stable release: **[26.10.07-RU.1](https://github.com/TokhirjonYuldoshe
 
 **Release versus source branch:** stable tag `26.10.07-RU.1` points to merge commit `1be881f8690aed8e9e4c230d4a0818fd8f311a95`. The owner-tested RC was built from `f1f684ab43f75f075a9947fec2552cd0c615af45`. The published stable `winutil-RU.ps1` is **byte-identical** to the tested prerelease (SHA256: `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`). The bootstrap follows the current `russian` branch, which can advance independently; download the release asset for a pinned version.
 
+<!-- WINUTIL-RU-DOCSYNC:START -->
+Verified published GitHub release metadata (not a substitute for Windows QA):
+
+- WinUtil-RU stable: [26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1); commit 1be881f8690aed8e9e4c230d4a0818fd8f311a95.
+- Published winutil-RU.ps1 SHA256: 7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8.
+- Official WinUtil stable: [26.10.07](https://github.com/ChrisTitusTech/winutil/releases/tag/26.10.07); commit 07ccd8e2e755a706f31569808b31f5b77acad6a9.
+- RU pinned upstream baseline: 26.10.07. New upstream releases still require an RC and Windows QA.
+<!-- WINUTIL-RU-DOCSYNC:END -->
+
 ## Quick start
 
 Open **PowerShell as Administrator** and run:
