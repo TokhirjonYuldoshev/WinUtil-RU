@@ -9,7 +9,6 @@ on:
   workflow_run:
     workflows:
       - "Promote Tested RU RC to Stable"
-      - "Upstream RU Release Pipeline"
     types: [completed]
 
 concurrency:
