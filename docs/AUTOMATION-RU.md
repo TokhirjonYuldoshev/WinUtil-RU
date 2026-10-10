@@ -13,6 +13,18 @@
 | Выпуск тестовой RC | GitHub **prerelease**, точный commit и SHA256 | Владелец тестирует файл на Windows |
 | Слияние RC в `russian` и stable release | Только в отдельно **вручную запущенном** workflow с указанием SHA256 и подтверждением QA | **Да: явное подтверждение владельца** |
 
+## Автоматическая синхронизация документации
+
+Отдельный workflow [WinUtil RU Documentation Sync](../.github/workflows/ru-documentation-sync.yaml) запускается **ежедневно в 04:17 UTC** и доступен вручную через `workflow_dispatch`. Он не заменяет RC Pipeline и не публикует stable.
+
+Скрипт [Sync-WinUtilReleaseDocs.ps1](../tools/automation/Sync-WinUtilReleaseDocs.ps1) получает из GitHub API последние **опубликованные stable** оригинала и RU-форка, проверяет формат тегов, точные commit SHA, SHA256 опубликованного `winutil-RU.ps1` и соответствие RU-версии закреплённой официальной основе `tools/WinUtilUpstreamBaseline.json`. При расхождении данных, отсутствии digest либо сетевой ошибке останавливается без PR. Не использует неподтверждённый upstream `main`.
+
+При подтверждённом изменении скрипт редактирует **только отмеченные блоки** в `README.md`, `README.en.md`, `docs/README-RU.md` и `docs/AUTOMATION-RU.md`. Исторические аудиты не переписываются, generated MDX, backend, конфиги и release assets не меняются. Workflow использует проверку allowlist и `git diff --check`, не создаёт дублирующий PR, отправляет новую отдельную ветку `automation/docs-sync-<run-id>` и **открывает PR для обычной проверки**. Автоматического merge нет. Это важная граница: новые публикации стабильной версии, Windows QA и защищённый merge остаются независимыми.
+
+Если GitHub запретит `GITHUB_TOKEN` создавать PR, workflow завершится ошибкой и потребует включения соответствующей опции репозитория владельцем. PR, созданный через `GITHUB_TOKEN`, может не запускать стандартные PR CI: перед merge требуется отдельно убедиться, что четыре обязательных status checks фактически выполнились для точного SHA (при необходимости инициировать workflow_dispatch без обхода защиты).
+
+CURRENT/HANDOFF в ChatGPT Library хранится отдельно от GitHub: этот workflow **не имеет доступа к Library и не заявляет её синхронизацию**.
+
 ## Частота и задержки
 
 - Отдельный наблюдатель [Upstream Release Watch](../.github/workflows/upstream-release-watch.yaml) делает контрольную read-only проверку каждые 6 часов.
