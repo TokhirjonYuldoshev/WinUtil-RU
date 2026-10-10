@@ -1,0 +1,159 @@
+name: WinUtil RU Documentation Sync
+
+# Only releases metadata -> approved Markdown sections -> protected-branch PR.
+# No backend edits, stable publication, force pushes or admin merge.
+on:
+  schedule:
+    - cron: "43 4,16 * * *"
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Promote Tested RU RC to Stable"
+      - "Upstream RU Release Pipeline"
+    types: [completed]
+
+concurrency:
+  group: winutil-ru-documentation-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  sync-docs:
+    if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: russian
+          fetch-depth: 0
+
+      - name: Unit-test documentation generator without network
+        run: python3 -m unittest discover -s tools/automation -p 'test_sync_winutil_docs.py' -v
+
+      - name: Compare verified immutable releases and update only allowlisted docs
+        id: sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/automation/sync_winutil_docs.py
+          python3 tools/automation/sync_winutil_docs.py --check
+          git diff --check
+          python3 - <<'PY'
+          import subprocess
+          from tools.automation.sync_winutil_docs import ALLOWED
+          paths = subprocess.check_output(["git", "diff", "--name-only"], text=True).splitlines()
+          bad = set(paths) - set(ALLOWED)
+          if bad:
+              raise SystemExit("Refusing non-document diff: " + ", ".join(sorted(bad)))
+          print("Approved docs diff:", paths)
+          PY
+          if git diff --quiet -- README.md README.en.md docs/README-RU.md docs/AUTOMATION-RU.md docs/AUDIT-RU.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No release metadata changes; no PR required."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create one isolated PR and dispatch protected CI checks
+        if: steps.sync.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repo="TokhirjonYuldoshev/WinUtil-RU"
+          git fetch origin russian
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/russian)" ]; then
+            echo "::warning::russian moved during audit; retry next scheduled run."
+            exit 0
+          fi
+          stable=$(gh api "repos/$repo/releases/latest" --jq '.tag_name')
+          upstream=$(gh api "repos/ChrisTitusTech/winutil/releases/latest" --jq '.tag_name')
+          clean=$(printf '%s-%s' "$stable" "$upstream" | tr -cs '[:alnum:]' '-')
+          branch="automation/docs-sync-$clean"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "::warning::Existing documentation-sync branch $branch; no overwrite or force-push."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add -- README.md README.en.md docs/README-RU.md docs/AUTOMATION-RU.md docs/AUDIT-RU.md
+          git diff --cached --check
+          git commit -m "docs(auto): sync published RU and upstream release metadata"
+          sha=$(git rev-parse HEAD)
+          git push origin "HEAD:refs/heads/$branch"
+          number=$(gh pr create --repo "$repo" --base russian --head "$branch" \
+            --title "docs(auto): verified release status $stable / upstream $upstream" \
+            --body "Automated, data-only update of five allowlisted Markdown status sections from published GitHub Releases. Validates exact RU tag/commit, non-prerelease upstream baseline, three release assets and GitHub SHA256. Historical QA evidence is preserved. No backend or release publication. Required checks must pass without any admin bypass." \
+            --json number --jq .number)
+          pr_sha=$(gh api "repos/$repo/pulls/$number" --jq '.head.sha')
+          if [ "$pr_sha" != "$sha" ]; then
+            echo "::error::PR head SHA moved unexpectedly."
+            exit 1
+          fi
+          for workflow in russian-parity-check.yaml compile-check.yaml unittests.yaml fork-automation-safety.yaml; do
+            gh workflow run "$workflow" --repo "$repo" --ref "$branch"
+          done
+          echo "Waiting for real GitHub-hosted checks on $sha..."
+          ready=false
+          for attempt in $(seq 1 120); do
+            gh api "repos/$repo/commits/$sha/check-runs?per_page=100" > "$RUNNER_TEMP/docs-checks.json"
+            state=$(python3 - "$RUNNER_TEMP/docs-checks.json" <<'PY'
+          import json
+          import sys
+          values = json.load(open(sys.argv[1], encoding="utf-8")).get("check_runs", [])
+          required = {"strict-parity", "Compile-and-Check", "test", "PS Script Analyzer", "inspect"}
+          grouped = {name: [] for name in required}
+          for value in values:
+              if value.get("name") in grouped:
+                  grouped[value["name"]].append(value)
+          if any(any(x.get("conclusion") not in (None, "success", "skipped") and
+                     x.get("status") == "completed" for x in items)
+                 for items in grouped.values()):
+              print("failed")
+          elif all(items and any(x.get("conclusion") == "success"
+                                 for x in items) for items in grouped.values()):
+              print("success")
+          else:
+              print("pending")
+          PY
+            )
+            if [ "$state" = failed ]; then
+              echo "::error::Required CI failed. PR remains open for investigation."
+              exit 1
+            fi
+            if [ "$state" = success ]; then
+              ready=true
+              break
+            fi
+            sleep 20
+          done
+          if [ "$ready" != true ]; then
+            echo "::warning::CI not fully completed within watch window; keep PR open."
+            exit 0
+          fi
+          gh api "repos/$repo/pulls/$number/files?per_page=100" --jq '.[].filename' > "$RUNNER_TEMP/docs-pr-files.txt"
+          python3 - "$RUNNER_TEMP/docs-pr-files.txt" <<'PY'
+          from pathlib import Path
+          import sys
+          from tools.automation.sync_winutil_docs import ALLOWED
+          names = set(Path(sys.argv[1]).read_text().splitlines())
+          if not names or not names.issubset(set(ALLOWED)):
+              raise SystemExit("Unexpected files in documentation PR: " + repr(sorted(names)))
+          PY
+          latest_sha=$(gh api "repos/$repo/pulls/$number" --jq '.head.sha')
+          if [ "$latest_sha" != "$sha" ]; then
+            echo "::error::Documentation PR changed after its checks."
+            exit 1
+          fi
+          gh pr merge "$number" --repo "$repo" --merge --match-head-commit "$sha" --delete-branch
+          echo "Protected merge completed for documentation-only PR #$number."
