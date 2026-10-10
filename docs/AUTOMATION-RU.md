@@ -64,10 +64,19 @@ Workflow использует точный SHA кандидатного комм
 | Тестовый выпуск | [26.10.07-RU.1-rc.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1-rc.1), [RC CI #38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471) — success |
 | Проверка Windows | [Подтверждение владельца](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281) |
 | Защищённый stable | [26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1), [workflow #38022376836](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836) — success |
-| Итог `russian` и stable tag | `1be881f8690aed8e9e4c230d4a0818fd8f311a95` |
+| `russian` при выпуске и **неизменяемый stable tag** | `1be881f8690aed8e9e4c230d4a0818fd8f311a95` (историческое состояние на момент публикации; текущая ветка движется дальше) |
 | SHA256 `winutil-RU.ps1` RC и stable | `7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8` |
 
 Проверка Windows PowerShell 5.1 сначала выявила раздельную установку Pester между `pwsh` и `powershell`. Исправление [PR #15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15) добавило установку Pester 5.8.0 в правильной среде и реальный smoke-test; после этого полная сборка RC прошла. PowerShell 7 RC: **1040 tests passed, 0 failed**. Ни стабильный merge, ни тег не создавались до отдельного разрешения владельца.
+
+## Эксплуатационный аудит после stable (10.10.2026)
+
+- Актуальная защищённая `russian` после [документационного PR #16](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/16) и [CI/security PR #17](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/17) → `533136d39d3b4c30463a2d6d616ba3cd3d1d01a3`. Эти PR **не меняли** опубликованный release tag и его SHA256.
+- Автоматический 15-минутный конвейер действительно запускался с событием `schedule`: [run #38056142597](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38056142597) — **success**, задачи `prepare` и `validate-automation` успешны, `validate-candidate` и `publish-rc` **skipped** (новый RC не требовался). Это не тест создания следующего RC.
+- Независимый read-only наблюдатель: [schedule run #38051805241](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38051805241) — **success**. Оба факта подтверждают работу расписания, но не гарантируют каждое выполнение точно по минутам.
+- [Проверки после PR #17](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions?query=branch%3Arussian) прошли; защищённая ветка имеет четыре обязательных status contexts: `strict-parity`, `Compile-and-Check`, `test`, `PS Script Analyzer`.
+- Workflow `russian-release.yaml` доступен вручную **только для сборки**: он не содержит входа `publish_stable`, шага публикации или `contents: write`. Protected `ru-stable-promotion.yaml` остаётся единственным предусмотренным путём публикации stable.
+- Смена ветки `russian` после stable **не изменяет** уже опубликованный тег `26.10.07-RU.1` (commit `1be881f8690aed8e9e4c230d4a0818fd8f311a95`) и контрольную сумму `winutil-RU.ps1` (`7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`).
 
 ## Проверка legacy release пути
 
