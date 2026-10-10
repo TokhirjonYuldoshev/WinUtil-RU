@@ -91,10 +91,10 @@ jobs:
           git commit -m "docs(auto): sync published RU and upstream release metadata"
           sha=$(git rev-parse HEAD)
           git push origin "HEAD:refs/heads/$branch"
-          number=$(gh pr create --repo "$repo" --base russian --head "$branch" \
+          gh pr create --repo "$repo" --base russian --head "$branch" \
             --title "docs(auto): verified release status $stable / upstream $upstream" \
-            --body "Automated, data-only update of five allowlisted Markdown status sections from published GitHub Releases. Validates exact RU tag/commit, non-prerelease upstream baseline, three release assets and GitHub SHA256. Historical QA evidence is preserved. No backend or release publication. Required checks must pass without any admin bypass." \
-            --json number --jq .number)
+            --body "Automated, data-only update of five allowlisted Markdown status sections from published GitHub Releases. Validates exact RU tag/commit, non-prerelease upstream baseline, three release assets and GitHub SHA256. Historical QA evidence is preserved. No backend or release publication. Required checks must pass without any admin bypass."
+          number=$(gh pr view "$branch" --repo "$repo" --json number --jq '.number')
           pr_sha=$(gh api "repos/$repo/pulls/$number" --jq '.head.sha')
           if [ "$pr_sha" != "$sha" ]; then
             echo "::error::PR head SHA moved unexpectedly."
