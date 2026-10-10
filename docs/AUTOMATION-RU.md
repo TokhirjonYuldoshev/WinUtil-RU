@@ -1,6 +1,10 @@
 # WinUtil-RU — безопасный конвейер обновлений
 
+<!-- WINUTIL-RU-DOCSYNC:BEGIN stable=26.10.07-RU.1 upstream=26.10.07 -->
 Статус на **10.10.2026**: [PR #13](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/13) слит; CI-исправление [PR #15](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/15) слито. Полный RC pipeline [№ 38020610471](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471) и защищённое stable promotion [№ 38022376836](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836) успешно завершились. Текущий stable — **[26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1)**.
+<!-- WINUTIL-RU-DOCSYNC:END -->
+
+*Предыдущие результаты CI приведены выше как историческая контрольная точка; текущие сведения обновляются только по проверенным GitHub Releases.*
 
 ## Цель и разделение полномочий
 
