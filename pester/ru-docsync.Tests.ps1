@@ -64,7 +64,7 @@ Describe 'Offline release metadata synchronization' {
     Copy-Item (Join-Path $root 'tools/WinUtilUpstreamBaseline.json') $baselineDest
     $script:protected = Join-Path $script:fixture 'backend.ps1'
     [IO.File]::WriteAllText($script:protected, 'KEEP EXACT BACKEND')
-    $script:mockAnswers = @{
+    $global:WinUtilRuDocsSyncTestAnswers = @{
       'repos/TokhirjonYuldoshev/WinUtil-RU/releases/latest' = [pscustomobject]@{
         draft = $false; prerelease = $false; tag_name = '26.10.07-RU.1'
         assets = @(
@@ -86,9 +86,13 @@ Describe 'Offline release metadata synchronization' {
     Mock Invoke-RestMethod {
       param($Uri)
       $key = ([uri]$Uri).AbsolutePath.TrimStart('/')
-      if (-not $script:mockAnswers.ContainsKey($key)) { throw "Unexpected API path: $key" }
-      return $script:mockAnswers[$key]
+      if (-not $global:WinUtilRuDocsSyncTestAnswers.ContainsKey($key)) { throw "Unexpected API path: $key" }
+      return $global:WinUtilRuDocsSyncTestAnswers[$key]
     }
+  }
+
+  AfterEach {
+    Remove-Variable -Name WinUtilRuDocsSyncTestAnswers -Scope Global -ErrorAction SilentlyContinue
   }
 
   It 'updates only four allowlisted Markdown files and leaves backend and historical text intact' {
@@ -125,7 +129,7 @@ Describe 'Offline release metadata synchronization' {
   }
 
   It 'rejects a pinned upstream SHA mismatch without modifying documentation' {
-    $script:mockAnswers['repos/ChrisTitusTech/winutil/commits/26.10.07'] = [pscustomobject]@{ sha = ('0' * 40) }
+    $global:WinUtilRuDocsSyncTestAnswers['repos/ChrisTitusTech/winutil/commits/26.10.07'] = [pscustomobject]@{ sha = ('0' * 40) }
     $target = Join-Path $script:fixture 'README.md'
     $before = [IO.File]::ReadAllText($target)
     { & (Join-Path $root 'tools/automation/Sync-WinUtilReleaseDocs.ps1') -Root $script:fixture } | Should -Throw '*Pinned official upstream commit differs*'
@@ -133,7 +137,7 @@ Describe 'Offline release metadata synchronization' {
   }
 
   It 'rejects a missing release asset without modifying documentation' {
-    $ru = $script:mockAnswers['repos/TokhirjonYuldoshev/WinUtil-RU/releases/latest']
+    $ru = $global:WinUtilRuDocsSyncTestAnswers['repos/TokhirjonYuldoshev/WinUtil-RU/releases/latest']
     $ru.assets = @($ru.assets | Where-Object { $_.name -ne 'LICENSE' })
     $target = Join-Path $script:fixture 'README.md'
     $before = [IO.File]::ReadAllText($target)
