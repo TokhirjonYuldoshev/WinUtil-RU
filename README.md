@@ -17,9 +17,11 @@
 
 **WinUtil RU** — независимая русская локализация [Chris Titus Tech's Windows Utility](https://github.com/ChrisTitusTech/winutil). Установка программ, настройки Windows и системные инструменты сохраняют логику официального выпуска; перевод и выбор языка относятся к интерфейсу.
 
+<!-- WINUTIL-RU-DOCSYNC:BEGIN stable=26.10.07-RU.1 upstream=26.10.07 -->
 Опубликованный стабильный выпуск: **[26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1)**. Основа — официальный **WinUtil 26.10.07**. Версия локализации — **1.2.1**.
 
 **Релиз и исходники:** стабильный тег `26.10.07-RU.1` соответствует merge commit `1be881f8690aed8e9e4c230d4a0818fd8f311a95`. Протестированный RC построен из `f1f684ab43f75f075a9947fec2552cd0c615af45`; SHA256 `winutil-RU.ps1` в RC и stable побитно совпадает (`7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8`). Загрузчик ниже следует текущей ветке `russian`, которая может продвигаться после публикации; для воспроизводимой версии используйте файл из релиза.
+<!-- WINUTIL-RU-DOCSYNC:END -->
 
 ## Быстрый запуск
 
@@ -31,7 +33,7 @@ irm https://raw.githubusercontent.com/TokhirjonYuldoshev/WinUtil-RU/russian/boot
 
 Загрузчик проверяет локальную сборку и обновляет её из ветки `russian`, когда это требуется. Его исходный код доступен в [bootstrap.ps1](bootstrap.ps1).
 
-Для запуска конкретного стабильного выпуска скачайте [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/download/26.10.07-RU.1/winutil-RU.ps1), откройте PowerShell в папке с файлом от имени администратора и выполните:
+Для запуска конкретного стабильного выпуска скачайте [winutil-RU.ps1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/latest/download/winutil-RU.ps1), откройте PowerShell в папке с файлом от имени администратора и выполните:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
@@ -54,7 +56,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\winutil-RU.ps1
 
 Операционные файлы сравниваются с **точным официальным тегом**. Все отличия интерфейса и загрузчика проходят отдельную проверку. Перед стабильным выпуском обязательны CI, проверка на Windows и подтверждение владельца.
 
-Для `26.10.07-RU.1` успешно завершились [автоматическая RC-сборка и Windows-валидация](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471), [проверка владельцем](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281) и [защищённое продвижение в stable](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836). Тесты PowerShell 7 в RC: **1040 passed, 0 failed**; проверки PowerShell 5.1, WPF RU → EN → RU, compile и backend parity также пройдены. GitHub подтверждает идентичный SHA256 программы RC и stable. Подробности: [технический аудит](docs/AUDIT-RU.md).
+Для исторического выпуска `26.10.07-RU.1` успешно завершились [автоматическая RC-сборка и Windows-валидация](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38020610471), [проверка владельцем](https://github.com/TokhirjonYuldoshev/WinUtil-RU/pull/14#issuecomment-6093518281) и [защищённое продвижение в stable](https://github.com/TokhirjonYuldoshev/WinUtil-RU/actions/runs/38022376836). Тесты PowerShell 7 в RC: **1040 passed, 0 failed**; проверки PowerShell 5.1, WPF RU → EN → RU, compile и backend parity также пройдены. GitHub подтверждает идентичный SHA256 программы RC и stable. Подробности: [технический аудит](docs/AUDIT-RU.md).
 
 Автоматическая подготовка следующих RC описана в [руководстве конвейера](docs/AUTOMATION-RU.md). **Стабильные релизы не публикуются автоматически**: требуется Windows QA владельца и ручной защищённый workflow.
 
