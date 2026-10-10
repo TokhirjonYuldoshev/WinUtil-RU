@@ -25,6 +25,7 @@ permissions:
   contents: write
   pull-requests: write
   actions: write
+  checks: read
 
 jobs:
   sync-docs:
