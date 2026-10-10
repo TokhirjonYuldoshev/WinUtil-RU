@@ -40,6 +40,17 @@ jobs:
           }
           Write-Host "All $($files.Count) automation scripts parse successfully."
 
+      - name: Windows PowerShell 5.1 Pester install and smoke test
+        shell: powershell
+        run: |
+          & .\tools\automation\Install-WinUtilPester51.ps1
+          $testFile = Join-Path $env:RUNNER_TEMP 'pester51-bootstrap-smoke.Tests.ps1'
+          [IO.File]::WriteAllText($testFile, "Describe 'Pester 5.1 bootstrap' { It 'executes on Windows PowerShell 5.1' { (1 + 1) | Should -Be 2 } }")
+          $result = Invoke-Pester -Path $testFile -Output Detailed -PassThru
+          if ($result.FailedCount -ne 0 -or $result.PassedCount -ne 1) {
+              throw 'Pinned Windows PowerShell 5.1 Pester installation smoke test failed.'
+          }
+
   prepare:
     needs: validate-automation
     if: github.repository == 'TokhirjonYuldoshev/WinUtil-RU' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
@@ -116,9 +127,24 @@ jobs:
           TEMP: ${{ runner.temp }}
         run: |
           Set-ExecutionPolicy Bypass -Scope Process
-          $pester = (Get-Module -ListAvailable Pester | Where-Object Version -eq '5.8.0' | Select-Object -First 1).Path
-          if (-not $pester) { throw 'Pester 5.8.0 is unavailable in Windows PowerShell 5.1' }
-          Import-Module -Name $pester -Force
+          # The candidate checkout is immutable and predates this workflow fix.
+          # Install here without relying on any script added after candidate creation.
+          [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+          $nuget = Get-PackageProvider -ListAvailable -Name NuGet -ErrorAction SilentlyContinue |
+              Where-Object { $_.Version -ge [version]'2.8.5.201' } | Select-Object -First 1
+          if (-not $nuget) {
+              Install-PackageProvider -Name NuGet -MinimumVersion '2.8.5.201' -Scope CurrentUser -Force -ErrorAction Stop | Out-Null
+          }
+          if (-not (Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue)) {
+              Register-PSRepository -Default -ErrorAction Stop
+          }
+          Install-Module -Name Pester -RequiredVersion '5.8.0' -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck -ErrorAction Stop
+          Import-Module Pester -RequiredVersion '5.8.0' -Force -ErrorAction Stop
+          $pester = Get-Module Pester
+          if (-not $pester -or $pester.Version -ne [version]'5.8.0') {
+              throw 'Pinned Pester 5.8.0 was not imported in Windows PowerShell 5.1.'
+          }
+          Write-Host "Pester 5.1 ready: $($pester.Version) at $($pester.Path)"
           Invoke-Pester -Path 'pester/russian-launcher.Tests.ps1', 'pester/russian-launcher-output.Tests.ps1', 'pester/russian-icon-diagnostic.Tests.ps1', 'pester/russian-app-icons.Tests.ps1', 'pester/russian-localization.Tests.ps1', 'pester/russian-release-safety.Tests.ps1', 'pester/russian-console-encoding.Tests.ps1', 'pester/russian-startup.Tests.ps1', 'pester/russian-build-inputs.Tests.ps1', 'pester/russian-upstream-baseline.Tests.ps1' -Output Detailed -CI
 
       - name: Strict backend parity, compile, and WPF validation
