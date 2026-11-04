@@ -26,7 +26,7 @@ Verified published GitHub release metadata (not a substitute for Windows QA):
 
 - WinUtil-RU stable: [26.10.07-RU.1](https://github.com/TokhirjonYuldoshev/WinUtil-RU/releases/tag/26.10.07-RU.1); commit 1be881f8690aed8e9e4c230d4a0818fd8f311a95.
 - Published winutil-RU.ps1 SHA256: 7399dd337f1194374ee5fb79e89ad32178626bfc939d8df7bdc551fa09cd48f8.
-- Official WinUtil stable: [26.10.07](https://github.com/ChrisTitusTech/winutil/releases/tag/26.10.07); commit 07ccd8e2e755a706f31569808b31f5b77acad6a9.
+- Official WinUtil stable: [26.10.28](https://github.com/ChrisTitusTech/winutil/releases/tag/26.10.28); commit a94bf5d7008ddf87731a476f148c1334cca10ed2.
 - RU pinned upstream baseline: 26.10.07. New upstream releases still require an RC and Windows QA.
 <!-- WINUTIL-RU-DOCSYNC:END -->
 
